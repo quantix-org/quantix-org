@@ -49,8 +49,8 @@ func ExecuteOp(op OpCode, a, b uint64, n uint) uint64 {
 		// Convert inputs to byte slices and call spxhash logic
 		data := make([]byte, 8)
 		binary.LittleEndian.PutUint64(data, a)
-		sphinx := spxhash.NewSphinxHash(256, data)
-		hash := quantix.GetHash(data)
+		
+		hash := spxhash.NewSphinxHash(256, data).GetHash(data)
 		// Return first 64 bits of the hash
 		return binary.LittleEndian.Uint64(hash[:8])
 	case Xor:

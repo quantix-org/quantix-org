@@ -545,7 +545,7 @@ func (gs *GenesisState) writeGenesisStateFile(stateDir string) error {
 		Nonce:              gs.Nonce,
 		TotalAllocations:   len(gs.Allocations),
 		TotalAllocatedNQTX: total.String(),
-		TotalAllocatedSPX:  totalQTX.String(),
+		TotalAllocatedQTX:  totalQTX.String(),
 		TotalValidators:    len(gs.InitialValidators),
 		// Full ordered allocation list — previously missing, now populated.
 		Allocations: allocEntries,

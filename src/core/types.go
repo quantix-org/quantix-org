@@ -227,8 +227,8 @@ type genesisAllocationEntry struct {
 	// BalanceNQTX is the initial balance expressed in nQTX (smallest unit).
 	BalanceNQTX string `json:"balance_nspx"`
 
-	// BalanceSPX is the initial balance expressed in whole QTX (truncated).
-	BalanceSPX string `json:"balance_spx"`
+	// BalanceQTX is the initial balance expressed in whole QTX (truncated).
+	BalanceQTX string `json:"balance_qtx"`
 
 	// Label is a human-readable tag (e.g. "Founders", "Reserve").
 	Label string `json:"label"`
@@ -246,8 +246,8 @@ type genesisValidatorEntry struct {
 	// StakeNQTX is the initial stake expressed in nQTX.
 	StakeNQTX string `json:"stake_nspx"`
 
-	// StakeSPX is the initial stake expressed in whole QTX (truncated).
-	StakeSPX string `json:"stake_spx"`
+	// StakeQTX is the initial stake expressed in whole QTX (truncated).
+	StakeQTX string `json:"stake_qtx"`
 
 	// PublicKey is the hex-encoded SPHINCS+ public key (may be empty at genesis).
 	PublicKey string `json:"public_key,omitempty"`
@@ -269,9 +269,9 @@ type genesisStateSnapshot struct {
 	InitialGasLimit    string `json:"initial_gas_limit"`
 	Nonce              string `json:"nonce"`
 	TotalAllocations   int    `json:"total_allocations"`
-	TotalAllocatedNSPX string `json:"total_allocated_nspx"`
-	// TotalAllocatedSPX is the same total expressed in whole QTX for readability.
-	TotalAllocatedSPX string `json:"total_allocated_spx"`
+	TotalAllocatedNQTX string `json:"total_allocated_nqtx"`
+	// TotalAllocatedQTX is the same total expressed in whole QTX for readability.
+	TotalAllocatedQTX string `json:"total_allocated_qtx"`
 	TotalValidators   int    `json:"total_validators"`
 	// Allocations is the full ordered list of pre-funded accounts.
 	// This was the field that caused genesis_state.json to appear blank.

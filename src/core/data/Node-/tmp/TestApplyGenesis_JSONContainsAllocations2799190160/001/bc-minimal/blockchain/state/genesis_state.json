@@ -1,0 +1,29 @@
+{
+  "chain_id": 7331,
+  "chain_name": "Quantix Mainnet",
+  "symbol": "QTX",
+  "timestamp": 1732070400,
+  "timestamp_iso": "2024-11-20T02:40:00Z",
+  "extra_data": "Quantix Network Genesis Block - Decentralized Future",
+  "initial_difficulty": "17179869184",
+  "initial_gas_limit": "5000",
+  "nonce": "0000000000000001",
+  "total_allocations": 2,
+  "total_allocated_nqtx": "200000000000000000000000000",
+  "total_allocated_qtx": "200000000",
+  "total_validators": 0,
+  "allocations": [
+    {
+      "address": "1000000000000000000000000000000000000001",
+      "balance_nspx": "50000000000000000000000000",
+      "balance_qtx": "50000000",
+      "label": "Founders"
+    },
+    {
+      "address": "2000000000000000000000000000000000000001",
+      "balance_nspx": "150000000000000000000000000",
+      "balance_qtx": "150000000",
+      "label": "Reserve"
+    }
+  ]
+}

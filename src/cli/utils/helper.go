@@ -235,7 +235,7 @@ func CallConsensus(numNodes int) error {
 	logger.Info("Ledger Name: %s", chainParams.LedgerName)                                      // Ledger hardware wallet app name
 
 	// Display QTX token economics and denominations from params package
-	tokenInfo := params.GetSPXTokenInfo()
+	tokenInfo := params.GetQTXTokenInfo()
 	logger.Info("Token Name: %s", tokenInfo.Name)                                          // Token name (Quantix)
 	logger.Info("Token Symbol: %s", tokenInfo.Symbol)                                      // Token symbol (QTX)
 	logger.Info("Decimals: %d", tokenInfo.Decimals)                                        // Number of decimal places (18)
