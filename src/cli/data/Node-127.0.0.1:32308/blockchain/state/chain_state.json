@@ -9,7 +9,7 @@
       "genesis_hash": "GENESIS_aa6d6761d1ee4e6c25ad55600c2261965c06f6de1d6d20843ac8f57a10871ac1",
       "genesis_time": "2026-03-28T10:51:31Z",
       "magic_number": 1397770328,
-      "symbol": "SPX",
+      "symbol": "QTX",
       "version": "1.0.0"
     },
     "token_info": {
@@ -17,7 +17,7 @@
     },
     "network_info": {
       "network_name": "Quantix Devnet",
-      "protocol": "SPX/1.0.0"
+      "protocol": "QTX/1.0.0"
     }
   },
   "nodes": [
@@ -37,7 +37,7 @@
         "ledger_name": "Quantix Devnet",
         "magic_number": "0x53504858",
         "network": "Quantix Devnet",
-        "symbol": "SPX",
+        "symbol": "QTX",
         "version": "1.0.0"
       },
       "block_height": 1,
@@ -61,7 +61,7 @@
         "ledger_name": "Quantix Devnet",
         "magic_number": "0x53504858",
         "network": "Quantix Devnet",
-        "symbol": "SPX",
+        "symbol": "QTX",
         "version": "1.0.0"
       },
       "block_height": 1,
@@ -85,7 +85,7 @@
         "ledger_name": "Quantix Devnet",
         "magic_number": "0x53504858",
         "network": "Quantix Devnet",
-        "symbol": "SPX",
+        "symbol": "QTX",
         "version": "1.0.0"
       },
       "block_height": 1,

@@ -5,7 +5,7 @@
     "state_root": "b0d3ca1a848fda851c29d492c6dc3ca9776f92ab2ef1360df2dc5e3d20b161fb",
     "parent_hash": "GENESIS_aa6d6761d1ee4e6c25ad55600c2261965c06f6de1d6d20843ac8f57a10871ac1",
     "uncles_hash": "2c669e9ff4b5b5dd3c20c116397d974c50c3b573c30ed4ec5dd6152de1c9fe76",
-    "extra_data": "Sphinx Network Block",
+    "extra_data": "Quantix Network Block",
     "miner": "0000000000000000000000000000000000000000",
     "version": 1,
     "nblock": 1,

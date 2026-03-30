@@ -1,6 +1,6 @@
 package tweakable
 
-import "github.com/sphinxorg/protocol/src/crypto/SPHINCSPLUS-golang/address"
+import "github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/address"
 
 const (
 	Simple = "simple"

@@ -27,7 +27,7 @@ import (
 	"log"
 	"strings"
 
-	wots "github.com/sphinxorg/protocol/src/crypto/WOTS/key"
+	wots "github.com/ramseyauron/quantix/src/crypto/WOTS/key"
 )
 
 // printKeyOrSignature prints a [][]byte (key or signature) in hex and its total size in bytes

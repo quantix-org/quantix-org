@@ -13,7 +13,7 @@
 >
 > * All development continues - We're actively building at the new location
 > * All contribution opportunities remain - Bug fixes, documentation, features, and proposals are still welcome
-> * SIPS (SPHINX Implementation Proposals) - Still available via our GitHub Wiki
+> * QIPS (QUANTIX Implementation Proposals) - Still available via our GitHub Wiki
 > * MIT License remains - The project continues as open source
 
 
@@ -21,7 +21,7 @@
 
 Quantix is a blockchain layer 1 protocol built by community for humanity—an infrastructure for personal sovereignty that extends beyond economic participation, where privacy is mathematically enforced rather than merely promised. We implemented post-quantum cryptographic algorithms, we ensure blockchain security remains robust against the emerging and convergent threats posed by quantum computing and artificial intelligence.
 
-In an era where AI systems grow increasingly powerful and quantum computers threaten to dismantle classical cryptography, the need for blockchain infrastructure that protects human interests has never been more critical. Sphinx stands as a bulwark for human autonomy, founded on three core beliefs:
+In an era where AI systems grow increasingly powerful and quantum computers threaten to dismantle classical cryptography, the need for blockchain infrastructure that protects human interests has never been more critical. Quantix stands as a bulwark for human autonomy, founded on three core beliefs:
 
 - **Privacy** is a fundamental human right, not a luxury—enforced by mathematics, not trust
 - **Sovereignty** means individuals should have complete control over their digital assets, identity, and destiny
@@ -29,7 +29,7 @@ In an era where AI systems grow increasingly powerful and quantum computers thre
 
 We are building this foundation not just for economic participants, but for every human being who deserves digital self-determination. We encourage developers, researchers, and blockchain enthusiasts to contribute to our project and participate in discussions to enhance the protocol.
 
-## What is SPHINX?
+## What is Quantix?
 
 Quantix is an open-source, post-quantum secure blockchain layer 1 protocol written in Go. We believe that every person brings a unique perspective and set of skills, which is why everyone is invited to contribute to this project. Whether you're a developer, researcher, or enthusiast, your input can help us build a resilient, **sovereign-grade blockchain infrastructure for the next digital era**. The project is under active development, and we welcome contributions from all walks of life!
 

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sphinxorg/protocol/src/crypto/SPHINCSPLUS-golang/parameters"
+	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/parameters"
 )
 
 func TestSerializeDeserialize(t *testing.T) {
