@@ -272,3 +272,13 @@ func (d *DB) Has(key string) (bool, error) {
 	// Key exists in database
 	return true, nil
 }
+
+// WrapLevelDB creates a *DB wrapper around an already-open *leveldb.DB instance.
+// Use this instead of NewLevelDB when the underlying LevelDB file is already open
+// (e.g. shared with SphincsManager) to avoid the "already locked" error.
+func WrapLevelDB(ldb *leveldb.DB) *DB {
+	return &DB{
+		db:    ldb,
+		mutex: sync.RWMutex{},
+	}
+}

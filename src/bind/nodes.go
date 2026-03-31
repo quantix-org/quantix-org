@@ -37,6 +37,7 @@ import (
 
 	"github.com/ramseyauron/quantix/src/common"
 	"github.com/ramseyauron/quantix/src/core"
+	database "github.com/ramseyauron/quantix/src/core/state"
 	config "github.com/ramseyauron/quantix/src/core/sphincs/config"
 	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
 	sign "github.com/ramseyauron/quantix/src/core/sphincs/sign/backend"
@@ -105,8 +106,7 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 	if err != nil {
 		return fmt.Errorf("failed to open LevelDB for %s: %v", nodeConfig.Name, err)
 	}
-	defer db.Close()
-
+	// db is closed in the shutdown handler below after node stops
 	keyManager, err := key.NewKeyManager()
 	if err != nil {
 		return fmt.Errorf("failed to initialize KeyManager: %v", err)
@@ -144,6 +144,60 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 
 	resources[0].P2PServer.SetSphincsMgr(sphincsMgr)
 
+	// Re-inject DB into the resources blockchain (same object, belt-and-suspenders)
+	resources[0].Blockchain.SetStorageDB(database.WrapLevelDB(db))
+	resources[0].Blockchain.SetStateDB(database.WrapLevelDB(db))
+
+	// Devnet solo block producer — mines a new block every 10s from mempool
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("⚠️  Devnet miner recovered from panic: %v — restarting", r)
+				// Restart after panic
+				go func() {
+					time.Sleep(5 * time.Second)
+					log.Printf("🔄 Devnet miner restarting after panic")
+					ticker2 := time.NewTicker(10 * time.Second)
+					defer ticker2.Stop()
+					bc2 := resources[0].Blockchain
+					for range ticker2.C {
+						if height, err := bc2.DevnetMineBlock(nodeConfig.Name); err != nil {
+							if !strings.Contains(err.Error(), "no pending transactions") {
+								log.Printf("⚠️  Devnet miner: %v", err)
+							}
+						} else {
+							log.Printf("⛏️  Devnet mined block #%d", height)
+						}
+					}
+				}()
+			}
+		}()
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+		bc := resources[0].Blockchain
+		log.Printf("🔨 Devnet miner started for %s — producing blocks every 10s", nodeConfig.Name)
+		for {
+			select {
+			case <-ticker.C:
+				func() {
+					defer func() {
+						if r := recover(); r != nil {
+							log.Printf("⚠️  Devnet miner tick panic: %v", r)
+						}
+					}()
+					height, err := bc.DevnetMineBlock(nodeConfig.Name)
+					if err != nil {
+						if !strings.Contains(err.Error(), "no pending transactions") {
+							log.Printf("⚠️  Devnet miner: %v", err)
+						}
+					} else {
+						log.Printf("⛏️  Devnet mined block #%d", height)
+					}
+				}()
+			}
+		}
+	}()
+
 	// Start peer discovery after setup
 	go func() {
 		if err := resources[0].P2PServer.DiscoverPeers(); err != nil {
@@ -162,6 +216,7 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 		log.Printf("Failed to shut down node %s: %v", nodeConfig.Name, err)
 	}
 	wg.Wait()
+	db.Close() // safe to close now — all goroutines done
 	return nil
 }
 
@@ -429,6 +484,13 @@ func SetupNodes(configs []NodeSetupConfig, wg *sync.WaitGroup) ([]NodeResources,
 			return nil, fmt.Errorf("failed to initialize blockchain for %s: %w", config.Name, err)
 		}
 		blockchains[i] = blockchain
+
+		// Wrap the already-open dbs[i] to avoid LevelDB double-lock.
+		// database.WrapLevelDB shares the handle without re-opening the file.
+		blockchain.SetStorageDB(database.WrapLevelDB(dbs[i]))
+		blockchain.SetStateDB(database.WrapLevelDB(dbs[i]))
+		logger.Infof("✅ Storage DB injected for %s — devnet miner enabled", config.Name)
+
 		logger.Infof("Genesis block created for %s, hash: %x", config.Name, blockchains[i].GetBestBlockHash())
 		messageChans[i] = make(chan *security.Message, 1000)
 		rpcServers[i] = rpc.NewServer(messageChans[i], blockchains[i])
