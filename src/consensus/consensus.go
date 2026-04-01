@@ -1346,9 +1346,11 @@ func (c *Consensus) hasQuorum(blockHash string) bool {
 		return false
 	}
 
-	// Calculate required stake (2/3 of total)
+	// F-02 fix: floor(2*totalStake/3) allows exactly 66.6% to pass due to integer
+	// truncation. BFT safety requires strictly more than 2/3, so we add +1.
 	requiredStake := new(big.Int).Mul(totalStake, big.NewInt(2))
 	requiredStake.Div(requiredStake, big.NewInt(3))
+	requiredStake.Add(requiredStake, big.NewInt(1)) // +1 enforces strict BFT majority
 
 	// Check if quorum achieved
 	hasQuorum := totalStakeVoted.Cmp(requiredStake) >= 0
@@ -1393,9 +1395,10 @@ func (c *Consensus) hasPrepareQuorum(blockHash string) bool {
 		return false
 	}
 
-	// Calculate required stake (2/3 of total)
+	// F-02 fix: same off-by-one correction as hasQuorum — enforce strict BFT majority.
 	requiredStake := new(big.Int).Mul(totalStake, big.NewInt(2))
 	requiredStake.Div(requiredStake, big.NewInt(3))
+	requiredStake.Add(requiredStake, big.NewInt(1)) // +1 enforces strict BFT majority
 
 	return totalStakeVoted.Cmp(requiredStake) >= 0
 }
@@ -1410,9 +1413,15 @@ func (c *Consensus) getValidatorStake(validatorID string) *big.Int {
 	return big.NewInt(0)
 }
 
-// calculateQuorumSize returns the number of votes needed for quorum
+// calculateQuorumSize returns the number of votes needed for quorum.
+// F-02 fix: use floor(2N/3)+1 to match hasQuorum/hasPrepareQuorum. Float
+// multiplication with quorumFraction can truncate to an insufficient count.
 func (c *Consensus) calculateQuorumSize(totalNodes int) int {
-	quorumSize := int(float64(totalNodes) * c.quorumFraction)
+	if totalNodes < 1 {
+		return 1
+	}
+	// floor(2N/3) + 1 mirrors the stake-weighted threshold
+	quorumSize := (2*totalNodes)/3 + 1
 	if quorumSize < 1 {
 		return 1 // Minimum quorum size is 1
 	}
