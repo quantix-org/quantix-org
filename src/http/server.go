@@ -27,6 +27,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
 	"net/http"
 	"strconv"
 	"time"
@@ -267,32 +268,32 @@ func (s *Server) handleGetAddress(c *gin.Context) {
 	addr := c.Param("addr")
 	blocks := s.blockchain.GetBlocks()
 
-	var totalReceived, totalSent, balance int64
+	totalReceived := new(big.Int)
+	totalSent := new(big.Int)
 	txCount := 0
 
 	for _, block := range blocks {
 		for _, tx := range block.Body.TxsList {
-			amt := int64(0)
-			if tx.Amount != nil {
-				amt = tx.Amount.Int64()
+			if tx.Amount == nil {
+				continue
 			}
 			if tx.Receiver == addr {
-				totalReceived += amt
+				totalReceived.Add(totalReceived, tx.Amount)
 				txCount++
 			}
 			if tx.Sender == addr {
-				totalSent += amt
+				totalSent.Add(totalSent, tx.Amount)
 				txCount++
 			}
 		}
 	}
-	balance = totalReceived - totalSent
+	balance := new(big.Int).Sub(totalReceived, totalSent)
 
 	c.JSON(http.StatusOK, gin.H{
 		"address":        addr,
-		"balance":        balance,
-		"total_received": totalReceived,
-		"total_sent":     totalSent,
+		"balance":        balance.String(),
+		"total_received": totalReceived.String(),
+		"total_sent":     totalSent.String(),
 		"tx_count":       txCount,
 	})
 }
