@@ -160,6 +160,18 @@ func (s *Server) setupRoutes() {
 	s.router.GET("/bestblockhash", s.handleGetBestBlockHash)
 	s.router.GET("/blockcount", s.handleGetBlockCount)
 	s.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	// Address endpoints — balance + transaction history
+	s.router.GET("/address/:addr", s.handleGetAddress)
+	s.router.GET("/address/:addr/txs", s.handleGetAddressTxs)
+
+	s.router.POST("/mine", func(c *gin.Context) {
+		height, err := s.blockchain.DevnetMineBlock("http-trigger")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "block mined", "height": height})
+	})
 	s.router.GET("/latest-transaction", func(c *gin.Context) {
 		s.lastTxMutex.RLock()
 		defer s.lastTxMutex.RUnlock()
@@ -248,4 +260,100 @@ func (s *Server) Stop() error {
 	}
 	log.Printf("HTTP server on %s stopped", s.address)
 	return nil
+}
+
+// handleGetAddress returns address summary: balance, tx count, sent, received
+func (s *Server) handleGetAddress(c *gin.Context) {
+	addr := c.Param("addr")
+	blocks := s.blockchain.GetBlocks()
+
+	var totalReceived, totalSent, balance int64
+	txCount := 0
+
+	for _, block := range blocks {
+		for _, tx := range block.Body.TxsList {
+			amt := int64(0)
+			if tx.Amount != nil {
+				amt = tx.Amount.Int64()
+			}
+			if tx.Receiver == addr {
+				totalReceived += amt
+				txCount++
+			}
+			if tx.Sender == addr {
+				totalSent += amt
+				txCount++
+			}
+		}
+	}
+	balance = totalReceived - totalSent
+
+	c.JSON(http.StatusOK, gin.H{
+		"address":        addr,
+		"balance":        balance,
+		"total_received": totalReceived,
+		"total_sent":     totalSent,
+		"tx_count":       txCount,
+	})
+}
+
+// handleGetAddressTxs returns all transactions for an address
+func (s *Server) handleGetAddressTxs(c *gin.Context) {
+	addr := c.Param("addr")
+	blocks := s.blockchain.GetBlocks()
+
+	type TxEntry struct {
+		Hash        string `json:"hash"`
+		Block       uint64 `json:"block"`
+		Timestamp   int64  `json:"timestamp"`
+		From        string `json:"from"`
+		To          string `json:"to"`
+		Amount      string `json:"amount"`
+		GasLimit    string `json:"gas_limit"`
+		GasPrice    string `json:"gas_price"`
+		Nonce       uint64 `json:"nonce"`
+		Direction   string `json:"direction"` // "in" or "out"
+	}
+
+	var txs []TxEntry
+	for _, block := range blocks {
+		for _, tx := range block.Body.TxsList {
+			if tx.Sender == addr || tx.Receiver == addr {
+				dir := "in"
+				if tx.Sender == addr {
+					dir = "out"
+				}
+				amt := "0"
+				if tx.Amount != nil {
+					amt = tx.Amount.String()
+				}
+				gl := "0"
+				if tx.GasLimit != nil {
+					gl = tx.GasLimit.String()
+				}
+				gp := "0"
+				if tx.GasPrice != nil {
+					gp = tx.GasPrice.String()
+				}
+				txs = append(txs, TxEntry{
+					Hash:      tx.ID,
+					Block:     block.Header.Height,
+					Timestamp: block.Header.Timestamp,
+					From:      tx.Sender,
+					To:        tx.Receiver,
+					Amount:    amt,
+					GasLimit:  gl,
+					GasPrice:  gp,
+					Nonce:     tx.Nonce,
+					Direction: dir,
+				})
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"address":      addr,
+		"transactions": txs,
+		"count":        len(txs),
+	})
 }

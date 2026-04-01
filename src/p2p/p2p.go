@@ -155,7 +155,7 @@ func NewServer(config network.NodePortConfig, blockchain *core.Blockchain, db *l
 	// Create DHT instance for peer discovery
 	dhtInstance, err := dht.NewDHT(dhtConfig, logger)
 	if err != nil {
-		log.Fatalf("Failed to initialize DHT: %v", err)
+		log.Printf("⚠️  DHT unavailable (non-fatal): %v — node will run without peer discovery", err)
 	}
 
 	// Create node manager to track all known nodes
