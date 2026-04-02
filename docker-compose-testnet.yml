@@ -1,0 +1,125 @@
+version: "3.9"
+
+# 4-node testnet — nodes auto-connect via seed list
+# Node ports:
+#   node0: RPC=8560, P2P=32421, WS=8700
+#   node1: RPC=8561, P2P=32431, WS=8701
+#   node2: RPC=8562, P2P=32441, WS=8702
+#   node3: RPC=8563, P2P=32451, WS=8703
+
+x-quantix-common: &quantix-common
+  build: .
+  restart: unless-stopped
+  environment:
+    - QUANTIX_ENV=testnet
+    - QUANTIX_LOG_LEVEL=info
+
+services:
+  node0:
+    <<: *quantix-common
+    container_name: quantix-testnet-node0
+    ports:
+      - "8560:8560"
+      - "32421:32421"
+      - "8700:8700"
+    volumes:
+      - node0-data:/data
+    environment:
+      - QUANTIX_ENV=testnet
+      - QUANTIX_LOG_LEVEL=info
+      - QUANTIX_NODE_ID=node0
+    command:
+      - node
+      - --testnet
+      - --data-dir=/data
+      - --http-port=8560
+      - --p2p-port=32421
+      - --ws-port=8700
+      - --seeds=node1:32431,node2:32441,node3:32451
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8560/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  node1:
+    <<: *quantix-common
+    container_name: quantix-testnet-node1
+    ports:
+      - "8561:8561"
+      - "32431:32431"
+      - "8701:8701"
+    volumes:
+      - node1-data:/data
+    environment:
+      - QUANTIX_ENV=testnet
+      - QUANTIX_LOG_LEVEL=info
+      - QUANTIX_NODE_ID=node1
+    command:
+      - node
+      - --testnet
+      - --data-dir=/data
+      - --http-port=8561
+      - --p2p-port=32431
+      - --ws-port=8701
+      - --seeds=node0:32421,node2:32441,node3:32451
+    depends_on:
+      node0:
+        condition: service_healthy
+
+  node2:
+    <<: *quantix-common
+    container_name: quantix-testnet-node2
+    ports:
+      - "8562:8562"
+      - "32441:32441"
+      - "8702:8702"
+    volumes:
+      - node2-data:/data
+    environment:
+      - QUANTIX_ENV=testnet
+      - QUANTIX_LOG_LEVEL=info
+      - QUANTIX_NODE_ID=node2
+    command:
+      - node
+      - --testnet
+      - --data-dir=/data
+      - --http-port=8562
+      - --p2p-port=32441
+      - --ws-port=8702
+      - --seeds=node0:32421,node1:32431,node3:32451
+    depends_on:
+      node0:
+        condition: service_healthy
+
+  node3:
+    <<: *quantix-common
+    container_name: quantix-testnet-node3
+    ports:
+      - "8563:8563"
+      - "32451:32451"
+      - "8703:8703"
+    volumes:
+      - node3-data:/data
+    environment:
+      - QUANTIX_ENV=testnet
+      - QUANTIX_LOG_LEVEL=info
+      - QUANTIX_NODE_ID=node3
+    command:
+      - node
+      - --testnet
+      - --data-dir=/data
+      - --http-port=8563
+      - --p2p-port=32451
+      - --ws-port=8703
+      - --seeds=node0:32421,node1:32431,node2:32441
+    depends_on:
+      node0:
+        condition: service_healthy
+
+volumes:
+  node0-data:
+  node1-data:
+  node2-data:
+  node3-data:
