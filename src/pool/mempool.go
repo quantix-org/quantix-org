@@ -262,6 +262,15 @@ func (mp *Mempool) validateTransaction(pooledTx *PooledTransaction) {
 	}
 }
 
+// SetBalanceChecker injects a BalanceChecker so the mempool can enforce
+// sender-balance ≥ amount + gas before accepting a transaction.
+// Call this after constructing the mempool and before submitting transactions.
+func (mp *Mempool) SetBalanceChecker(bc BalanceChecker) {
+	mp.lock.Lock()
+	defer mp.lock.Unlock()
+	mp.balanceChecker = bc
+}
+
 // performValidation executes the actual validation logic
 func (mp *Mempool) performValidation(tx *types.Transaction) error {
 	// Validate transaction size
@@ -289,8 +298,17 @@ func (mp *Mempool) performValidation(tx *types.Transaction) error {
 		return errors.New("missing gas parameters")
 	}
 
-	// Additional business logic validation can be added here
-	// For example: signature verification, nonce validation, balance checks, etc.
+	// Balance check: reject if sender cannot cover amount + gas fee.
+	// This requires a BalanceChecker to be injected (optional — if absent, skip).
+	if mp.balanceChecker != nil {
+		gasFee := tx.GetGasFee()
+		totalCost := new(big.Int).Add(tx.Amount, gasFee)
+		balance := mp.balanceChecker.GetBalance(tx.Sender)
+		if balance.Cmp(totalCost) < 0 {
+			return fmt.Errorf("insufficient balance: sender %s has %s nQTX, needs %s nQTX (amount %s + gas %s)",
+				tx.Sender, balance.String(), totalCost.String(), tx.Amount.String(), gasFee.String())
+		}
+	}
 
 	return nil
 }

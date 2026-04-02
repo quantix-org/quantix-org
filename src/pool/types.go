@@ -114,4 +114,15 @@ type Mempool struct {
 
 	// Replay protection: tracks highest committed nonce per sender
 	senderNonce map[string]uint64
+
+	// BalanceChecker is an optional hook that lets the mempool reject
+	// transactions whose sender cannot cover amount + gas fee.
+	// Set via Mempool.SetBalanceChecker after construction.
+	balanceChecker BalanceChecker
+}
+
+// BalanceChecker is implemented by anything that can report an account balance.
+// blockchain.StateDB satisfies this interface.
+type BalanceChecker interface {
+	GetBalance(address string) *big.Int
 }

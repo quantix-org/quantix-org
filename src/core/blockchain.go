@@ -2650,35 +2650,25 @@ func (bc *Blockchain) StartTPSReporting(ctx context.Context) {
 }
 
 // DevnetMineBlock creates a new block from pending mempool transactions and
-// stores it directly, bypassing PBFT consensus and StateDB execution.
-// This is safe for single-node devnet use where state execution is not required.
+// commits it through CommitBlock (which executes state transitions and persists
+// the block with a real StateRoot). Safe for single-node devnet use.
 func (bc *Blockchain) DevnetMineBlock(nodeID string) (uint64, error) {
 	block, err := bc.CreateBlock()
 	if err != nil {
 		return 0, fmt.Errorf("DevnetMineBlock: create: %w", err)
 	}
 
-	// Set proposer
+	// Set proposer before execution so mintBlockReward credits the right address.
 	block.Header.ProposerID = nodeID
 
-	// Store block directly without StateDB execution to avoid nil pointer panics
-	// in the devnet solo-miner scenario.
-	if err := bc.storage.StoreBlock(block); err != nil {
-		return 0, fmt.Errorf("DevnetMineBlock: store: %w", err)
+	// Commit through the full execution path: ExecuteBlock + StoreBlock.
+	consensusBlock := NewBlockHelper(block)
+	if err := bc.CommitBlock(consensusBlock); err != nil {
+		return 0, fmt.Errorf("DevnetMineBlock: commit: %w", err)
 	}
-
-	// Update in-memory chain and remove mined txs from mempool
-	bc.lock.Lock()
-	bc.chain = append(bc.chain, block)
-	txIDs := make([]string, len(block.Body.TxsList))
-	for i, tx := range block.Body.TxsList {
-		txIDs[i] = tx.ID
-	}
-	bc.mempool.RemoveTransactions(txIDs)
-	bc.lock.Unlock()
 
 	logger.Info("⛏️  Devnet block mined: height=%d, hash=%s, txs=%d",
-		block.GetHeight(), block.GetHash(), len(txIDs))
+		block.GetHeight(), block.GetHash(), len(block.Body.TxsList))
 
 	return uint64(block.Header.Height), nil
 }
