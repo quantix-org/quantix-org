@@ -884,9 +884,9 @@ func (tx *Transaction) SanityCheck() error {
 		return fmt.Errorf("transaction receiver is missing")
 	}
 
-	// Ensure the amount is non-negative
-	if tx.Amount.Sign() == -1 {
-		return fmt.Errorf("transaction amount is negative")
+	// Ensure the amount is positive (zero-amount transactions waste block space)
+	if tx.Amount.Sign() <= 0 {
+		return fmt.Errorf("transaction amount must be positive, got %s", tx.Amount.String())
 	}
 
 	// Check gas limit and gas price are non-negative

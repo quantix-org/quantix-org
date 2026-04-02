@@ -193,8 +193,9 @@ type RANDAO struct {
 	params              VDFParams
 	impl                vdfProvider
 	cache               *VDFCache
-	consecutiveFailures map[string]int // Track consecutive failures per validator
+	consecutiveFailures map[string]int // Track consecutive failures per verified self-submissions only
 	validatorID         string         // Store this node's validator ID
+	lastRecovery        time.Time      // Rate-limit emergency Recovery() calls (F-15)
 }
 
 // StakeWeightedSelector selects proposers and committees based on stake
@@ -277,6 +278,9 @@ type Consensus struct {
 	attestations map[uint64][]*Attestation
 
 	electedSlot uint64 // slot number used when electedLeaderID was set
+
+	// Timeout vote collection for view change quorum (F-13)
+	timeoutVotes map[uint64]map[string]*TimeoutMsg // view -> voterID -> msg
 }
 
 // SigningService handles cryptographic signing for consensus messages

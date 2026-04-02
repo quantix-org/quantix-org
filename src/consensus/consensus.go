@@ -162,6 +162,7 @@ func NewConsensus(
 		weightedCommitVotes:  make(map[string]*big.Int),         // Weighted commit votes by stake
 		attestations:         make(map[uint64][]*Attestation),   // Attestations by epoch
 		electedLeaderID:      "",                                // Set by UpdateLeaderStatus
+		timeoutVotes:         make(map[uint64]map[string]*TimeoutMsg), // For view change quorum
 	}
 
 	// Initialize and validate VDF parameters (run once at startup)
@@ -650,8 +651,13 @@ func (c *Consensus) processProposal(proposal *Proposal) {
 		return
 	}
 
-	// Verify proposal signature if signing service available
-	if c.signingService != nil && len(proposal.Signature) > 0 {
+	// Verify proposal signature if signing service available.
+	// F-12: Reject proposals with missing signatures when signing service is configured.
+	if c.signingService != nil {
+		if len(proposal.Signature) == 0 {
+			logger.Warn("❌ Rejecting unsigned proposal from %s (signing service active)", proposal.ProposerID)
+			return
+		}
 		valid, err := c.signingService.VerifyProposal(proposal)
 		if err != nil {
 			logger.Warn("❌ Error verifying proposal signature from %s: %v", proposal.ProposerID, err)
@@ -663,7 +669,7 @@ func (c *Consensus) processProposal(proposal *Proposal) {
 		}
 		logger.Info("✅ Valid signature for proposal from %s", proposal.ProposerID)
 	} else {
-		logger.Warn("⚠️ No signing service or empty signature, skipping verification")
+		logger.Warn("⚠️ No signing service, skipping proposal signature verification")
 	}
 
 	// Verify block header signature
@@ -1186,14 +1192,36 @@ func (c *Consensus) processTimeout(timeout *TimeoutMsg) {
 		logger.Warn("WARNING: No signing service, accepting unsigned timeout from %s", timeout.VoterID)
 	}
 
-	// If timeout is for a higher view, perform view change
+	// F-13: Collect timeout messages per view and only advance when f+1 distinct validators agree.
 	if timeout.View > c.currentView {
-		logger.Info("View change requested to view %d by %s", timeout.View, timeout.VoterID)
-		c.currentView = timeout.View
-		c.lastViewChange = common.GetTimeService().Now()
-		c.resetConsensusState()
-		c.updateLeaderStatusWithValidators(c.getValidators())
-		logger.Info("View change completed: node=%s, new_view=%d, leader=%v", c.nodeID, c.currentView, c.isLeader)
+		if c.timeoutVotes[timeout.View] == nil {
+			c.timeoutVotes[timeout.View] = make(map[string]*TimeoutMsg)
+		}
+		c.timeoutVotes[timeout.View][timeout.VoterID] = timeout
+
+		validators := c.getValidators()
+		n := len(validators)
+		f := (n - 1) / 3 // max Byzantine faults
+		required := f + 1
+		if required < 1 {
+			required = 1
+		}
+		votes := len(c.timeoutVotes[timeout.View])
+		logger.Info("View change votes for view %d: %d/%d (need %d)", timeout.View, votes, n, required)
+		if votes >= required {
+			logger.Info("View change quorum reached for view %d by %s", timeout.View, timeout.VoterID)
+			// Clean up old timeout votes
+			for v := range c.timeoutVotes {
+				if v <= c.currentView {
+					delete(c.timeoutVotes, v)
+				}
+			}
+			c.currentView = timeout.View
+			c.lastViewChange = common.GetTimeService().Now()
+			c.resetConsensusState()
+			c.updateLeaderStatusWithValidators(validators)
+			logger.Info("View change completed: node=%s, new_view=%d, leader=%v", c.nodeID, c.currentView, c.isLeader)
+		}
 	}
 }
 

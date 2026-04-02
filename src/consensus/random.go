@@ -508,12 +508,22 @@ func (r *RANDAO) Submit(slotInEpoch uint64, sub *VDFSubmission) error {
 
 				logger.Error("Self VDF verification failed for epoch %d (attempt %d)", sub.Epoch, failures) // Logs failure
 
-				// Recover after 3 consecutive failures
+				// F-15: Recover after 3 consecutive failures only if not rate-limited.
+				// Recovery is capped at once per hour to prevent attacker-triggered state wipe.
 				if failures >= 3 { // If 3 consecutive failures
-					logger.Error("!!! CRITICAL: 3 consecutive VDF failures detected - initiating emergency recovery !!!") // Logs critical error
-					r.Recovery()                                                                                          // Triggers emergency recovery
+					r.mu.Lock()
+					timeSinceLast := time.Since(r.lastRecovery)
+					if timeSinceLast >= time.Hour {
+						logger.Error("!!! CRITICAL: 3 consecutive VDF failures detected - initiating emergency recovery !!!") // Logs critical error
+						r.lastRecovery = time.Now()
+						r.mu.Unlock()
+						r.Recovery() // Triggers emergency recovery
+					} else {
+						logger.Warn("Emergency recovery suppressed: last recovery was %v ago (rate limit: 1/hour)", timeSinceLast)
+						r.mu.Unlock()
+					}
 
-					// Reset failure counter after recovery
+					// Reset failure counter after recovery attempt
 					r.mu.Lock()                                    // Acquires write lock
 					delete(r.consecutiveFailures, sub.ValidatorID) // Removes failure counter
 					r.mu.Unlock()                                  // Releases write lock
