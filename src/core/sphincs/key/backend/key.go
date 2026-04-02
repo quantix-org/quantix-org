@@ -69,13 +69,11 @@ func (km *KeyManager) GenerateKey() (*SPHINCS_SK, *sphincs.SPHINCS_PK, error) {
 
 	// Ensure the keys have valid fields.
 	if len(sk.SKseed) == 0 || len(sk.SKprf) == 0 || len(sk.PKseed) == 0 || len(sk.PKroot) == 0 {
-		log.Printf("GenerateKey: Invalid key fields: SKseed=%d, SKprf=%d, PKseed=%d, PKroot=%d",
-			len(sk.SKseed), len(sk.SKprf), len(sk.PKseed), len(sk.PKroot))
+		log.Printf("GenerateKey: key generation produced empty fields")
 		return nil, nil, errors.New("key generation failed: empty key fields")
 	}
 
-	log.Printf("GenerateKey: Generated keys: SKseed=%d, SKprf=%d, PKseed=%d, PKroot=%d, PKseed(pub)=%d, PKroot(pub)=%d",
-		len(sk.SKseed), len(sk.SKprf), len(sk.PKseed), len(sk.PKroot), len(pk.PKseed), len(pk.PKroot))
+	log.Printf("GenerateKey: key pair generated successfully")
 
 	// Wrap and return the generated private and public keys.
 	return &SPHINCS_SK{
@@ -95,8 +93,7 @@ func (sk *SPHINCS_SK) SerializeSK() ([]byte, error) {
 
 	// Validate key fields
 	if len(sk.SKseed) == 0 || len(sk.SKprf) == 0 || len(sk.PKseed) == 0 || len(sk.PKroot) == 0 {
-		log.Printf("SerializeSK: Invalid private key fields: SKseed=%d, SKprf=%d, PKseed=%d, PKroot=%d",
-			len(sk.SKseed), len(sk.SKprf), len(sk.PKseed), len(sk.PKroot))
+		log.Printf("SerializeSK: invalid private key: empty fields")
 		return nil, errors.New("invalid private key: empty fields")
 	}
 
@@ -105,7 +102,7 @@ func (sk *SPHINCS_SK) SerializeSK() ([]byte, error) {
 	data = append(data, sk.PKseed...)
 	data = append(data, sk.PKroot...)
 
-	log.Printf("SerializeSK: Serialized private key: length=%d", len(data))
+	log.Printf("SerializeSK: serialized private key successfully")
 	return data, nil
 }
 
@@ -130,7 +127,7 @@ func (km *KeyManager) SerializeKeyPair(sk *SPHINCS_SK, pk *sphincs.SPHINCS_PK) (
 		return nil, nil, fmt.Errorf("failed to serialize public key: %v", err)
 	}
 
-	log.Printf("SerializeKeyPair: Serialized keys: PrivateKey length=%d, PublicKey length=%d", len(skBytes), len(pkBytes))
+	log.Printf("SerializeKeyPair: serialized key pair successfully")
 	return skBytes, pkBytes, nil
 }
 
@@ -140,7 +137,7 @@ func (km *KeyManager) DeserializeKeyPair(skBytes, pkBytes []byte) (*sphincs.SPHI
 		log.Printf("DeserializeKeyPair: Missing parameters in KeyManager")
 		return nil, nil, errors.New("missing parameters in KeyManager")
 	}
-	log.Printf("DeserializeKeyPair: PrivateKey length=%d, PublicKey length=%d", len(skBytes), len(pkBytes))
+	log.Printf("DeserializeKeyPair: deserializing key pair")
 	if len(skBytes) == 0 {
 		log.Printf("DeserializeKeyPair: Empty private key bytes")
 		return nil, nil, errors.New("empty private key bytes")
@@ -155,8 +152,7 @@ func (km *KeyManager) DeserializeKeyPair(skBytes, pkBytes []byte) (*sphincs.SPHI
 		log.Printf("DeserializeKeyPair: Failed to deserialize public key: %v", err)
 		return nil, nil, fmt.Errorf("failed to deserialize public key: %v", err)
 	}
-	log.Printf("DeserializeKeyPair: Successfully deserialized keys: SKseed=%d, SKprf=%d, PKseed=%d, PKroot=%d",
-		len(sk.SKseed), len(sk.SKprf), len(sk.PKseed), len(sk.PKroot))
+	log.Printf("DeserializeKeyPair: key pair deserialized successfully")
 	return sk, pk, nil
 }
 
@@ -176,7 +172,6 @@ func (km *KeyManager) DeserializePublicKey(pkBytes []byte) (*sphincs.SPHINCS_PK,
 		log.Printf("DeserializePublicKey: Failed to deserialize public key: %v", err)
 		return nil, fmt.Errorf("failed to deserialize public key: %v", err)
 	}
-	log.Printf("DeserializePublicKey: Successfully deserialized public key: PKseed=%d, PKroot=%d",
-		len(pk.PKseed), len(pk.PKroot))
+	log.Printf("DeserializePublicKey: public key deserialized successfully")
 	return pk, nil
 }

@@ -24,8 +24,9 @@
 package rpc
 
 import (
+	"crypto/rand"
+	"encoding/binary"
 	"hash"
-	"math/rand" // #nosec G404 — used only for non-security session ID generation
 	"net"
 	"sync"
 	"time"
@@ -47,10 +48,15 @@ type Codec struct{}
 // RPCID represents a unique RPC request identifier.
 type RPCID uint64
 
-// GetRPCID generates a random non-zero RPCID.
+// GetRPCID generates a cryptographically random non-zero RPCID.
 func GetRPCID() RPCID {
 	for {
-		if v := rand.Uint64(); v != 0 {
+		var b [8]byte
+		if _, err := rand.Read(b[:]); err != nil {
+			continue
+		}
+		v := binary.BigEndian.Uint64(b[:])
+		if v != 0 {
 			return RPCID(v)
 		}
 	}

@@ -420,10 +420,18 @@ func memoryCleanse(data []byte) {
 	}
 }
 
-// VerifyPubKey: Dummy verification for now
+// VerifyPubKey verifies that the given secret key bytes contain the expected public key.
+// SPHINCS+ SK format: SKseed || SKprf || PKseed || PKroot (4*N bytes total)
+// SPHINCS+ PK format: PKseed || PKroot (2*N bytes total)
+// So the last half of the secret key bytes must equal the public key bytes.
 func VerifyPubKey(secret, pubKey []byte) bool {
-	// Assumes pubKey derived from secret
-	return bytes.Equal(secret, pubKey)
+	if len(secret) == 0 || len(pubKey) == 0 {
+		return false
+	}
+	if len(secret) != 2*len(pubKey) {
+		return false
+	}
+	return bytes.Equal(secret[len(secret)/2:], pubKey)
 }
 
 // Modify GenerateRandomBytes to accept an appropriate size for IV and Key

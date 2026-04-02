@@ -26,10 +26,8 @@ package security
 import (
 	"crypto/rand"
 	"crypto/sha512"
-	"encoding/hex"
 	"errors"
 	"io"
-	"log"
 	"net"
 
 	"github.com/cloudflare/circl/kem/kyber/kyber768"
@@ -91,9 +89,6 @@ func PerformKEM(conn net.Conn, isInitiator bool) (*EncryptionKey, error) {
 		}
 	}
 
-	// Log the derived X25519 shared secret (first 16 bytes shown)
-	log.Printf("X25519 shared: %s", hex.EncodeToString(xShared[:16]))
-
 	// ----------- Kyber768 Post-Quantum KEM -----------
 	scheme := kyber768.Scheme() // Use Kyber768 from CIRCL
 	var kemShared []byte        // Will hold the KEM shared secret
@@ -149,9 +144,6 @@ func PerformKEM(conn net.Conn, isInitiator bool) (*EncryptionKey, error) {
 		}
 		kemShared = shared
 	}
-
-	// Log the Kyber768 shared secret (first 16 bytes shown)
-	log.Printf("Kyber768 shared: %s", hex.EncodeToString(kemShared[:16]))
 
 	// ----------- Combine X25519 and Kyber Shared Secrets -----------
 	combined := append(xShared, kemShared...) // Concatenate both secrets
