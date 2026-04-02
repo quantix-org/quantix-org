@@ -37,7 +37,6 @@ import (
 	types "github.com/ramseyauron/quantix/src/core/transaction"
 	logger "github.com/ramseyauron/quantix/src/log"
 	denom "github.com/ramseyauron/quantix/src/params/denom"
-	"golang.org/x/crypto/sha3"
 )
 
 // Workflow:  ProposeBlock → processProposal → processPrepareVote → processVote → commitBlock → CommitBlock → StoreBlock → storeBlockToDisk.
@@ -215,104 +214,54 @@ func (c *Consensus) Stop() error {
 	return nil
 }
 
-// initializeVDF validates and optionally recovers VDF state
+// initializeVDF validates VDF parameters at startup using the single canonical
+// derivation path (LoadCanonicalVDFParams / vdf.go).
+//
+// F-04 / F-17: the old code had two conflicting derivation paths:
+//   - LoadCanonicalVDFParams: SHAKE-256, 128-byte output, T = 1<<20 (strong)
+//   - getExpectedVDFParams:   SHAKE-256, 32-byte output,  T = 1024  (weak)
+//
+// Because they always disagreed, initializeVDF silently called ForceSyncParams
+// with the weak T=1024 parameters on every startup, reducing VDF security by
+// ~1000×.  The fix: delete getExpectedVDFParams, use only LoadCanonicalVDFParams.
 func (c *Consensus) initializeVDF() error {
 	if c.randao == nil {
 		logger.Warn("RANDAO not initialized, cannot validate VDF parameters")
 		return nil
 	}
 
-	// Get VDF parameters from genesis
-	expectedParams := c.getExpectedVDFParams()
+	// Single authoritative source for VDF parameters — never deviate from this.
+	canonicalParams, err := LoadCanonicalVDFParams()
+	if err != nil {
+		return fmt.Errorf("failed to load canonical VDF params: %w", err)
+	}
 
-	// Check if current params match expected
-	if err := c.randao.ValidateVDFParams(expectedParams); err != nil {
-		logger.Error("VDF parameter mismatch: %v", err)
-		logger.Error("This node may be out of sync or corrupted")
+	// Validate that the RANDAO instance was created with the same parameters.
+	if err := c.randao.ValidateVDFParams(canonicalParams); err != nil {
+		// Parameters differ: the RANDAO instance was created with different values
+		// (e.g. passed incorrect params at construction).  Force-sync to canonical.
+		logger.Error("VDF parameter mismatch detected at startup: %v", err)
+		logger.Error("Forcing sync to canonical parameters (T=%d, D=%d bits)",
+			canonicalParams.T, canonicalParams.Discriminant.BitLen())
 
-		// Force sync from trusted source
-		if err := c.randao.ForceSyncParams(expectedParams); err != nil {
-			return fmt.Errorf("failed to sync VDF params: %w", err)
+		if syncErr := c.randao.ForceSyncParams(canonicalParams); syncErr != nil {
+			return fmt.Errorf("failed to sync VDF params to canonical: %w", syncErr)
 		}
-		logger.Info("VDF parameters force synced successfully")
+		logger.Info("VDF parameters force-synced to canonical values")
 		c.randao.Recovery()
 		return nil
 	}
 
-	logger.Info("VDF parameters validated successfully")
+	logger.Info("VDF parameters validated: T=%d, D=%d bits — OK",
+		canonicalParams.T, canonicalParams.Discriminant.BitLen())
 
-	// Also validate state consistency
+	// Also validate in-memory state consistency.
 	if err := c.randao.ValidateState(); err != nil {
-		logger.Warn("VDF state inconsistency detected: %v - running recovery", err)
+		logger.Warn("VDF state inconsistency at startup: %v — running recovery", err)
 		c.randao.Recovery()
 	}
 
 	return nil
-}
-
-// getExpectedVDFParams returns the expected VDF parameters derived from genesis
-// This ensures all nodes use the same parameters derived from the actual genesis block
-func (c *Consensus) getExpectedVDFParams() VDFParams {
-	var genesisHash string
-
-	if c.blockChain != nil {
-		// Try to get genesis block by traversing from latest block
-		latestBlock := c.blockChain.GetLatestBlock()
-		if latestBlock != nil {
-			// Walk backwards to find genesis by checking parent chain
-			currentHash := latestBlock.GetHash()
-			for {
-				block := c.blockChain.GetBlockByHash(currentHash)
-				if block == nil {
-					break
-				}
-				if block.GetHeight() == 0 {
-					genesisHash = block.GetHash()
-					logger.Info("Found genesis hash by traversing chain: %s", genesisHash)
-					break
-				}
-				currentHash = block.GetPrevHash()
-			}
-		}
-	}
-
-	// If still no genesis hash, derive from node ID (fallback)
-	if genesisHash == "" {
-		genesisHash = fmt.Sprintf("GENESIS_%s", c.nodeID)
-		logger.Error("No genesis hash available, using fallback: %s", genesisHash)
-	}
-
-	logger.Info("Deriving VDF parameters from genesis hash: %s", genesisHash)
-
-	// Create a deterministic discriminant from genesis hash
-	shake := sha3.NewShake256()
-	shake.Write([]byte(genesisHash))
-	hashBytes := make([]byte, 32)
-	shake.Read(hashBytes)
-
-	// Create a prime from the hash (ensuring it's suitable for class group)
-	prime := new(big.Int).SetBytes(hashBytes)
-	prime.SetBit(prime, 0, 1) // Ensure odd
-	prime.SetBit(prime, 1, 1) // Ensure ≡ 3 mod 4
-
-	// Ensure it's a prime
-	for !prime.ProbablyPrime(20) {
-		prime.Add(prime, big.NewInt(4))
-	}
-
-	// Make it negative for discriminant
-	D := new(big.Int).Neg(prime)
-	T := uint64(1024)
-
-	logger.Info("Expected VDF parameters:")
-	logger.Info("  Discriminant D: %d bits, D mod 4 = %d", D.BitLen(), new(big.Int).Mod(D, big.NewInt(4)))
-	logger.Info("  T: %d", T)
-
-	return VDFParams{
-		Discriminant: D,
-		T:            T,
-		Lambda:       256,
-	}
 }
 
 // UpdateLeaderStatus runs the stake-weighted RANDAO proposer selection for the
