@@ -27,14 +27,19 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 )
 
-// NewEncryptionKey creates a new AES-GCM encryption key from a shared secret
+// NewEncryptionKey creates a new AES-GCM encryption key from a shared secret.
+//
+// F-08: the previous version logged the first 16 bytes of the shared secret
+// (hex-encoded) at Info level on every handshake.  Even a partial secret in a
+// log file provides a partial oracle to an attacker with log access.  The log
+// line has been removed entirely — shared secrets must never appear in any log
+// output regardless of level.
 func NewEncryptionKey(sharedSecret []byte) (*EncryptionKey, error) {
 	// Ensure the shared secret is long enough for AES-256 (32 bytes)
 	if len(sharedSecret) < 32 {
@@ -53,17 +58,14 @@ func NewEncryptionKey(sharedSecret []byte) (*EncryptionKey, error) {
 		return nil, err
 	}
 
-	// Log derived encryption key (only first 16 bytes shown for debugging)
-	log.Printf("Derived encryption key with shared secret: %s", hex.EncodeToString(sharedSecret[:16]))
-
-	// Return a new EncryptionKey object
+	// Return a new EncryptionKey object — no logging of key material (F-08).
 	return &EncryptionKey{
 		SharedSecret: sharedSecret,
 		AESGCM:       aesGCM,
 	}, nil
 }
 
-// Encrypt encrypts the given plaintext using AES-GCM
+// Encrypt encrypts the given plaintext using AES-GCM.
 func (enc *EncryptionKey) Encrypt(plaintext []byte) ([]byte, error) {
 	// Ensure encryption key is properly initialized
 	if enc == nil || enc.AESGCM == nil {
@@ -76,17 +78,15 @@ func (enc *EncryptionKey) Encrypt(plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	// Encrypt the plaintext using AES-GCM and append the nonce
+	// Encrypt the plaintext using AES-GCM and prepend the nonce.
+	// F-08: nonce logging removed — nonces in logs assist ciphertext correlation.
 	ciphertext := enc.AESGCM.Seal(nil, nonce, plaintext, nil)
-
-	// Log the encryption event
-	log.Printf("Encrypted message, nonce: %s, ciphertext length: %d", hex.EncodeToString(nonce), len(ciphertext))
 
 	// Return the combined nonce and ciphertext
 	return append(nonce, ciphertext...), nil
 }
 
-// Decrypt decrypts the given ciphertext using AES-GCM
+// Decrypt decrypts the given ciphertext using AES-GCM.
 func (enc *EncryptionKey) Decrypt(ciphertext []byte) ([]byte, error) {
 	// Check for valid encryption key
 	if enc == nil || enc.AESGCM == nil {
@@ -98,58 +98,54 @@ func (enc *EncryptionKey) Decrypt(ciphertext []byte) ([]byte, error) {
 		return nil, errors.New("ciphertext too short")
 	}
 
-	// Extract the nonce and the actual ciphertext
+	// Extract the nonce and the actual ciphertext.
+	// F-08: nonce logging removed.
 	nonce := ciphertext[:enc.AESGCM.NonceSize()]
 	encrypted := ciphertext[enc.AESGCM.NonceSize():]
-
-	// Log the decryption attempt
-	log.Printf("Decrypting message, nonce: %s, ciphertext length: %d", hex.EncodeToString(nonce), len(encrypted))
 
 	// Decrypt the message using AES-GCM
 	plaintext, err := enc.AESGCM.Open(nil, nonce, encrypted, nil)
 	if err != nil {
-		log.Printf("Decryption failed: %v", err)
+		log.Printf("Decrypt: AES-GCM open failed")
 		return nil, err
 	}
 	return plaintext, nil
 }
 
-// SecureMessage serializes and encrypts the message struct
+// SecureMessage serializes and encrypts the message struct.
 func SecureMessage(msg *Message, enc *EncryptionKey) ([]byte, error) {
 	// Encode the message to JSON
 	data, err := msg.Encode()
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode message: %v", err)
 	}
-	log.Printf("Encoding message, type: %s, data length: %d", msg.Type, len(data))
+	// F-08: removed info log with msg.Type and data length — type metadata in
+	// logs leaks protocol traffic patterns.
 
 	// Encrypt the data using the EncryptionKey
 	ciphertext, err := enc.Encrypt(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt message: %v", err)
 	}
-	log.Printf("Encrypted message, nonce: %x, ciphertext length: %d", ciphertext[:enc.AESGCM.NonceSize()], len(ciphertext))
+	// F-08: removed ciphertext-length log.
 	return ciphertext, nil
 }
 
-// DecodeSecureMessage decrypts and deserializes an encrypted message
+// DecodeSecureMessage decrypts and deserializes an encrypted message.
 func DecodeSecureMessage(data []byte, enc *EncryptionKey) (*Message, error) {
 	// Check encryption key
 	if enc == nil {
 		return nil, errors.New("encryption key is nil")
 	}
 
-	// Log input size
-	log.Printf("Decoding message, data length: %d", len(data))
+	// F-08: removed data-length and plaintext-length logs — they reveal traffic
+	// volume metadata that can be correlated with application events.
 
 	// Decrypt message
 	plaintext, err := enc.Decrypt(data)
 	if err != nil {
 		return nil, err
 	}
-
-	// Log plaintext size
-	log.Printf("Decrypted plaintext length: %d", len(plaintext))
 
 	// Parse plaintext JSON into Message struct
 	var msg Message

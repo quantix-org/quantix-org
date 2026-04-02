@@ -111,4 +111,7 @@ type Mempool struct {
 	// Control
 	stopChan chan struct{}
 	running  bool
+
+	// Replay protection: tracks highest committed nonce per sender
+	senderNonce map[string]uint64
 }

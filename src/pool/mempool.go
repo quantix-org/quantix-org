@@ -63,6 +63,7 @@ func NewMempool(config *MempoolConfig) *Mempool {
 		cleanupChan:     make(chan struct{}, 1),
 		stopChan:        make(chan struct{}),
 		running:         false,
+		senderNonce:     make(map[string]uint64),
 	}
 
 	// Start background workers
@@ -224,6 +225,18 @@ func (mp *Mempool) validateTransaction(pooledTx *PooledTransaction) {
 
 	validationTime := time.Since(startTime)
 	mp.stats.validationTime += validationTime
+
+	// Replay protection: reject transactions whose nonce has already been seen for this sender.
+	if err == nil {
+		if lastNonce, seen := mp.senderNonce[tx.Sender]; seen && tx.Nonce <= lastNonce {
+			err = fmt.Errorf("replay detected: nonce %d already used by sender %s (last: %d)", tx.Nonce, tx.Sender, lastNonce)
+		} else {
+			// Record highest nonce seen for this sender
+			if tx.Nonce > mp.senderNonce[tx.Sender] {
+				mp.senderNonce[tx.Sender] = tx.Nonce
+			}
+		}
+	}
 
 	if err != nil {
 		// Validation failed
