@@ -256,8 +256,8 @@ func (r *RANDAO) SelfVerify(sub *VDFSubmission) error {
 	return nil // Returns success if verification passes
 }
 
-// ForceSyncParams forces a node to sync VDF parameters from a trusted source
-func (r *RANDAO) ForceSyncParams(trustedParams VDFParams) error {
+// forceSyncParams forces a node to sync VDF parameters from a trusted source
+func (r *RANDAO) forceSyncParams(trustedParams VDFParams) error {
 	r.mu.Lock()         // Acquires write lock for parameter modification
 	defer r.mu.Unlock() // Releases write lock when function returns
 

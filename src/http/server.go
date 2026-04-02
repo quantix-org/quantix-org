@@ -32,6 +32,7 @@ import (
 	"strconv"
 	"time"
 
+	"os"
 	"strings"
 	"sync"
 
@@ -76,14 +77,27 @@ func NewServer(address string, messageCh chan *security.Message, blockchain *cor
 		b.tokens--
 		c.Next()
 	})
-	// CORS — allow only localhost by default (override via config in production)
+	// F-16: CORS — configurable via CORS_ALLOWED_ORIGINS env var (comma-separated).
+	// Defaults to localhost-only for development. Set in production to your actual domain(s).
+	corsAllowed := []string{"http://localhost", "http://127.0.0.1"}
+	if envOrigins := os.Getenv("CORS_ALLOWED_ORIGINS"); envOrigins != "" {
+		corsAllowed = strings.Split(envOrigins, ",")
+		for i := range corsAllowed {
+			corsAllowed[i] = strings.TrimSpace(corsAllowed[i])
+		}
+	}
 	r.Use(func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
-		// Allow localhost origins for development; production should whitelist specific domains
-		allowed := origin == "" ||
-			strings.HasPrefix(origin, "http://localhost") ||
-			strings.HasPrefix(origin, "http://127.0.0.1")
-		if allowed {
+		allowed := origin == ""
+		if !allowed {
+			for _, o := range corsAllowed {
+				if strings.HasPrefix(origin, o) {
+					allowed = true
+					break
+				}
+			}
+		}
+		if allowed && origin != "" {
 			c.Header("Access-Control-Allow-Origin", origin)
 			c.Header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 			c.Header("Access-Control-Allow-Headers", "Content-Type")
@@ -170,7 +184,22 @@ func (s *Server) setupRoutes() {
 	s.router.GET("/address/:addr", s.handleGetAddress)
 	s.router.GET("/address/:addr/txs", s.handleGetAddressTxs)
 
+	// F-20: /mine endpoint requires DEVNET_MINE_SECRET env var to be set and matched.
+	// If not configured, the endpoint is disabled (returns 403).
 	s.router.POST("/mine", func(c *gin.Context) {
+		secret := os.Getenv("DEVNET_MINE_SECRET")
+		if secret == "" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "mine endpoint disabled: DEVNET_MINE_SECRET not configured"})
+			return
+		}
+		provided := c.GetHeader("X-Mine-Secret")
+		if provided == "" {
+			provided = c.Query("secret")
+		}
+		if provided != secret {
+			c.JSON(http.StatusForbidden, gin.H{"error": "invalid mine secret"})
+			return
+		}
 		height, err := s.blockchain.DevnetMineBlock("http-trigger")
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

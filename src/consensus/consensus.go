@@ -222,7 +222,7 @@ func (c *Consensus) Stop() error {
 //   - LoadCanonicalVDFParams: SHAKE-256, 128-byte output, T = 1<<20 (strong)
 //   - getExpectedVDFParams:   SHAKE-256, 32-byte output,  T = 1024  (weak)
 //
-// Because they always disagreed, initializeVDF silently called ForceSyncParams
+// Because they always disagreed, initializeVDF silently called forceSyncParams
 // with the weak T=1024 parameters on every startup, reducing VDF security by
 // ~1000×.  The fix: delete getExpectedVDFParams, use only LoadCanonicalVDFParams.
 func (c *Consensus) initializeVDF() error {
@@ -245,7 +245,7 @@ func (c *Consensus) initializeVDF() error {
 		logger.Error("Forcing sync to canonical parameters (T=%d, D=%d bits)",
 			canonicalParams.T, canonicalParams.Discriminant.BitLen())
 
-		if syncErr := c.randao.ForceSyncParams(canonicalParams); syncErr != nil {
+		if syncErr := c.randao.forceSyncParams(canonicalParams); syncErr != nil {
 			return fmt.Errorf("failed to sync VDF params to canonical: %w", syncErr)
 		}
 		logger.Info("VDF parameters force-synced to canonical values")
