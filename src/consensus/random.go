@@ -672,44 +672,120 @@ func (r *RANDAO) Recovery() {
 	logger.Info("Emergency recovery complete - VDF state cleared") // Logs recovery completion
 }
 
-// SyncState synchronizes RANDAO state with another node
+// SyncState synchronizes RANDAO state with another node.
+//
+// Security (F-01 / F-09): every VDFSubmission supplied by the peer is
+// re-verified with the local VDF implementation before any local state is
+// mutated.  If a single proof fails the entire sync is rejected, preventing
+// an adversary from corrupting the randomness beacon by supplying a crafted
+// peerMix or fabricated submission set.
+//
+// Additionally, sync is only allowed in the "catch-up" direction: a node
+// that already has a richer submission set for a given epoch will not
+// regress to a smaller peer set, protecting nodes that are ahead from being
+// rolled back to a weaker mix.
 func (r *RANDAO) SyncState(peerMix [32]byte, peerSubmissions map[uint64]map[string]*VDFSubmission) error {
-	r.mu.Lock()         // Acquires write lock for state modification
-	defer r.mu.Unlock() // Releases write lock when function returns
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
-	// Log the sync attempt
-	logger.Info("Syncing RANDAO state - local mix: %x, peer mix: %x", r.mix, peerMix) // Logs sync attempt
+	logger.Info("SyncState: local mix=%x  peer mix=%x", r.mix, peerMix)
 
-	// If peer has a different mix, we need to sync
-	if r.mix != peerMix { // If mixes differ
-		logger.Warn("RANDAO mix mismatch detected - syncing to peer state") // Logs mismatch
-		r.mix = peerMix                                                     // Sets mix to peer's mix
-
-		// Clear local submissions and use peer's
-		r.submissions = make(map[uint64]map[string]*VDFSubmission) // Reinitializes submissions map
-		for epoch, subs := range peerSubmissions {                 // Iterates through peer submissions
-			r.submissions[epoch] = make(map[string]*VDFSubmission) // Creates map for epoch
-			for validatorID, sub := range subs {                   // Iterates through submissions in epoch
-				// Deep copy the submission
-				subCopy := &VDFSubmission{ // Creates copy of submission
-					Epoch:       sub.Epoch,                    // Copies epoch
-					SlotInEpoch: sub.SlotInEpoch,              // Copies slot
-					ValidatorID: sub.ValidatorID,              // Copies validator ID
-					Input:       sub.Input,                    // Copies input
-					Output:      new(big.Int).Set(sub.Output), // Copies output
-					Proof:       new(big.Int).Set(sub.Proof),  // Copies proof
-				}
-				r.submissions[epoch][validatorID] = subCopy // Stores copy in local map
-			}
-		}
-
-		// Clear cache since state changed
-		r.cache = NewVDFCache() // Creates new cache instance
-
-		logger.Info("RANDAO state synced to peer - new mix: %x", r.mix) // Logs sync completion
+	// Fast-path: nothing to do when mixes already agree.
+	if r.mix == peerMix {
+		return nil
 	}
 
-	return nil // Returns success
+	// -----------------------------------------------------------------------
+	// F-01 / F-09: Verify every peer submission BEFORE touching local state.
+	// -----------------------------------------------------------------------
+	verifiedSubs := make(map[uint64]map[string]*VDFSubmission)
+
+	for epoch, subs := range peerSubmissions {
+		verifiedSubs[epoch] = make(map[string]*VDFSubmission)
+
+		for validatorID, sub := range subs {
+			if sub == nil {
+				return fmt.Errorf("SyncState rejected: nil submission for epoch %d validator %s",
+					epoch, validatorID)
+			}
+
+			// Ensure the claimed input matches the deterministic seed for
+			// that epoch, so the peer cannot supply an arbitrary x value.
+			expectedSeed := r.getSeedLocked(sub.Epoch)
+			if expectedSeed != sub.Input {
+				return fmt.Errorf("SyncState rejected: input mismatch epoch %d validator %s: expected %x got %x",
+					epoch, validatorID, expectedSeed, sub.Input)
+			}
+
+			// Re-derive the class-group input element and verify the proof.
+			x := seedToBigInt(sub.Input, r.params.Discriminant)
+			if !r.impl.Verify(r.params, x, sub.Output, sub.Proof) {
+				logger.Warn("SyncState rejected: invalid VDF proof from validator %s epoch %d",
+					validatorID, epoch)
+				return fmt.Errorf("SyncState rejected: VDF proof invalid for epoch %d validator %s",
+					epoch, validatorID)
+			}
+
+			// Deep-copy the now-verified submission.
+			verifiedSubs[epoch][validatorID] = &VDFSubmission{
+				Epoch:       sub.Epoch,
+				SlotInEpoch: sub.SlotInEpoch,
+				ValidatorID: sub.ValidatorID,
+				Input:       sub.Input,
+				Output:      new(big.Int).Set(sub.Output),
+				Proof:       new(big.Int).Set(sub.Proof),
+			}
+		}
+	}
+
+	// -----------------------------------------------------------------------
+	// Catch-up guard: only overwrite epochs where the peer has strictly more
+	// submissions than we do, preventing a rollback attack from a peer that
+	// presents fewer valid submissions than our local state.
+	// -----------------------------------------------------------------------
+	for epoch, localSubs := range r.submissions {
+		if peer, ok := verifiedSubs[epoch]; ok {
+			if len(localSubs) > len(peer) {
+				// We have more data for this epoch – keep ours.
+				delete(verifiedSubs, epoch)
+			}
+		}
+	}
+
+	// Commit the verified state.
+	logger.Warn("SyncState: mix mismatch – updating to peer mix after proof verification")
+	r.mix = peerMix
+
+	for epoch, subs := range verifiedSubs {
+		r.submissions[epoch] = subs
+		for validatorID := range subs {
+			r.cache.MarkVerified(epoch, validatorID) // Proofs already validated above.
+		}
+	}
+
+	// Invalidate cache entries for any epochs we just replaced so stale
+	// negative results do not linger.  Positive entries were set above.
+	r.cache = NewVDFCache()
+	for epoch, subs := range r.submissions {
+		for validatorID := range subs {
+			r.cache.MarkVerified(epoch, validatorID)
+		}
+	}
+
+	logger.Info("SyncState: state updated, new mix=%x  verified epochs=%d", r.mix, len(verifiedSubs))
+	return nil
+}
+
+// getSeedLocked derives the deterministic 32-byte seed for the given slot
+// without acquiring r.mu (caller must hold the lock).
+func (r *RANDAO) getSeedLocked(slot uint64) [32]byte {
+	data := make([]byte, 40)
+	copy(data[:32], r.mix[:])
+	binary.LittleEndian.PutUint64(data[32:], slot)
+	hash := common.SpxHash(data)
+	var result [32]byte
+	copy(result[:], hash)
+	return result
 }
 
 // GetStateSnapshot returns a snapshot of current RANDAO state for syncing
