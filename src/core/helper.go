@@ -156,7 +156,15 @@ func (bc *Blockchain) HasPendingTx(hash string) bool {
 // FIX-P2P-05
 // SetDevMode enables or disables dev-mode. In dev-mode, balance checks are
 // skipped in applyTransactions, allowing unfunded test addresses to transact.
+//
+// SEC-P06: guard — dev-mode may only be enabled on devnet chains (ChainID=73310).
+// Attempting to enable it on mainnet/testnet panics to prevent silent bypass
+// of balance checks in production.
 func (bc *Blockchain) SetDevMode(enabled bool) {
+	if enabled && bc.chainParams != nil && !bc.chainParams.IsDevnet() {
+		panic("SetDevMode: cannot enable dev-mode on non-devnet chain (chainID=" +
+			fmt.Sprintf("%d", bc.chainParams.ChainID) + ")")
+	}
 	bc.devMode = enabled
 }
 

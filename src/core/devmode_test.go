@@ -246,3 +246,32 @@ func TestDevMode_SecurityRegression_ProdModeUnaffected(t *testing.T) {
 		t.Error("prod instance: must reject unfunded tx")
 	}
 }
+
+// TestSetDevMode_PanicsOnMainnet verifies SEC-P06 fix: enabling devMode on a
+// non-devnet chain (chainID != 73310) must panic.
+func TestSetDevMode_PanicsOnMainnet(t *testing.T) {
+	db := newTestDB(t)
+	bc := fastMinimalBC(t, db)
+	// Override chain params to mainnet (ChainID=7331)
+	mainnetParams := GetDevnetChainParams()
+	mainnetParams.ChainID = 7331 // mainnet ID
+	bc.chainParams = mainnetParams
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic when enabling devMode on mainnet, got none")
+		}
+	}()
+	bc.SetDevMode(true) // must panic
+}
+
+// TestSetDevMode_AllowedOnDevnet verifies that SetDevMode works normally on devnet.
+func TestSetDevMode_AllowedOnDevnet(t *testing.T) {
+	db := newTestDB(t)
+	bc := fastMinimalBC(t, db) // chainParams = GetDevnetChainParams() (ChainID=73310)
+	bc.SetDevMode(true)
+	if !bc.devMode {
+		t.Error("devMode should be true on devnet after SetDevMode(true)")
+	}
+}
