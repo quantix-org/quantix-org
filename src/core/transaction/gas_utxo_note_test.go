@@ -327,3 +327,38 @@ func TestNote_ToTxs_IDIsHashOfTx(t *testing.T) {
 		t.Errorf("ID should be a hex string, got %q", tx.ID)
 	}
 }
+
+// TestSanityCheck_NilAmount_Fails verifies SEC fix: nil Amount in SanityCheck
+// now returns an error instead of panicking. (E.D.I.T.H. fix, 2026-04-03)
+func TestSanityCheck_NilAmount_Fails(t *testing.T) {
+	tx := &Transaction{
+		Sender:   "xAlice000000000000000000000000",
+		Receiver: "xBob00000000000000000000000000",
+		Amount:   nil, // was: panic; now: clean error
+		GasLimit: big.NewInt(0),
+		GasPrice: big.NewInt(0),
+	}
+	if err := tx.SanityCheck(); err == nil {
+		t.Error("SanityCheck should fail for nil Amount")
+	}
+}
+
+// TestSanityCheck_NilGasLimit_DoesNotPanic verifies SEC fix: nil GasLimit/GasPrice
+// no longer panic in SanityCheck. (E.D.I.T.H. fix, 2026-04-03)
+func TestSanityCheck_NilGasLimit_DoesNotPanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("SanityCheck panicked on nil gas fields: %v", r)
+		}
+	}()
+	tx := &Transaction{
+		Sender:   "xAlice000000000000000000000000",
+		Receiver: "xBob00000000000000000000000000",
+		Amount:   big.NewInt(100),
+		GasLimit: nil,
+		GasPrice: nil,
+	}
+	if err := tx.SanityCheck(); err != nil {
+		t.Errorf("SanityCheck with nil gas fields should pass, got: %v", err)
+	}
+}
