@@ -467,6 +467,11 @@ func (s *Server) handleValidatorRegister(c *gin.Context) {
 	})
 }
 
+// Router returns the underlying gin.Engine for use in tests or middleware wiring.
+func (s *Server) Router() interface{ ServeHTTP(http.ResponseWriter, *http.Request) } {
+	return s.router
+}
+
 // handleGetValidators returns all registered validators.
 // GET /validators — P2-3
 func (s *Server) handleGetValidators(c *gin.Context) {
