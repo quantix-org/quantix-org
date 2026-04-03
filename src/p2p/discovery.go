@@ -48,7 +48,12 @@ import (
 func (s *Server) DiscoverPeers() error {
 	// FIX-P2P-03: in dev-mode, skip DHT entirely and use direct TCP connections.
 	if s.devMode {
-		return s.discoverPeersDevMode()
+		// FIX-P2P-GOSSIP2: prevent duplicate concurrent calls in dev-mode.
+		var err error
+		s.devDiscoverOnce.Do(func() {
+			err = s.discoverPeersDevMode()
+		})
+		return err
 	}
 	// Configuration constants for discovery process
 	const maxOverallRetries = 3             // Maximum number of complete discovery attempts
@@ -610,8 +615,11 @@ func (s *Server) discoverPeersDevMode() error {
 			continue
 		}
 		conn.Close()
+		// FIX-P2P-GOSSIP2: use address as temporary node ID so performHandshake
+		// can track the peer in pm.peers before the real ID is learned from verack.
 		seedNode := &network.Node{
 			Address: seed,
+			ID:      seed, // temporary; will be updated to real ID on verack
 			Role:    network.RoleNone,
 			Status:  network.NodeStatusActive,
 		}

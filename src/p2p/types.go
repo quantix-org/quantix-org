@@ -42,6 +42,8 @@ type Server struct {
 	seedNodes   []string
 	udpConn     *net.UDPConn
 	messageCh   chan *security.Message
+	verackCh    chan *security.Message // FIX-P2P-GOSSIP2: dedicated channel for verack routing
+	devDiscoverOnce sync.Once          // FIX-P2P-GOSSIP2: prevent duplicate discoverPeersDevMode calls
 	blockchain  *core.Blockchain
 	peerManager *PeerManager
 	mu          sync.RWMutex

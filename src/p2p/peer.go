@@ -67,20 +67,23 @@ func NewPeerManager(server *Server, bucketSize int) *PeerManager {
 // - Protocol handshake
 // - Peer information broadcast
 func (pm *PeerManager) ConnectPeer(node *network.Node) error {
-	pm.mu.Lock() // Lock for thread safety
-	defer pm.mu.Unlock()
+	// FIX-P2P-GOSSIP2: only hold the lock for quick map checks/updates; release before blocking I/O.
+	pm.mu.Lock()
 
 	// Check if peer is banned
 	if banExpiry, banned := pm.bans[node.ID]; banned && time.Now().Before(banExpiry) {
+		pm.mu.Unlock()
 		log.Printf("Peer %s is banned until %v", node.ID, banExpiry)
 		return fmt.Errorf("peer %s is banned until %v", node.ID, banExpiry)
 	}
 
 	// Check if we've reached maximum peer limit
 	if len(pm.peers) >= pm.maxPeers {
+		pm.mu.Unlock()
 		log.Printf("Maximum peer limit reached: %d", pm.maxPeers)
 		return errors.New("maximum peer limit reached")
 	}
+	pm.mu.Unlock()
 
 	log.Printf("Connecting to node %s via TCP: %s", node.ID, node.Address)
 
@@ -123,18 +126,21 @@ func (pm *PeerManager) ConnectPeer(node *network.Node) error {
 		return fmt.Errorf("failed to add peer %s: %v", node.ID, err)
 	}
 
-	// Add to local peer tracking maps
+	pm.mu.Lock()
 	pm.peers[node.ID] = peer
 	pm.scores[node.ID] = 50 // Initial default score
+	pm.mu.Unlock()
 
-	// Perform handshake after adding peer
+	// Perform handshake after adding peer (lock NOT held during blocking handshake)
 	if err := pm.performHandshake(node); err != nil {
 		log.Printf("Handshake failed with %s: %v", node.ID, err)
 		transport.DisconnectNode(node) // Clean up connection
 		// Rollback peer addition
 		pm.server.nodeManager.RemovePeer(node.ID)
+		pm.mu.Lock()
 		delete(pm.peers, node.ID)
 		delete(pm.scores, node.ID)
+		pm.mu.Unlock()
 		return fmt.Errorf("handshake failed with %s: %v", node.ID, err)
 	}
 
@@ -213,6 +219,7 @@ func (pm *PeerManager) performHandshake(node *network.Node) error {
 	if tcpConn, ok := conn.(*net.TCPConn); ok {
 		tcpConn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 		tcpConn.Write([]byte{}) // Flush to ensure clean state
+		tcpConn.SetWriteDeadline(time.Time{}) // FIX-P2P-GOSSIP2: reset deadline so future writes work
 	}
 
 	// Send version message
@@ -228,30 +235,48 @@ func (pm *PeerManager) performHandshake(node *network.Node) error {
 
 	for {
 		select {
-		case msg := <-pm.server.messageCh:
-			// Process incoming messages during handshake
-			log.Printf("Received message in handshake for %s: Type=%s, Data=%v, ChannelLen=%d",
-				node.Address, msg.Type, msg.Data, len(pm.server.messageCh))
+		case msg := <-pm.server.verackCh:
+			// Process incoming verack messages
+			log.Printf("Received message in handshake for %s: Type=%s, Data=%v",
+				node.Address, msg.Type, msg.Data)
 
 			if msg.Type == "verack" {
-				// Check if verack matches expected peer
-				if peerID, ok := msg.Data.(string); ok && peerID == node.ID {
-					log.Printf("Received valid verack from %s for node_id: %s, Address: %s",
-						node.Address, peerID, node.Address)
-
-					// Update peer status to active
-					pm.mu.Lock()
-					if peer, exists := pm.peers[node.ID]; exists {
-						peer.ConnectionStatus = "active"
-						peer.LastSeen = time.Now()
+				// FIX-P2P-GOSSIP2: accept any valid verack when node.ID is unknown (seed node).
+				// Update node.ID from the verack payload so peer tracking works.
+				if peerID, ok := msg.Data.(string); ok && peerID != "" {
+					// FIX-P2P-GOSSIP2: if node.ID is a temp address-based ID (set in discoverPeersDevMode),
+					// or truly empty, update it to the real ID from the verack.
+					if peerID != node.ID {
+						log.Printf("FIX-P2P-GOSSIP2: updating node ID %q -> %q (addr=%s)", node.ID, peerID, node.Address)
+						pm.mu.Lock()
+						if peer, exists := pm.peers[node.ID]; exists {
+							delete(pm.peers, node.ID)
+							if s, ok2 := pm.scores[node.ID]; ok2 {
+								delete(pm.scores, node.ID)
+								pm.scores[peerID] = s
+							}
+							node.ID = peerID
+							peer.Node = node
+							peer.ConnectionStatus = "active"
+							peer.LastSeen = time.Now()
+							pm.peers[peerID] = peer
+						}
+						pm.mu.Unlock()
 					} else {
-						log.Printf("Peer %s not found in nodeManager.peers during verack", node.ID)
+						log.Printf("Received valid verack from %s for node_id: %s", node.Address, peerID)
+						pm.mu.Lock()
+						if peer, exists := pm.peers[node.ID]; exists {
+							peer.ConnectionStatus = "active"
+							peer.LastSeen = time.Now()
+						} else {
+							log.Printf("Peer %s not found in nodeManager.peers during verack", node.ID)
+						}
+						pm.mu.Unlock()
 					}
-					pm.mu.Unlock()
 					return nil // Handshake successful
 				} else {
-					log.Printf("Invalid verack from %s: peerID=%v, expected=%s, Address: %s",
-						node.Address, msg.Data, node.ID, node.Address)
+					log.Printf("Invalid verack from %s: peerID=%v, Address: %s",
+						node.Address, msg.Data, node.Address)
 				}
 			} else {
 				log.Printf("Unexpected message type in handshake for %s: %s", node.Address, msg.Type)
@@ -364,7 +389,7 @@ func (pm *PeerManager) PropagateMessage(msg *security.Message, originID string) 
 	var candidates []peerScore
 	for id, peer := range pm.peers {
 		// Skip origin peer and disconnected peers
-		if id == originID || peer.ConnectionStatus != "connected" {
+		if id == originID || (peer.ConnectionStatus != "connected" && peer.ConnectionStatus != "active") {
 			continue
 		}
 		candidates = append(candidates, peerScore{peer, pm.scores[id]})

@@ -42,19 +42,22 @@ func (m *Message) ValidateMessage() error {
 	// Handle validation logic based on the message type
 	switch m.Type {
 	case "transaction":
-		// Type assertion to check if Data is of *Transaction type
+		// FIX-P2P-GOSSIP2: accept map (after JSON deserialization) as valid transaction data
 		if tx, ok := m.Data.(*types.Transaction); ok {
-			// Validate that sender and receiver are set and amount is greater than 0
 			if tx.Sender == "" || tx.Receiver == "" || tx.Amount.Cmp(big.NewInt(0)) <= 0 {
 				return errors.New("invalid transaction data")
 			}
+		} else if _, ok := m.Data.(map[string]interface{}); ok {
+			// valid; P2P layer will re-parse
 		} else {
-			// If type assertion fails, return error
 			return errors.New("invalid transaction type")
 		}
 	case "block":
-		// Check if Data is of type Block
-		if _, ok := m.Data.(types.Block); !ok {
+		// FIX-P2P-GOSSIP2: accept map after JSON deserialization
+		switch m.Data.(type) {
+		case types.Block, *types.Block, map[string]interface{}:
+			// valid
+		default:
 			return errors.New("invalid block data")
 		}
 	case "jsonrpc":
@@ -68,8 +71,12 @@ func (m *Message) ValidateMessage() error {
 			return errors.New("invalid ping/pong data: must be node ID string")
 		}
 	case "peer_info":
-		// Validate that Data is of type PeerInfo
-		if _, ok := m.Data.(network.PeerInfo); !ok {
+		// FIX-P2P-GOSSIP2: after JSON deserialization, Data is map[string]interface{}.
+		// Accept both the typed PeerInfo and map.
+		switch m.Data.(type) {
+		case network.PeerInfo, map[string]interface{}:
+			// valid
+		default:
 			return errors.New("invalid peer_info data")
 		}
 	case "version":
@@ -99,8 +106,9 @@ func (m *Message) ValidateMessage() error {
 			return errors.New("invalid verack data: must be node ID string")
 		}
 	default:
-		// Unknown message types are not allowed
-		return errors.New("unknown message type")
+		// FIX-P2P-GOSSIP2: allow unknown message types to pass through.
+		// The P2P layer handles type validation in handleMessages().
+		// Rejecting here blocks gossip_block, gossip_tx, etc.
 	}
 
 	// If all validations pass, return nil (no error)

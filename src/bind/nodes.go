@@ -126,8 +126,15 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 		return fmt.Errorf("failed to initialize SphincsManager")
 	}
 
+	// FIX-P2P-GOSSIP2: use TCPAddr as node name to ensure uniqueness across processes.
+	// Without this, every single-node process is named "Node-0" causing ID collisions.
+	nodeName := nodeConfig.Name
+	if nodeConfig.TCPAddr != "" {
+		nodeName = "Node-" + nodeConfig.TCPAddr
+	}
+
 	setupConfig := NodeSetupConfig{
-		Name:      nodeConfig.Name,
+		Name:      nodeName,
 		Address:   nodeConfig.TCPAddr,
 		DB:        db,
 		UDPPort:   nodeConfig.UDPPort,
@@ -578,8 +585,25 @@ func SetupNodes(configs []NodeSetupConfig, wg *sync.WaitGroup) ([]NodeResources,
 		logger.Infof("✅ Storage DB injected for %s — devnet miner enabled", config.Name)
 
 		logger.Infof("Genesis block created for %s, hash: %x", config.Name, blockchains[i].GetBestBlockHash())
-		messageChans[i] = make(chan *security.Message, 1000)
-		rpcServers[i] = rpc.NewServer(messageChans[i], blockchains[i])
+		// FIX-P2P-GOSSIP2: use a fanout pattern so TCP writes once but both
+		// RPC and P2P servers receive every message independently.
+		sourceCh := make(chan *security.Message, 1000) // TCP server writes here
+		rpcCh := make(chan *security.Message, 1000)    // RPC server reads here
+		p2pCh := make(chan *security.Message, 1000)    // P2P server reads here
+		go func(src <-chan *security.Message, rpcDst, p2pDst chan<- *security.Message) {
+			for msg := range src {
+				select {
+				case rpcDst <- msg:
+				default:
+				}
+				select {
+				case p2pDst <- msg:
+				default:
+				}
+			}
+		}(sourceCh, rpcCh, p2pCh)
+		messageChans[i] = sourceCh // TCP server uses sourceCh
+		rpcServers[i] = rpc.NewServer(rpcCh, blockchains[i])
 
 		tcpConfigs[i] = NodeConfig{
 			Address:   config.Address,
@@ -614,6 +638,9 @@ func SetupNodes(configs []NodeSetupConfig, wg *sync.WaitGroup) ([]NodeResources,
 			DevMode:   config.DevMode, // FIX-P2P-03
 		}
 		p2pServers[i] = p2p.NewServer(nodeConfig, blockchains[i], dbs[i])
+		// FIX-P2P-GOSSIP2: use the p2pCh from the fanout above so the P2P server
+		// receives all messages independently from the RPC server.
+		p2pServers[i].SetMessageCh(p2pCh)
 		localNode := p2pServers[i].LocalNode()
 		localNode.ID = config.Name
 		localNode.UpdateRole(config.Role)

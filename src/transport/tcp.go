@@ -206,42 +206,8 @@ func (s *TCPServer) handleConnection(conn net.Conn, nodeAddr string) {
 		}
 		log.Printf("Decoded message on %s: Type=%s, Data=%v", nodeAddr, msg.Type, msg.Data)
 
-		// Handle version message and send verack response
-		if msg.Type == "version" {
-			// Validate version message
-			versionData, ok := msg.Data.(map[string]interface{})
-			if !ok {
-				log.Printf("Invalid version message data on %s: %v", nodeAddr, msg.Data)
-				continue
-			}
-			peerID, ok := versionData["node_id"].(string)
-			if !ok {
-				log.Printf("Invalid node_id in version message on %s", nodeAddr)
-				continue
-			}
-
-			// Send verack response
-			verackMsg := &security.Message{
-				Type: "verack",
-				Data: peerID, // Echo back the node_id
-			}
-			encryptedVerack, err := security.SecureMessage(verackMsg, enc)
-			if err != nil {
-				log.Printf("Failed to encode verack message for %s: %v", nodeAddr, err)
-				continue
-			}
-			lengthBuf = make([]byte, 4)
-			binary.BigEndian.PutUint32(lengthBuf, uint32(len(encryptedVerack)))
-			if _, err := conn.Write(lengthBuf); err != nil {
-				log.Printf("TCP write length error for verack on %s: %v", nodeAddr, err)
-				return
-			}
-			if _, err := conn.Write(encryptedVerack); err != nil {
-				log.Printf("TCP write data error for verack on %s: %v", nodeAddr, err)
-				return
-			}
-			log.Printf("Sent verack to %s for node_id: %s", nodeAddr, peerID)
-		}
+		// FIX-P2P-GOSSIP2: do NOT send verack here; the P2P layer (p2p.handleMessages)
+		// handles the version/verack exchange with the correct server ID.
 
 		// Forward message to messageCh
 		select {
@@ -424,7 +390,9 @@ func SendMessage(address string, msg *security.Message) error {
 		if err != nil {
 			return fmt.Errorf("failed to dial %s: %v", address, err)
 		}
-		defer conn.Close()
+		// FIX-P2P-GOSSIP2: do NOT defer conn.Close() — the connection is stored in
+		// globalServer.connections for reuse. Closing here would break future sends.
+		// The connection will be cleaned up when the remote closes or on next error.
 
 		handshake := security.NewHandshake()
 		enc, err := handshake.PerformHandshake(conn, "p2p", true)
@@ -479,6 +447,47 @@ func SendMessage(address string, msg *security.Message) error {
 }
 
 // DisconnectNode closes the connection to a node.
+// BroadcastToAll sends a message to every active connection in the global connections map.
+// FIX-P2P-BROADCAST: avoids ephemeral-port vs peerManager address mismatch by
+// iterating actual connections rather than peer.Node.Address lookups.
+func BroadcastToAll(msg *security.Message) []error {
+	globalServer.mu.Lock()
+	type connEntry struct {
+		addr string
+		conn net.Conn
+		enc  *security.EncryptionKey
+	}
+	entries := make([]connEntry, 0, len(globalServer.connections))
+	for addr, conn := range globalServer.connections {
+		enc := globalServer.encKeys[addr]
+		if enc != nil {
+			entries = append(entries, connEntry{addr, conn, enc})
+		}
+	}
+	globalServer.mu.Unlock()
+
+	var errs []error
+	for _, e := range entries {
+		data, err := security.SecureMessage(msg, e.enc)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("BroadcastToAll encode for %s: %v", e.addr, err))
+			continue
+		}
+		lengthBuf := make([]byte, 4)
+		binary.BigEndian.PutUint32(lengthBuf, uint32(len(data)))
+		if _, err := e.conn.Write(lengthBuf); err != nil {
+			errs = append(errs, fmt.Errorf("BroadcastToAll write length to %s: %v", e.addr, err))
+			continue
+		}
+		if _, err := e.conn.Write(data); err != nil {
+			errs = append(errs, fmt.Errorf("BroadcastToAll write data to %s: %v", e.addr, err))
+			continue
+		}
+		log.Printf("BroadcastToAll: sent %s to %s", msg.Type, e.addr)
+	}
+	return errs
+}
+
 func DisconnectNode(node *network.Node) error {
 	addr, err := NodeToAddress(node)
 	if err != nil {

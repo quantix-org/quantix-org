@@ -147,6 +147,7 @@ func NewServer(config network.NodePortConfig, blockchain *core.Blockchain, db *l
 		db:          db,                                // LevelDB database
 		udpReadyCh:  make(chan struct{}, 1),            // Channel to signal UDP ready
 		messageCh:   make(chan *security.Message, 100), // Message processing channel
+		verackCh:    make(chan *security.Message, 10),  // FIX-P2P-GOSSIP2: verack routing
 		blockchain:  blockchain,                        // Blockchain instance
 		stopCh:      make(chan struct{}),               // Stop signal channel
 		devMode:     config.DevMode,                    // FIX-P2P-03: dev mode flag
@@ -273,6 +274,14 @@ func (s *Server) handleMessages() {
 
 		// Route message based on type
 		switch msg.Type {
+
+		case "verack":
+			// FIX-P2P-GOSSIP2: route verack to dedicated channel so performHandshake() can receive it.
+			select {
+			case s.verackCh <- msg:
+			default:
+				log.Printf("verackCh full, dropping verack message")
+			}
 
 		case "transaction":
 			// Handle transaction messages
@@ -421,9 +430,22 @@ func (s *Server) handleMessages() {
 
 		case "peer_info":
 			// Handle peer information exchange
-			if peerInfo, ok := msg.Data.(network.PeerInfo); ok {
+			// FIX-P2P-GOSSIP2: Data arrives as map[string]interface{} after JSON deserialization.
+			// Re-marshal/unmarshal to get a typed PeerInfo struct.
+			var peerInfo network.PeerInfo
+			var piOK bool
+			if pi, ok := msg.Data.(network.PeerInfo); ok {
+				peerInfo = pi
+				piOK = true
+			} else if raw, ok := msg.Data.(map[string]interface{}); ok {
+				if b, err := json.Marshal(raw); err == nil {
+					if err2 := json.Unmarshal(b, &peerInfo); err2 == nil {
+						piOK = true
+					}
+				}
+			}
+			if piOK {
 				// Create new node from peer info
-				// FIX: Add the database parameter (use nil or the actual database instance)
 				node := network.NewNode(
 					peerInfo.Address,
 					peerInfo.IP,
@@ -433,18 +455,22 @@ func (s *Server) handleMessages() {
 					peerInfo.Role,
 					nil,
 				)
+				node.ID = peerInfo.NodeID
 				node.KademliaID = peerInfo.KademliaID
 				node.UpdateStatus(peerInfo.Status)
 
 				// Add to node manager
 				s.nodeManager.AddNode(node)
 
-				// Connect if we have capacity
+				// FIX-P2P-GOSSIP2: ConnectPeer is blocking (handshake has 30s timeout).
+				// Run in goroutine to avoid blocking handleMessages.
 				if len(s.peerManager.peers) < s.peerManager.maxPeers {
-					s.peerManager.ConnectPeer(node)
+					go s.peerManager.ConnectPeer(node)
 				}
 				log.Printf("Received PeerInfo: NodeID=%s, Address=%s, Role=%s",
 					peerInfo.NodeID, peerInfo.Address, peerInfo.Role)
+			} else {
+				log.Printf("peer_info: failed to parse data: %T %v", msg.Data, msg.Data)
 			}
 
 		case "version":
@@ -527,16 +553,16 @@ func (s *Server) handleMessages() {
 					}
 				}
 
-				// Send verack response
-				if sendErr := transport.SendMessage(sourceAddr, verackMsg); sendErr != nil {
-					log.Printf("Failed to send verack to %s at %s: %v", peerID, sourceAddr, sendErr)
-					s.peerManager.UpdatePeerScore(peerID, -10)
-					continue
-				}
-				log.Printf("Sent verack to %s at %s", peerID, sourceAddr)
-
-				// Reward successful handshake
-				s.peerManager.UpdatePeerScore(peerID, 5)
+				// FIX-P2P-GOSSIP2: send verack in goroutine to avoid blocking handleMessages
+				go func(srcAddr, pid string, msg *security.Message) {
+					if sendErr := transport.SendMessage(srcAddr, msg); sendErr != nil {
+						log.Printf("Failed to send verack to %s at %s: %v", pid, srcAddr, sendErr)
+						s.peerManager.UpdatePeerScore(pid, -10)
+						return
+					}
+					log.Printf("Sent verack to %s at %s", pid, srcAddr)
+					s.peerManager.UpdatePeerScore(pid, 5)
+				}(sourceAddr, peerID, verackMsg)
 
 				// Update node address if provided
 				if addr, ok := versionData["address"].(string); ok && addr != "" && node.Address == "" {
@@ -597,7 +623,20 @@ func (s *Server) handleMessages() {
 
 		case "gossip_block":
 			// FIX-P2P-05: handle incoming block from peer gossip
-			if block, ok := msg.Data.(*types.Block); ok {
+			// FIX-P2P-GOSSIP2: handle map[string]interface{} from JSON deserialization
+			var block *types.Block
+			if b, ok := msg.Data.(*types.Block); ok {
+				block = b
+			} else if raw, ok := msg.Data.(map[string]interface{}); ok {
+				b2, err := json.Marshal(raw)
+				if err == nil {
+					var b3 types.Block
+					if err2 := json.Unmarshal(b2, &b3); err2 == nil {
+						block = &b3
+					}
+				}
+			}
+			if block != nil {
 				if err := s.blockchain.AddBlockFromPeer(block); err != nil {
 					log.Printf("gossip_block: failed to add block height=%d: %v", block.GetHeight(), err)
 				} else {
@@ -609,7 +648,20 @@ func (s *Server) handleMessages() {
 
 		case "gossip_tx":
 			// FIX-P2P-05: handle incoming transaction from peer gossip
-			if tx, ok := msg.Data.(*types.Transaction); ok {
+			// FIX-P2P-GOSSIP2: handle map[string]interface{} from JSON deserialization
+			var tx *types.Transaction
+			if t, ok := msg.Data.(*types.Transaction); ok {
+				tx = t
+			} else if raw, ok := msg.Data.(map[string]interface{}); ok {
+				b2, err := json.Marshal(raw)
+				if err == nil {
+					var t2 types.Transaction
+					if err2 := json.Unmarshal(b2, &t2); err2 == nil {
+						tx = &t2
+					}
+				}
+			}
+			if tx != nil {
 				// Use AddTransactionFromPeer (skips re-broadcast to avoid loop)
 				if err := s.blockchain.AddTransactionFromPeer(tx); err != nil {
 					log.Printf("gossip_tx: failed to add tx %s: %v", tx.ID, err)
@@ -706,51 +758,34 @@ func (s *Server) Broadcast(msg *security.Message) {
 }
 
 // BroadcastBlock sends a newly-committed block to all connected peers.
-// FIX-P2P-05: block gossip
+// FIX-P2P-BROADCAST: use BroadcastToAll to avoid ephemeral-port/peerManager address mismatch.
 func (s *Server) BroadcastBlock(block *types.Block) {
 	msg := &security.Message{
 		Type: "gossip_block",
 		Data: block,
 	}
-	s.mu.RLock()
-	peers := make([]*network.Peer, 0, len(s.peerManager.peers))
-	for _, p := range s.peerManager.peers {
-		peers = append(peers, p)
+	errs := transport.BroadcastToAll(msg)
+	for _, err := range errs {
+		log.Printf("BroadcastBlock: %v", err)
 	}
-	s.mu.RUnlock()
-
-	for _, p := range peers {
-		if p.ConnectionStatus != "connected" && p.ConnectionStatus != "active" {
-			continue
-		}
-		if err := transport.SendMessage(p.Node.Address, msg); err != nil {
-			log.Printf("BroadcastBlock: failed to send to %s: %v", p.Node.ID, err)
-		} else {
-			log.Printf("BroadcastBlock: sent block height=%d to %s", block.GetHeight(), p.Node.ID)
-		}
-	}
+	log.Printf("BroadcastBlock: broadcast block height=%d to all connections (%d errors)", block.GetHeight(), len(errs))
 }
 
 // BroadcastTransaction sends a new transaction to all connected peers.
-// FIX-P2P-05: tx gossip
+// FIX-P2P-BROADCAST: use BroadcastToAll to avoid ephemeral-port/peerManager address mismatch.
 func (s *Server) BroadcastTransaction(tx *types.Transaction) {
 	msg := &security.Message{
 		Type: "gossip_tx",
 		Data: tx,
 	}
-	s.mu.RLock()
-	peers := make([]*network.Peer, 0, len(s.peerManager.peers))
-	for _, p := range s.peerManager.peers {
-		peers = append(peers, p)
+	errs := transport.BroadcastToAll(msg)
+	for _, err := range errs {
+		log.Printf("BroadcastTransaction: %v", err)
 	}
-	s.mu.RUnlock()
+}
 
-	for _, p := range peers {
-		if p.ConnectionStatus != "connected" && p.ConnectionStatus != "active" {
-			continue
-		}
-		if err := transport.SendMessage(p.Node.Address, msg); err != nil {
-			log.Printf("BroadcastTransaction: failed to send to %s: %v", p.Node.ID, err)
-		}
-	}
+// SetMessageCh replaces the internal message channel with an external one.
+// FIX-P2P-GOSSIP2: allows SetupNodes to share the same channel between the TCP server and P2P server.
+func (s *Server) SetMessageCh(ch chan *security.Message) {
+	s.messageCh = ch
 }
