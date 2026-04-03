@@ -149,6 +149,7 @@ func NewServer(config network.NodePortConfig, blockchain *core.Blockchain, db *l
 		messageCh:   make(chan *security.Message, 100), // Message processing channel
 		blockchain:  blockchain,                        // Blockchain instance
 		stopCh:      make(chan struct{}),               // Stop signal channel
+		devMode:     config.DevMode,                    // FIX-P2P-03: dev mode flag
 	}
 }
 

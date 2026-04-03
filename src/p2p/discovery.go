@@ -46,6 +46,10 @@ import (
 // as entry points into the network. It implements retry logic with
 // exponential backoff and multiple seed nodes for redundancy.
 func (s *Server) DiscoverPeers() error {
+	// FIX-P2P-03: in dev-mode, skip DHT entirely and use direct TCP connections.
+	if s.devMode {
+		return s.discoverPeersDevMode()
+	}
 	// Configuration constants for discovery process
 	const maxOverallRetries = 3             // Maximum number of complete discovery attempts
 	const retryDelay = 5 * time.Second      // Base delay between retries
@@ -180,6 +184,10 @@ func (s *Server) DiscoverPeers() error {
 					// Timeout waiting for response from this seed
 					log.Printf("DiscoverPeers: Timeout waiting for response from seed %s (attempt %d/%d) for %s",
 						seed, retry, maxRetries, s.localNode.Address)
+					// FIX-P2P-02: TCP fallback for loopback seeds
+					if s.tryTCPSeedFallback(seed) {
+						return nil
+					}
 
 				case <-timeout:
 					// Global timeout reached
@@ -544,4 +552,78 @@ func (s *Server) iterativeFindNode(targetID network.NodeID) {
 
 	// All attempts failed
 	log.Printf("Failed to find peers for target %x after %d attempts", targetID[:8], maxAttempts)
+}
+
+// tryTCPSeedFallback attempts a direct TCP connection to a seed node.
+// FIX-P2P-02: used when UDP discovery fails for loopback/localhost seeds.
+// Returns true if connection succeeded and peer was registered.
+func (s *Server) tryTCPSeedFallback(seedAddr string) bool {
+	// Only try TCP fallback if the seed is a loopback address
+	host, _, err := net.SplitHostPort(seedAddr)
+	if err != nil {
+		return false
+	}
+	ip := net.ParseIP(host)
+	if ip == nil || !ip.IsLoopback() {
+		return false
+	}
+
+	log.Printf("FIX-P2P-02: UDP failed for loopback seed %s — trying TCP fallback", seedAddr)
+
+	conn, err := net.DialTimeout("tcp", seedAddr, 3*time.Second)
+	if err != nil {
+		log.Printf("FIX-P2P-02: TCP fallback to %s failed: %v", seedAddr, err)
+		return false
+	}
+	conn.Close()
+
+	// TCP reachable — register as a peer node so the rest of the system sees it
+	seedNode := &network.Node{
+		Address: seedAddr,
+		Role:    network.RoleNone,
+		Status:  network.NodeStatusActive,
+	}
+	if err := s.peerManager.ConnectPeer(seedNode); err != nil {
+		log.Printf("FIX-P2P-02: TCP fallback peer register %s failed: %v", seedAddr, err)
+		return false
+	}
+	log.Printf("FIX-P2P-02: TCP fallback to %s succeeded — peer registered", seedAddr)
+	return true
+}
+
+// discoverPeersDevMode connects directly to seed nodes via TCP, skipping DHT.
+// FIX-P2P-03: used with -dev-mode flag for local testnet peering.
+func (s *Server) discoverPeersDevMode() error {
+	if len(s.seedNodes) == 0 {
+		log.Printf("dev-mode: no seed nodes for %s", s.localNode.Address)
+		return nil
+	}
+	log.Printf("dev-mode: direct TCP peering for %s with seeds: %v", s.localNode.Address, s.seedNodes)
+	connected := 0
+	for _, seed := range s.seedNodes {
+		if seed == s.localNode.Address {
+			continue // skip self
+		}
+		conn, err := net.DialTimeout("tcp", seed, 3*time.Second)
+		if err != nil {
+			log.Printf("dev-mode: TCP dial %s failed: %v", seed, err)
+			continue
+		}
+		conn.Close()
+		seedNode := &network.Node{
+			Address: seed,
+			Role:    network.RoleNone,
+			Status:  network.NodeStatusActive,
+		}
+		if err := s.peerManager.ConnectPeer(seedNode); err != nil {
+			log.Printf("dev-mode: ConnectPeer %s failed: %v", seed, err)
+			continue
+		}
+		log.Printf("dev-mode: connected to seed %s", seed)
+		connected++
+	}
+	if connected == 0 {
+		return fmt.Errorf("dev-mode: could not connect to any seed nodes")
+	}
+	return nil
 }

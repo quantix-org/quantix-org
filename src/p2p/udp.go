@@ -29,7 +29,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -38,7 +37,6 @@ import (
 	sigproof "github.com/ramseyauron/quantix/src/core/proof"
 	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
 	"github.com/ramseyauron/quantix/src/network"
-	"golang.org/x/sys/unix"
 )
 
 // CheckPort checks if a UDP port is available.
@@ -67,58 +65,18 @@ func (s *Server) StartUDPDiscovery(udpPort string) error {
 
 	// Retry loop to find an available port
 	for retry := 0; retry < maxRetries; retry++ {
-		// Check if current port is available
-		if err := CheckPort(strconv.Itoa(currentPort)); err != nil {
+		// FIX-P2P-01: bind exactly once with net.ListenUDP — no secondary unix.Socket.
+		listener, err := net.ListenUDP("udp", &net.UDPAddr{Port: currentPort, IP: net.ParseIP("0.0.0.0")})
+		if err != nil {
 			log.Printf("StartUDPDiscovery: Port %d in use for node %s: %v", currentPort, s.localNode.Address, err)
-
-			// Find next free port
-			newPort, err := network.FindFreePort(currentPort+1, "udp")
-			if err != nil {
-				lastErr = fmt.Errorf("failed to find free UDP port after %s: %v", udpPort, err)
-				time.Sleep(1 * time.Second) // Add delay to avoid rapid retries
+			newPort, findErr := network.FindFreePort(currentPort+1, "udp")
+			if findErr != nil {
+				lastErr = fmt.Errorf("failed to find free UDP port after %s: %v", udpPort, findErr)
+				time.Sleep(1 * time.Second)
 				continue
 			}
 			currentPort = newPort
-			continue
-		}
-
-		// Create UDP socket with SO_REUSEADDR to allow address reuse
-		fd, err := unix.Socket(unix.AF_INET, unix.SOCK_DGRAM, unix.IPPROTO_UDP)
-		if err != nil {
-			lastErr = fmt.Errorf("failed to create UDP socket: %v", err)
-			continue
-		}
-
-		// Set SO_REUSEADDR option to allow binding to recently used ports
-		if err := unix.SetsockoptInt(fd, unix.SOL_SOCKET, unix.SO_REUSEADDR, 1); err != nil {
-			unix.Close(fd)
-			lastErr = fmt.Errorf("failed to set SO_REUSEADDR: %v", err)
-			continue
-		}
-
-		// Convert file descriptor to *os.File for use with net package
-		file := os.NewFile(uintptr(fd), "")
-		defer file.Close() // Ensure file is closed if ListenUDP fails
-
-		// Create UDP connection from file descriptor
-		udpConn, err := net.FileConn(file)
-		if err != nil {
-			unix.Close(fd)
-			lastErr = fmt.Errorf("failed to create net.Conn: %v", err)
-			continue
-		}
-		conn, ok := udpConn.(*net.UDPConn)
-		if !ok {
-			udpConn.Close()
-			lastErr = fmt.Errorf("failed to cast to UDPConn")
-			continue
-		}
-
-		// Bind the UDP connection to the address
-		listener, err := net.ListenUDP("udp", &net.UDPAddr{Port: currentPort, IP: net.ParseIP("0.0.0.0")})
-		if err != nil {
-			conn.Close()
-			lastErr = fmt.Errorf("failed to bind UDP port %d: %v", currentPort, err)
+			lastErr = err
 			continue
 		}
 

@@ -41,6 +41,7 @@ type Config struct {
 	seedNodes  string // Comma-separated list of seed node UDP addresses for network bootstrap
 	dataDir    string // Directory path for LevelDB storage (default: "data")
 	nodeIndex  int    // Index of the node to run when managing multiple nodes (0 to numNodes-1)
+	devMode    bool   // FIX-P2P-03: skip DHT, use direct TCP seed connections for local testnet
 }
 
 // TestConfig holds the parameters that the test harness uses.

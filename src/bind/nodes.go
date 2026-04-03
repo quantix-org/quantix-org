@@ -131,6 +131,7 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 		WSPort:    nodeConfig.WSPort,
 		Role:      nodeConfig.Role,
 		SeedNodes: nodeConfig.SeedNodes,
+		DevMode:   nodeConfig.DevMode, // FIX-P2P-03
 	}
 
 	var wg sync.WaitGroup
@@ -328,6 +329,7 @@ func RunMultipleNodesInternal() error {
 			WSPort:    config.WSPort,
 			Role:      config.Role,
 			SeedNodes: config.SeedNodes,
+			DevMode:   config.DevMode, // FIX-P2P-03
 		}
 	}
 
@@ -525,6 +527,7 @@ func SetupNodes(configs []NodeSetupConfig, wg *sync.WaitGroup) ([]NodeResources,
 			WSPort:    config.WSPort,
 			Role:      config.Role,
 			SeedNodes: config.SeedNodes,
+			DevMode:   config.DevMode, // FIX-P2P-03
 		}
 		p2pServers[i] = p2p.NewServer(nodeConfig, blockchains[i], dbs[i])
 		localNode := p2pServers[i].LocalNode()

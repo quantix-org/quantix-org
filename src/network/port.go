@@ -338,6 +338,7 @@ func GetNodePortConfigs(numNodes int, roles []NodeRole, overrides map[string]str
 			WSPort:    wsAddr,     // WebSocket address for real-time
 			Role:      role,       // Node role
 			SeedNodes: seedNodes,  // Seed nodes for discovery
+			DevMode:   overrides["devMode"] == "true", // FIX-P2P-03
 		}
 	}
 
