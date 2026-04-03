@@ -53,9 +53,10 @@ type NodeSetupConfig struct {
 	HTTPPort   string
 	WSPort     string
 	UDPPort    string
-	SeedNodes  []string
-	DB         *leveldb.DB // optional: pre-opened LevelDB instance; SetupNodes will open its own if nil
-	DevMode    bool        // FIX-P2P-03: skip DHT, use direct TCP peering
+	SeedNodes    []string
+	SeedHTTPPort string // optional: HTTP port of seed node (e.g. "8590"); if empty defaults to "8560"
+	DB           *leveldb.DB // optional: pre-opened LevelDB instance; SetupNodes will open its own if nil
+	DevMode      bool        // FIX-P2P-03: skip DHT, use direct TCP peering
 }
 
 // NodeResources holds the initialized resources for a node.

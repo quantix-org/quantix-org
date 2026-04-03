@@ -111,9 +111,10 @@ func (s *TCPServer) Start() error {
 				log.Printf("TCP accept error on %s: %v", s.address, err)
 				continue
 			}
-			// Use the server's address as the key (e.g., 127.0.0.1:30307)
-			log.Printf("Accepted new connection on %s from %s", s.address, conn.RemoteAddr().String())
-			go s.handleConnection(conn, s.address)
+			// FIX-P2P-GOSSIP: key inbound connections by REMOTE addr so SendMessage can find them
+			remoteAddr := conn.RemoteAddr().String()
+			log.Printf("Accepted new connection on %s from %s", s.address, remoteAddr)
+			go s.handleConnection(conn, remoteAddr)
 		}
 	}()
 	return nil
@@ -126,6 +127,10 @@ func (s *TCPServer) handleConnection(conn net.Conn, nodeAddr string) {
 		delete(s.connections, nodeAddr)
 		delete(s.encKeys, nodeAddr)
 		s.mu.Unlock()
+		globalServer.mu.Lock()
+		delete(globalServer.connections, nodeAddr)
+		delete(globalServer.encKeys, nodeAddr)
+		globalServer.mu.Unlock()
 		if err := conn.Close(); err != nil && !strings.Contains(err.Error(), "use of closed network connection") {
 			log.Printf("Error closing connection to %s: %v", nodeAddr, err)
 		}
@@ -143,11 +148,17 @@ func (s *TCPServer) handleConnection(conn net.Conn, nodeAddr string) {
 	}
 
 	// Store the connection and encryption key
+	// FIX-P2P-GOSSIP: store in both local and globalServer maps so SendMessage()
+	// (which reads globalServer) can find inbound peers by remote address.
 	s.mu.Lock()
 	s.connections[nodeAddr] = conn
 	s.encKeys[nodeAddr] = enc
 	s.mu.Unlock()
-	log.Printf("Handshake completed for %s, storing connection", nodeAddr)
+	globalServer.mu.Lock()
+	globalServer.connections[nodeAddr] = conn
+	globalServer.encKeys[nodeAddr] = enc
+	globalServer.mu.Unlock()
+	log.Printf("Handshake completed for %s, storing connection (local+global)", nodeAddr)
 
 	reader := bufio.NewReader(conn)
 	for {

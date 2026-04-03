@@ -150,7 +150,8 @@ type NodePortConfig struct {
 	// at startup via crypto/rand (F-03). This field is retained for JSON
 	// config backward-compatibility but is no longer used.
 	DHTSecret uint16 `json:"dht_secret,omitempty"` // deprecated — ignored at runtime
-	DevMode   bool   `json:"dev_mode,omitempty"`   // FIX-P2P-03: skip DHT, use direct TCP peering
+	DevMode      bool   `json:"dev_mode,omitempty"`        // FIX-P2P-03: skip DHT, use direct TCP peering
+	SeedHTTPPort string `json:"seed_http_port,omitempty"`  // HTTP port of seed node (e.g. "8590")
 }
 
 // DiscoveryMessage represents a UDP discovery message.

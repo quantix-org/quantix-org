@@ -78,6 +78,9 @@ func Execute() error {
 	// FIX-P2P-03: dev-mode flag — skip DHT, use direct TCP peering for local testnets
 	flag.BoolVar(&cfg.devMode, "dev-mode", false, "Skip DHT discovery; use direct TCP seed connections (local testnet)")
 
+	// HTTP port of the seed node (used for validator auto-registration in dev-mode)
+	flag.StringVar(&cfg.seedHTTPPort, "seed-http-port", "", "HTTP port of seed node for validator registration (dev-mode)")
+
 	// ----- test-only flag ----------------------------------------------------
 	// Special flag for running the PBFT integration test
 	flag.IntVar(&testCfg.NumNodes, "test-nodes", 0,
@@ -168,6 +171,11 @@ func Execute() error {
 		// Add dev-mode override if provided (FIX-P2P-03)
 		if cfg.devMode {
 			flagOverrides["devMode"] = "true"
+		}
+
+		// Add seed HTTP port override if provided
+		if cfg.seedHTTPPort != "" {
+			flagOverrides["seedHTTPPort"] = cfg.seedHTTPPort
 		}
 
 		// Generate node configurations using the bind package

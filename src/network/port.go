@@ -337,8 +337,9 @@ func GetNodePortConfigs(numNodes int, roles []NodeRole, overrides map[string]str
 			HTTPPort:  httpAddr,   // HTTP address for RPC
 			WSPort:    wsAddr,     // WebSocket address for real-time
 			Role:      role,       // Node role
-			SeedNodes: seedNodes,  // Seed nodes for discovery
-			DevMode:   overrides["devMode"] == "true", // FIX-P2P-03
+			SeedNodes:    seedNodes,  // Seed nodes for discovery
+			DevMode:      overrides["devMode"] == "true", // FIX-P2P-03
+			SeedHTTPPort: overrides["seedHTTPPort"],
 		}
 	}
 

@@ -134,8 +134,9 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 		HTTPPort:  nodeConfig.HTTPPort,
 		WSPort:    nodeConfig.WSPort,
 		Role:      nodeConfig.Role,
-		SeedNodes: nodeConfig.SeedNodes,
-		DevMode:   nodeConfig.DevMode, // FIX-P2P-03
+		SeedNodes:    nodeConfig.SeedNodes,
+		SeedHTTPPort: nodeConfig.SeedHTTPPort,
+		DevMode:      nodeConfig.DevMode, // FIX-P2P-03
 	}
 
 	var wg sync.WaitGroup
@@ -169,14 +170,18 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 		go func() {
 			// Wait for HTTP server to be ready
 			time.Sleep(5 * time.Second)
-			// Determine seed HTTP endpoints: seed_ip:8560
+			// Determine seed HTTP endpoints
 			seedHTTPs := make([]string, 0, len(nodeConfig.SeedNodes))
+			seedHTTPPort := nodeConfig.SeedHTTPPort
+			if seedHTTPPort == "" {
+				seedHTTPPort = "8560"
+			}
 			for _, seed := range nodeConfig.SeedNodes {
 				host, _, err := net.SplitHostPort(seed)
 				if err != nil {
 					host = seed
 				}
-				seedHTTPs = append(seedHTTPs, fmt.Sprintf("http://%s:8560", host))
+				seedHTTPs = append(seedHTTPs, fmt.Sprintf("http://%s:%s", host, seedHTTPPort))
 			}
 
 			// Register with each seed
@@ -400,14 +405,15 @@ func RunMultipleNodesInternal() error {
 	setupConfigs := make([]NodeSetupConfig, len(configs))
 	for i, config := range configs {
 		setupConfigs[i] = NodeSetupConfig{
-			Name:      config.Name,
-			Address:   config.TCPAddr,
-			UDPPort:   config.UDPPort,
-			HTTPPort:  config.HTTPPort,
-			WSPort:    config.WSPort,
-			Role:      config.Role,
-			SeedNodes: config.SeedNodes,
-			DevMode:   config.DevMode, // FIX-P2P-03
+			Name:         config.Name,
+			Address:      config.TCPAddr,
+			UDPPort:      config.UDPPort,
+			HTTPPort:     config.HTTPPort,
+			WSPort:       config.WSPort,
+			Role:         config.Role,
+			SeedNodes:    config.SeedNodes,
+			SeedHTTPPort: config.SeedHTTPPort,
+			DevMode:      config.DevMode, // FIX-P2P-03
 		}
 	}
 
