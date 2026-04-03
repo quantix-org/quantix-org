@@ -100,6 +100,22 @@ func (pm *PeerManager) ConnectPeer(node *network.Node) error {
 		LastSeen:         time.Now(),
 	}
 
+	// FIX-P2P-04: Populate node.IP and node.Port from node.Address if empty,
+	// so AddPeer's validation doesn't reject peers after Kyber768 handshake.
+	if node.IP == "" || node.Port == "" {
+		if host, port, splitErr := net.SplitHostPort(node.Address); splitErr == nil {
+			if node.IP == "" {
+				node.IP = host
+			}
+			if node.Port == "" {
+				node.Port = port
+			}
+			log.Printf("FIX-P2P-04: populated IP=%s Port=%s from Address for node %s", node.IP, node.Port, node.ID)
+		} else {
+			log.Printf("FIX-P2P-04: could not split host/port from Address=%s for node %s: %v", node.Address, node.ID, splitErr)
+		}
+	}
+
 	// Add peer to node manager's peer list
 	if err := pm.server.nodeManager.AddPeer(node); err != nil {
 		log.Printf("Failed to add peer %s: %v", node.ID, err)
