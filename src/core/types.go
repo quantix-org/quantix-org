@@ -128,6 +128,15 @@ type PerformanceConfig struct {
 }
 
 // Blockchain manages the chain of blocks with state machine replication
+// NodeSyncState represents the sync phase of a node joining the network.
+type NodeSyncState int
+
+const (
+	SyncStateNewNode  NodeSyncState = iota // Node has just started, chain is empty
+	SyncStateSyncing                       // Actively fetching blocks from a seed peer
+	SyncStateSynced                        // Chain is fully synced
+)
+
 type Blockchain struct {
 	storage         *storage.Storage
 	stateMachine    *storage.StateMachine
@@ -144,7 +153,11 @@ type Blockchain struct {
 	merkleRootCache map[string]string
 
 	// TPS Monitoring
-	tpsMonitor *types.TPSMonitor // Add this line
+	tpsMonitor *types.TPSMonitor
+
+	// P2-2: Node sync state machine
+	nodeSyncState NodeSyncState
+	seedPeers     []string // HTTP addresses of seed peers, e.g. "http://1.2.3.4:8080"
 }
 
 // GenesisState holds the complete genesis configuration used to bootstrap a node.

@@ -110,4 +110,55 @@ ok      github.com/ramseyauron/quantix/src/spxhash/testvc    21.007s
 File: testvc.test
 Type: cpu
 Time: 2025-07-30 03:47:15 WIB
-Duration: 18.68s, Total samples = 9.54s (51.08%)
+Duration: 18.68s, Total samples = 9.54s (51.08%)Using opcode: SphinxHash=0x15
+inputLen: 0, hash: c20f4bc14267aad693be2bb6e9799675ec4c494c654a6ad275b3124ae3182782
+Using opcode: SphinxHash=0x15
+inputLen: 1, hash: 350a3ccb38261de839186ee3faf07ce6582cc4255edadba80e9afc29889a2a25
+Using opcode: SphinxHash=0x15
+inputLen: 1023, hash: 080afb7b8fa2f060d639a75968a56ccbf7ccafa73f17a04a837bbcc0d71798c3
+Using opcode: SphinxHash=0x15
+inputLen: 1024, hash: c05d1a039284c225a7e2c62a3f5b55e513772526e436e8795314ed75c52263e6
+Using opcode: SphinxHash=0x15
+inputLen: 2048, hash: 474d4f92c82cc17d428f310153ef88b2ef9564c85f89e3b0b8e84df2a806365c
+Using opcode: SphinxHash=0x15
+inputLen: 4096, hash: 0182389897ec0a966907c29a08f157581fef96b475c35b7d98914d2630c31090
+=== RUN   TestPrintHashes
+Using opcode: SphinxHash=0x15 (cached)
+<vector inputLen=0 hash=c20f4bc14267aad693be2bb6e9799675ec4c494c654a6ad275b3124ae3182782 keyedHash=c098615604bb025f47999595c04e030f364e5435a7577d7ababb03a271e9989e deriveKey=6012eaca7a9daf58879ab88bb04fdecf36774425a22074274605b50a5ce0b6f6>
+Using opcode: SphinxHash=0x15 (cached)
+<vector inputLen=1 hash=350a3ccb38261de839186ee3faf07ce6582cc4255edadba80e9afc29889a2a25 keyedHash=ea27697ab40a291b93dc90c1618337974d06462882918405420871911fcb29ec deriveKey=6012eaca7a9daf58879ab88bb04fdecf36774425a22074274605b50a5ce0b6f6>
+Using opcode: SphinxHash=0x15 (cached)
+<vector inputLen=1023 hash=080afb7b8fa2f060d639a75968a56ccbf7ccafa73f17a04a837bbcc0d71798c3 keyedHash=8002a9d0715ee58d3e796d0a2474c7eaefb5d38544d2e7ca4e1c636b9e2ddfce deriveKey=91c42dbe900f6de7d935d03c9b4353e85af0ec3a2dc6855afcabf4c389156a61>
+Using opcode: SphinxHash=0x15 (cached)
+<vector inputLen=1024 hash=c05d1a039284c225a7e2c62a3f5b55e513772526e436e8795314ed75c52263e6 keyedHash=a5e689a6065c86606c29be00b70d9fb777ef8273c212a8caa574dd51dd39a714 deriveKey=c94bb9e8fe57faa53c52166f203ddbcc7fd7b4f981c331f238e8e83c28cc7f4d>
+Using opcode: SphinxHash=0x15 (cached)
+<vector inputLen=2048 hash=474d4f92c82cc17d428f310153ef88b2ef9564c85f89e3b0b8e84df2a806365c keyedHash=1b8dbedc8bb976b4a5b5eae089397f6c0db4f3ece3159b917774ee6e2a26d6d1 deriveKey=c423e784acd3624b2b1bdf929e881132d8613aadffc5f2630e95b979e882e423>
+Using opcode: SphinxHash=0x15 (cached)
+<vector inputLen=4096 hash=0182389897ec0a966907c29a08f157581fef96b475c35b7d98914d2630c31090 keyedHash=950c63a2454e97c3a12e78804c23c65944436b53b1f513fbf72d874f22446995 deriveKey=6191b71d1a551df206de55b3563e266f656234c1d7ecb0194fef8c1c8a650eb0>
+--- PASS: TestPrintHashes (0.00s)
+Using opcode: SphinxHash=0x15
+inputLen: 0, hash: c20f4bc14267aad693be2bb6e9799675ec4c494c654a6ad275b3124ae3182782
+Using opcode: SphinxHash=0x15
+inputLen: 1, hash: 350a3ccb38261de839186ee3faf07ce6582cc4255edadba80e9afc29889a2a25
+Using opcode: SphinxHash=0x15
+inputLen: 1023, hash: 080afb7b8fa2f060d639a75968a56ccbf7ccafa73f17a04a837bbcc0d71798c3
+Using opcode: SphinxHash=0x15
+inputLen: 1024, hash: c05d1a039284c225a7e2c62a3f5b55e513772526e436e8795314ed75c52263e6
+Using opcode: SphinxHash=0x15
+inputLen: 2048, hash: 474d4f92c82cc17d428f310153ef88b2ef9564c85f89e3b0b8e84df2a806365c
+Using opcode: SphinxHash=0x15
+inputLen: 4096, hash: 0182389897ec0a966907c29a08f157581fef96b475c35b7d98914d2630c31090
+=== RUN   TestPrintHashes
+Using opcode: SphinxHash=0x15 (cached)
+<vector inputLen=0 hash=c20f4bc14267aad693be2bb6e9799675ec4c494c654a6ad275b3124ae3182782 keyedHash=c098615604bb025f47999595c04e030f364e5435a7577d7ababb03a271e9989e deriveKey=6012eaca7a9daf58879ab88bb04fdecf36774425a22074274605b50a5ce0b6f6>
+Using opcode: SphinxHash=0x15 (cached)
+<vector inputLen=1 hash=350a3ccb38261de839186ee3faf07ce6582cc4255edadba80e9afc29889a2a25 keyedHash=ea27697ab40a291b93dc90c1618337974d06462882918405420871911fcb29ec deriveKey=6012eaca7a9daf58879ab88bb04fdecf36774425a22074274605b50a5ce0b6f6>
+Using opcode: SphinxHash=0x15 (cached)
+<vector inputLen=1023 hash=080afb7b8fa2f060d639a75968a56ccbf7ccafa73f17a04a837bbcc0d71798c3 keyedHash=8002a9d0715ee58d3e796d0a2474c7eaefb5d38544d2e7ca4e1c636b9e2ddfce deriveKey=91c42dbe900f6de7d935d03c9b4353e85af0ec3a2dc6855afcabf4c389156a61>
+Using opcode: SphinxHash=0x15 (cached)
+<vector inputLen=1024 hash=c05d1a039284c225a7e2c62a3f5b55e513772526e436e8795314ed75c52263e6 keyedHash=a5e689a6065c86606c29be00b70d9fb777ef8273c212a8caa574dd51dd39a714 deriveKey=c94bb9e8fe57faa53c52166f203ddbcc7fd7b4f981c331f238e8e83c28cc7f4d>
+Using opcode: SphinxHash=0x15 (cached)
+<vector inputLen=2048 hash=474d4f92c82cc17d428f310153ef88b2ef9564c85f89e3b0b8e84df2a806365c keyedHash=1b8dbedc8bb976b4a5b5eae089397f6c0db4f3ece3159b917774ee6e2a26d6d1 deriveKey=c423e784acd3624b2b1bdf929e881132d8613aadffc5f2630e95b979e882e423>
+Using opcode: SphinxHash=0x15 (cached)
+<vector inputLen=4096 hash=0182389897ec0a966907c29a08f157581fef96b475c35b7d98914d2630c31090 keyedHash=950c63a2454e97c3a12e78804c23c65944436b53b1f513fbf72d874f22446995 deriveKey=6191b71d1a551df206de55b3563e266f656234c1d7ecb0194fef8c1c8a650eb0>
+--- PASS: TestPrintHashes (0.00s)

@@ -2430,6 +2430,26 @@ func (bc *Blockchain) GetBlocks() []*types.Block {
 	return bc.chain // Return in-memory chain
 }
 
+// GetBlocksRange returns a paginated slice of blocks starting at `from` (height)
+// up to `limit` blocks. Used by the P2-2 sync endpoint.
+func (bc *Blockchain) GetBlocksRange(from uint64, limit int) []*types.Block {
+	bc.lock.RLock()
+	defer bc.lock.RUnlock()
+	if limit <= 0 || limit > 1000 {
+		limit = 100
+	}
+	var result []*types.Block
+	for _, blk := range bc.chain {
+		if blk.Header.Height >= from {
+			result = append(result, blk)
+			if len(result) >= limit {
+				break
+			}
+		}
+	}
+	return result
+}
+
 // ChainLength returns the current length of the in-memory chain
 // Returns: Number of blocks in memory
 func (bc *Blockchain) ChainLength() int {

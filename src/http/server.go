@@ -183,6 +183,11 @@ func (s *Server) setupRoutes() {
 	// Address endpoints — balance + transaction history
 	s.router.GET("/address/:addr", s.handleGetAddress)
 	s.router.GET("/address/:addr/txs", s.handleGetAddressTxs)
+	// P2-2: Block range sync endpoint
+	s.router.GET("/blocks", s.handleGetBlocks)
+	// P2-3: Validator registration
+	s.router.POST("/validator/register", s.handleValidatorRegister)
+	s.router.GET("/validators", s.handleGetValidators)
 
 	// F-20: /mine endpoint requires DEVNET_MINE_SECRET env var to be set and matched.
 	// If not configured, the endpoint is disabled (returns 403).
@@ -390,5 +395,77 @@ func (s *Server) handleGetAddressTxs(c *gin.Context) {
 		"address":      addr,
 		"transactions": txs,
 		"count":        len(txs),
+	})
+}
+
+// handleGetBlocks returns a paginated list of blocks.
+// GET /blocks?from=0&limit=100
+// P2-2: Node sync protocol endpoint.
+func (s *Server) handleGetBlocks(c *gin.Context) {
+	fromStr := c.DefaultQuery("from", "0")
+	limitStr := c.DefaultQuery("limit", "100")
+
+	from, err := strconv.ParseUint(fromStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid from parameter"})
+		return
+	}
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
+	}
+
+	blocks := s.blockchain.GetBlocksRange(from, limit)
+	c.JSON(http.StatusOK, blocks)
+}
+
+// ValidatorRegisterRequest is the body for POST /validator/register.
+type ValidatorRegisterRequest struct {
+	PublicKey   string `json:"public_key" binding:"required"`
+	StakeAmount string `json:"stake_amount" binding:"required"`
+	NodeAddress string `json:"node_address" binding:"required"`
+}
+
+// handleValidatorRegister registers a new validator.
+// POST /validator/register — P2-3
+func (s *Server) handleValidatorRegister(c *gin.Context) {
+	var req ValidatorRegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("invalid request: %v", err)})
+		return
+	}
+
+	reg := &core.ValidatorRegistration{
+		PublicKey:   req.PublicKey,
+		StakeAmount: req.StakeAmount,
+		NodeAddress: req.NodeAddress,
+	}
+	if err := s.blockchain.RegisterValidator(reg); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":       "registered",
+		"node_address": req.NodeAddress,
+	})
+}
+
+// handleGetValidators returns all registered validators.
+// GET /validators — P2-3
+func (s *Server) handleGetValidators(c *gin.Context) {
+	validators, err := s.blockchain.GetValidators()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if validators == nil {
+		validators = []*core.ValidatorRegistration{}
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"validators": validators,
+		"count":      len(validators),
 	})
 }

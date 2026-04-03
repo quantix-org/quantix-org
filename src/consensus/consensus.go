@@ -391,6 +391,20 @@ func (c *Consensus) ProposeBlock(block Block) error {
 		}
 	}
 
+	// In DEVNET_SOLO mode we self-commit without waiting for peer votes.
+	// This avoids a deadlock where the single node waits for a quorum that
+	// can never be reached.
+	if c.ActiveConsensusMode() == DEVNET_SOLO {
+		logger.Info("⛏️  DEVNET_SOLO: self-committing block %s (no peers)", proposal.Block.GetHash())
+		c.mu.Lock()
+		c.preparedBlock = proposal.Block
+		c.lockedBlock = proposal.Block
+		c.phase = PhaseCommitted
+		c.commitBlock(proposal.Block)
+		c.mu.Unlock()
+		return nil
+	}
+
 	// Broadcast the proposal
 	return c.broadcastProposal(proposal)
 }
@@ -484,9 +498,28 @@ func (c *Consensus) consensusLoop() {
 	viewTimer := time.NewTimer(c.timeout)
 	defer viewTimer.Stop() // Ensure timer is stopped on exit
 
+	prevMode := DEVNET_SOLO
+
 	for {
 		select {
 		case <-viewTimer.C:
+			// Check current consensus mode
+			n := c.getTotalNodes()
+			mode := GetConsensusMode(n)
+			c.logModeTransition(prevMode, mode)
+			prevMode = mode
+
+			// In DEVNET_SOLO mode with only 1 validator, do NOT trigger view
+			// changes — doing so would loop endlessly since there are no peers
+			// to collect timeout quorum from.  The solo leader mines via the
+			// DevnetMineBlock path; real PBFT only activates at >= 4 validators.
+			if mode == DEVNET_SOLO {
+				logger.Info("⛏️  DEVNET_SOLO mode (%d validators < %d): skipping view change",
+					n, MinPBFTValidators)
+				viewTimer.Reset(c.timeout)
+				continue
+			}
+
 			if c.shouldPreventViewChange() {
 				viewTimer.Reset(10 * time.Second)
 				continue
@@ -501,7 +534,7 @@ func (c *Consensus) consensusLoop() {
 				continue
 			}
 
-			// NEW: also skip view change if the chain has already advanced past height 0
+			// Skip view change if the chain has already advanced past current height
 			// (meaning consensus already succeeded for this round)
 			if c.blockChain != nil {
 				chainHeight := c.blockChain.GetLatestBlock()

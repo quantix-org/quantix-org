@@ -323,3 +323,46 @@ func (d *DB) PutBatch(entries map[string][]byte) error {
 	logger.Info("PutBatch: wrote %d entries atomically", len(entries))
 	return nil
 }
+
+// GetByPrefix returns all key-value pairs whose key starts with the given prefix.
+// Used for prefix scans (e.g. iterating all "val:" validator records).
+func (d *DB) GetByPrefix(prefix string) (map[string][]byte, error) {
+	d.mutex.RLock()
+	defer d.mutex.RUnlock()
+
+	if d.db == nil {
+		return nil, fmt.Errorf("LevelDB is closed")
+	}
+
+	ldb, ok := d.db.(*leveldb.DB)
+	if !ok {
+		return nil, fmt.Errorf("GetByPrefix: underlying DB does not support iteration")
+	}
+
+	results := make(map[string][]byte)
+	iter := ldb.NewIterator(nil, nil)
+	defer iter.Release()
+
+	prefixBytes := []byte(prefix)
+	for iter.Seek(prefixBytes); iter.Valid(); iter.Next() {
+		k := iter.Key()
+		if len(k) < len(prefixBytes) {
+			break
+		}
+		// Check prefix match byte-by-byte
+		match := true
+		for i, b := range prefixBytes {
+			if k[i] != b {
+				match = false
+				break
+			}
+		}
+		if !match {
+			break
+		}
+		val := make([]byte, len(iter.Value()))
+		copy(val, iter.Value())
+		results[string(k)] = val
+	}
+	return results, iter.Error()
+}
