@@ -730,6 +730,10 @@ func SetupNodes(configs []NodeSetupConfig, wg *sync.WaitGroup) ([]NodeResources,
 			WebSocketServer: wsServers[i],
 			HTTPServer:      httpServers[i],
 		}
+
+		// FIX-P2P-05: wire P2P server as gossip broadcaster for block + tx propagation
+		blockchains[i].SetGossipBroadcaster(p2pServers[i])
+		logger.Infof("✅ Gossip broadcaster wired for %s", configs[i].Name)
 	}
 
 	return resources, nil

@@ -594,6 +594,29 @@ func (s *Server) handleMessages() {
 			if originID != "" {
 				s.peerManager.UpdatePeerScore(originID, -5)
 			}
+
+		case "gossip_block":
+			// FIX-P2P-05: handle incoming block from peer gossip
+			if block, ok := msg.Data.(*types.Block); ok {
+				if err := s.blockchain.AddBlockFromPeer(block); err != nil {
+					log.Printf("gossip_block: failed to add block height=%d: %v", block.GetHeight(), err)
+				} else {
+					log.Printf("gossip_block: accepted block height=%d hash=%s", block.GetHeight(), block.GetHash())
+				}
+			} else {
+				log.Printf("gossip_block: unexpected data type %T", msg.Data)
+			}
+
+		case "gossip_tx":
+			// FIX-P2P-05: handle incoming transaction from peer gossip
+			if tx, ok := msg.Data.(*types.Transaction); ok {
+				// Use AddTransactionFromPeer (skips re-broadcast to avoid loop)
+				if err := s.blockchain.AddTransactionFromPeer(tx); err != nil {
+					log.Printf("gossip_tx: failed to add tx %s: %v", tx.ID, err)
+				}
+			} else {
+				log.Printf("gossip_tx: unexpected data type %T", msg.Data)
+			}
 		}
 	}
 }
@@ -680,4 +703,54 @@ func (s *Server) validateTransaction(tx *types.Transaction) error {
 // Simple wrapper around peer manager's propagation function
 func (s *Server) Broadcast(msg *security.Message) {
 	s.peerManager.PropagateMessage(msg, s.localNode.ID)
+}
+
+// BroadcastBlock sends a newly-committed block to all connected peers.
+// FIX-P2P-05: block gossip
+func (s *Server) BroadcastBlock(block *types.Block) {
+	msg := &security.Message{
+		Type: "gossip_block",
+		Data: block,
+	}
+	s.mu.RLock()
+	peers := make([]*network.Peer, 0, len(s.peerManager.peers))
+	for _, p := range s.peerManager.peers {
+		peers = append(peers, p)
+	}
+	s.mu.RUnlock()
+
+	for _, p := range peers {
+		if p.ConnectionStatus != "connected" && p.ConnectionStatus != "active" {
+			continue
+		}
+		if err := transport.SendMessage(p.Node.Address, msg); err != nil {
+			log.Printf("BroadcastBlock: failed to send to %s: %v", p.Node.ID, err)
+		} else {
+			log.Printf("BroadcastBlock: sent block height=%d to %s", block.GetHeight(), p.Node.ID)
+		}
+	}
+}
+
+// BroadcastTransaction sends a new transaction to all connected peers.
+// FIX-P2P-05: tx gossip
+func (s *Server) BroadcastTransaction(tx *types.Transaction) {
+	msg := &security.Message{
+		Type: "gossip_tx",
+		Data: tx,
+	}
+	s.mu.RLock()
+	peers := make([]*network.Peer, 0, len(s.peerManager.peers))
+	for _, p := range s.peerManager.peers {
+		peers = append(peers, p)
+	}
+	s.mu.RUnlock()
+
+	for _, p := range peers {
+		if p.ConnectionStatus != "connected" && p.ConnectionStatus != "active" {
+			continue
+		}
+		if err := transport.SendMessage(p.Node.Address, msg); err != nil {
+			log.Printf("BroadcastTransaction: failed to send to %s: %v", p.Node.ID, err)
+		}
+	}
 }

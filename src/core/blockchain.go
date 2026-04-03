@@ -1110,6 +1110,16 @@ func (bc *Blockchain) CacheTypeString(cacheType CacheType) string {
 	}
 }
 
+// AddTransactionFromPeer adds a transaction received from a peer WITHOUT
+// re-broadcasting it (to avoid gossip loops). FIX-P2P-05
+func (bc *Blockchain) AddTransactionFromPeer(tx *types.Transaction) error {
+	bc.storage.RecordTransaction()
+	if bc.tpsMonitor != nil {
+		bc.tpsMonitor.RecordTransaction()
+	}
+	return bc.mempool.BroadcastTransaction(tx)
+}
+
 // AddTransaction now uses the comprehensive mempool
 // Parameters:
 //   - tx: Transaction to add
@@ -1123,7 +1133,18 @@ func (bc *Blockchain) AddTransaction(tx *types.Transaction) error {
 	if bc.tpsMonitor != nil {
 		bc.tpsMonitor.RecordTransaction() // Record for TPS calculation
 	}
-	return bc.mempool.BroadcastTransaction(tx) // Broadcast to network
+	if err := bc.mempool.BroadcastTransaction(tx); err != nil {
+		return err
+	}
+
+	// FIX-P2P-05: gossip tx to peers
+	bc.lock.RLock()
+	gb := bc.gossipBroadcaster
+	bc.lock.RUnlock()
+	if gb != nil {
+		gb.BroadcastTransaction(tx)
+	}
+	return nil
 }
 
 // GetBlockSizeStats returns block size statistics
@@ -1799,11 +1820,19 @@ func (bc *Blockchain) CommitBlock(block consensus.Block) error {
 		txIDs[i] = tx.ID // Collect transaction IDs
 	}
 	bc.mempool.RemoveTransactions(txIDs) // Remove from mempool
+
+	// FIX-P2P-05: capture broadcaster under lock, broadcast outside lock
+	gb := bc.gossipBroadcaster
 	bc.lock.Unlock()
 
 	// Log successful commit
 	logger.Info("✅ Block committed: height=%d, hash=%s, transactions=%d, block_time=%v",
 		typeBlock.GetHeight(), typeBlock.GetHash(), len(txIDs), blockTime)
+
+	// Broadcast to peers (fire-and-forget, outside any lock)
+	if gb != nil {
+		gb.BroadcastBlock(typeBlock)
+	}
 
 	return nil
 }

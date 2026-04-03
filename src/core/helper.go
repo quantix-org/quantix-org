@@ -151,6 +151,36 @@ func (bc *Blockchain) HasPendingTx(hash string) bool {
 	return bc.mempool.HasTransaction(hash)
 }
 
+// SetGossipBroadcaster wires the P2P gossip broadcaster so that CommitBlock
+// and AddTransaction can push data to connected peers immediately.
+// FIX-P2P-05
+func (bc *Blockchain) SetGossipBroadcaster(b GossipBroadcaster) {
+	bc.lock.Lock()
+	defer bc.lock.Unlock()
+	bc.gossipBroadcaster = b
+}
+
+// AddBlockFromPeer validates and commits a block received from the gossip
+// network.  It is separate from CommitBlock to avoid re-broadcasting the
+// block to the network (which would create an infinite loop).
+// FIX-P2P-05
+func (bc *Blockchain) AddBlockFromPeer(block *types.Block) error {
+	if block == nil {
+		return fmt.Errorf("AddBlockFromPeer: nil block")
+	}
+	// Check height – skip if we already have this block.
+	latest := bc.GetLatestBlock()
+	if latest != nil && block.GetHeight() <= latest.GetHeight() {
+		return nil // already have it
+	}
+	// Full commit path (validates, executes state, stores).
+	helper := NewBlockHelper(block)
+	if err := bc.CommitBlock(helper); err != nil {
+		return fmt.Errorf("AddBlockFromPeer: %w", err)
+	}
+	return nil
+}
+
 // SetConsensusEngine sets the consensus engine
 func (bc *Blockchain) SetConsensusEngine(engine *consensus.Consensus) {
 	bc.consensusEngine = engine

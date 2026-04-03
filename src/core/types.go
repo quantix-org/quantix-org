@@ -158,6 +158,17 @@ type Blockchain struct {
 	// P2-2: Node sync state machine
 	nodeSyncState NodeSyncState
 	seedPeers     []string // HTTP addresses of seed peers, e.g. "http://1.2.3.4:8080"
+
+	// FIX-P2P-05: gossip broadcaster – set by P2P layer after initialization
+	gossipBroadcaster GossipBroadcaster
+}
+
+// GossipBroadcaster is implemented by the P2P server and called by the
+// blockchain to propagate newly-mined blocks and accepted transactions to
+// all connected peers.
+type GossipBroadcaster interface {
+	BroadcastBlock(block *types.Block)
+	BroadcastTransaction(tx *types.Transaction)
 }
 
 // GenesisState holds the complete genesis configuration used to bootstrap a node.
