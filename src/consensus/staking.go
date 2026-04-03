@@ -1,29 +1,11 @@
 // MIT License
-//
 // Copyright (c) 2024 quantix
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
 
 // consensus/staking.go
 package consensus
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"sort"
@@ -85,6 +67,164 @@ func (vs *ValidatorSet) AddValidator(id string, stakeSPX uint64) error {
 	}
 
 	logger.Info("✅ Validator %s added/updated with %d QTX stake", id, stakeSPX)
+	return nil
+}
+
+// RegisterValidator registers a new validator with full details (P2-6).
+// id: node ID, pubkey: hex-encoded public key, stake: in QTX units, nodeAddr: network address.
+func (vs *ValidatorSet) RegisterValidator(id, pubkey string, stake uint64, nodeAddr string) error {
+	if id == "" {
+		return fmt.Errorf("validator id is required")
+	}
+	if nodeAddr == "" {
+		return fmt.Errorf("node address is required")
+	}
+
+	stakeNSPX := new(big.Int).Mul(
+		big.NewInt(int64(stake)),
+		big.NewInt(denom.QTX),
+	)
+	if stakeNSPX.Cmp(vs.minStakeAmount) < 0 {
+		return fmt.Errorf("stake %d QTX below minimum %d QTX", stake, vs.GetMinStakeSPX())
+	}
+
+	vs.mu.Lock()
+	defer vs.mu.Unlock()
+
+	if val, exists := vs.validators[id]; exists {
+		vs.totalStake.Sub(vs.totalStake, val.StakeAmount)
+		val.StakeAmount = stakeNSPX
+		val.NodeAddress = nodeAddr
+		if pubkey != "" {
+			val.PubKeyHex = pubkey
+		}
+		val.IsSlashed = false
+		vs.totalStake.Add(vs.totalStake, stakeNSPX)
+		logger.Info("✅ Validator %s updated: stake=%d QTX, addr=%s", id, stake, nodeAddr)
+	} else {
+		vs.validators[id] = &StakedValidator{
+			ID:              id,
+			StakeAmount:     stakeNSPX,
+			PubKeyHex:       pubkey,
+			NodeAddress:     nodeAddr,
+			ActivationEpoch: 0,
+		}
+		vs.totalStake.Add(vs.totalStake, stakeNSPX)
+		logger.Info("✅ Validator %s registered: stake=%d QTX, addr=%s", id, stake, nodeAddr)
+	}
+	return nil
+}
+
+// UnregisterValidator removes a validator from the active set (P2-6).
+// Sets ExitEpoch so it is excluded from future epoch sets.
+func (vs *ValidatorSet) UnregisterValidator(id string) error {
+	vs.mu.Lock()
+	defer vs.mu.Unlock()
+
+	val, exists := vs.validators[id]
+	if !exists {
+		return fmt.Errorf("validator %s not found", id)
+	}
+
+	vs.totalStake.Sub(vs.totalStake, val.StakeAmount)
+	// Mark as exited immediately (ExitEpoch=1 is in the past relative to any epoch)
+	val.ExitEpoch = 1
+	val.StakeAmount = big.NewInt(0)
+
+	logger.Info("🔴 Validator %s unregistered", id)
+	return nil
+}
+
+// validatorPersistRecord is used for JSON persistence of the validator set.
+type validatorPersistRecord struct {
+	ID              string `json:"id"`
+	StakeQTX        uint64 `json:"stake_qtx"`
+	PublicKey       string `json:"public_key"`
+	NodeAddress     string `json:"node_address"`
+	ActivationEpoch uint64 `json:"activation_epoch"`
+	ExitEpoch       uint64 `json:"exit_epoch"`
+	IsSlashed       bool   `json:"is_slashed"`
+}
+
+const validatorSetDBKey = "consensus:validator_set"
+
+// PersistableDB is the minimal interface needed for validator persistence.
+type PersistableDB interface {
+	Put(key string, value []byte) error
+	Get(key string) ([]byte, error)
+}
+
+// SaveToDB serializes the validator set to the given database (P2-6).
+func (vs *ValidatorSet) SaveToDB(db PersistableDB) error {
+	vs.mu.RLock()
+	defer vs.mu.RUnlock()
+
+	records := make([]*validatorPersistRecord, 0, len(vs.validators))
+	for _, v := range vs.validators {
+		stakeQTX := uint64(0)
+		if v.StakeAmount != nil && v.StakeAmount.Sign() > 0 {
+			stakeQTX = new(big.Int).Div(v.StakeAmount, big.NewInt(denom.QTX)).Uint64()
+		}
+		records = append(records, &validatorPersistRecord{
+			ID:              v.ID,
+			StakeQTX:        stakeQTX,
+			PublicKey:       v.PubKeyHex,
+			NodeAddress:     v.NodeAddress,
+			ActivationEpoch: v.ActivationEpoch,
+			ExitEpoch:       v.ExitEpoch,
+			IsSlashed:       v.IsSlashed,
+		})
+	}
+
+	data, err := json.Marshal(records)
+	if err != nil {
+		return fmt.Errorf("marshal validator set: %w", err)
+	}
+
+	if err := db.Put(validatorSetDBKey, data); err != nil {
+		return fmt.Errorf("persist validator set: %w", err)
+	}
+
+	logger.Info("💾 Persisted %d validators to DB", len(records))
+	return nil
+}
+
+// LoadFromDB restores the validator set from the given database (P2-6).
+// Returns nil error (not found) when the key doesn't exist yet.
+func (vs *ValidatorSet) LoadFromDB(db PersistableDB) error {
+	data, err := db.Get(validatorSetDBKey)
+	if err != nil {
+		// Key not found — fresh start is fine
+		logger.Info("ℹ️ No persisted validator set found (fresh start)")
+		return nil
+	}
+
+	var records []*validatorPersistRecord
+	if err := json.Unmarshal(data, &records); err != nil {
+		return fmt.Errorf("unmarshal validator set: %w", err)
+	}
+
+	vs.mu.Lock()
+	defer vs.mu.Unlock()
+
+	for _, r := range records {
+		stakeNSPX := new(big.Int).Mul(
+			big.NewInt(int64(r.StakeQTX)),
+			big.NewInt(denom.QTX),
+		)
+		vs.validators[r.ID] = &StakedValidator{
+			ID:              r.ID,
+			StakeAmount:     stakeNSPX,
+			PubKeyHex:       r.PublicKey,
+			NodeAddress:     r.NodeAddress,
+			ActivationEpoch: r.ActivationEpoch,
+			ExitEpoch:       r.ExitEpoch,
+			IsSlashed:       r.IsSlashed,
+		}
+		vs.totalStake.Add(vs.totalStake, stakeNSPX)
+	}
+
+	logger.Info("✅ Loaded %d validators from DB", len(records))
 	return nil
 }
 
@@ -210,15 +350,6 @@ func (vs *ValidatorSet) SlashValidator(id, reason string, penaltyBps uint64) {
 
 // FinaliseEpochAndSlash is the epoch-boundary hook that ties the VDF beacon
 // and the validator set together.
-//
-// Call this from the Consensus engine at slot 0 of each new epoch:
-//
-//	slashList := c.randao.FinaliseEpoch(epoch, c.validatorSet.ActiveValidatorIDs(epoch))
-//	for _, id := range slashList {
-//	    c.validatorSet.SlashValidator(id, "missed VDF submission", SlashBps)
-//	}
-//
-// The helper below wraps that pattern for convenience.
 func (c *Consensus) FinaliseEpochAndSlash(epoch uint64) {
 	c.mu.RLock()
 	vs := c.validatorSet

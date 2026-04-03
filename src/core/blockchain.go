@@ -42,6 +42,7 @@ import (
 	"github.com/ramseyauron/quantix/src/consensus"
 
 	types "github.com/ramseyauron/quantix/src/core/transaction"
+	database "github.com/ramseyauron/quantix/src/core/state"
 	logger "github.com/ramseyauron/quantix/src/log"
 	"github.com/ramseyauron/quantix/src/pool"
 	storage "github.com/ramseyauron/quantix/src/state"
@@ -71,6 +72,14 @@ func NewBlockchain(dataDir string, nodeID string, validators []string, networkTy
 		// Return wrapped error with context for better debugging
 		return nil, fmt.Errorf("failed to initialize storage: %w", err)
 	}
+
+	// Initialize LevelDB for validator registry and other keyed storage.
+	dbPath := filepath.Join(dataDir, "state.db")
+	db, err := database.NewLevelDB(dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize LevelDB: %w", err)
+	}
+	store.SetDB(db)
 
 	// Initialize state machine for Byzantine Fault Tolerance replication
 	// This handles consensus state and validator management

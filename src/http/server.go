@@ -447,6 +447,20 @@ func (s *Server) handleValidatorRegister(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// P2-6: also register with consensus validator set if wired
+	if s.consensusValidatorSet != nil {
+		stakeInt, ok := new(big.Int).SetString(req.StakeAmount, 10)
+		if ok && stakeInt.Sign() > 0 {
+			stakeQTX := stakeInt.Uint64()
+			if err := s.consensusValidatorSet.RegisterValidator(
+				req.NodeAddress, req.PublicKey, stakeQTX, req.NodeAddress,
+			); err != nil {
+				log.Printf("⚠️ consensus.RegisterValidator: %v", err)
+			}
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":       "registered",
 		"node_address": req.NodeAddress,

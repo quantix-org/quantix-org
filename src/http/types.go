@@ -34,13 +34,25 @@ import (
 )
 
 // Server represents an HTTP server.
+// ValidatorRegistrar is the interface for consensus-layer validator registration (P2-6).
+type ValidatorRegistrar interface {
+	RegisterValidator(id, pubkey string, stake uint64, nodeAddr string) error
+	UnregisterValidator(id string) error
+}
+
 type Server struct {
-	address         string
-	router          *gin.Engine
-	messageCh       chan *security.Message
-	blockchain      *core.Blockchain
-	httpServer      *http.Server
-	lastTxMutex     sync.RWMutex
-	lastTransaction *types.Transaction
-	readyCh         chan struct{}
+	address              string
+	router               *gin.Engine
+	messageCh            chan *security.Message
+	blockchain           *core.Blockchain
+	httpServer           *http.Server
+	lastTxMutex          sync.RWMutex
+	lastTransaction      *types.Transaction
+	readyCh              chan struct{}
+	consensusValidatorSet ValidatorRegistrar // P2-6: optional consensus validator set
+}
+
+// SetConsensusValidatorSet wires the consensus validator set to the HTTP server (P2-6).
+func (s *Server) SetConsensusValidatorSet(vr ValidatorRegistrar) {
+	s.consensusValidatorSet = vr
 }

@@ -138,6 +138,8 @@ type StakedValidator struct {
 	IsSlashed       bool
 	LastAttested    uint64
 	RewardAddress   string
+	NodeAddress     string // P2-6: network address for join/leave protocol
+	PubKeyHex       string // P2-6: hex-encoded public key string (for registration)
 }
 
 // ValidatorSet manages staked validators
@@ -281,6 +283,12 @@ type Consensus struct {
 
 	// Timeout vote collection for view change quorum (F-13)
 	timeoutVotes map[uint64]map[string]*TimeoutMsg // view -> voterID -> msg
+
+	// P2-4: view change backoff to avoid CPU spinning
+	viewChangeBackoff time.Duration // current backoff duration
+
+	// P2-5: partition detection — track when last proposal arrived
+	lastProposalTime time.Time // updated each time a proposal is processed
 }
 
 // SigningService handles cryptographic signing for consensus messages

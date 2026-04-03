@@ -163,6 +163,8 @@ func NewConsensus(
 		attestations:         make(map[uint64][]*Attestation),   // Attestations by epoch
 		electedLeaderID:      "",                                // Set by UpdateLeaderStatus
 		timeoutVotes:         make(map[uint64]map[string]*TimeoutMsg), // For view change quorum
+		viewChangeBackoff:    2 * time.Second,                          // P2-4: initial backoff
+		lastProposalTime:     common.GetTimeService().Now(),            // P2-5: partition detection
 	}
 
 	// Initialize and validate VDF parameters (run once at startup)
@@ -498,10 +500,28 @@ func (c *Consensus) consensusLoop() {
 	viewTimer := time.NewTimer(c.timeout)
 	defer viewTimer.Stop() // Ensure timer is stopped on exit
 
+	// P2-5: partition detection ticker (check every 10s)
+	partitionTicker := time.NewTicker(10 * time.Second)
+	defer partitionTicker.Stop()
+
 	prevMode := DEVNET_SOLO
 
 	for {
 		select {
+		case <-partitionTicker.C:
+			// P2-5: if in PBFT mode and no proposal for 2× block time (20s), trigger view change
+			n := c.getTotalNodes()
+			if GetConsensusMode(n) == PBFT {
+				c.mu.RLock()
+				lastProp := c.lastProposalTime
+				c.mu.RUnlock()
+				if time.Since(lastProp) > 20*time.Second {
+					logger.Warn("⚠️ Network partition suspected, initiating view change (no proposal for %v)",
+						time.Since(lastProp).Truncate(time.Second))
+					c.startViewChange()
+				}
+			}
+
 		case <-viewTimer.C:
 			// Check current consensus mode
 			n := c.getTotalNodes()
@@ -549,7 +569,17 @@ func (c *Consensus) consensusLoop() {
 			}
 
 			c.startViewChange()
-			viewTimer.Reset(c.timeout)
+
+			// P2-4: exponential backoff for view change timer (2s → 30s cap)
+			c.mu.Lock()
+			backoff := c.viewChangeBackoff
+			backoff *= 2
+			if backoff > 30*time.Second {
+				backoff = 30 * time.Second
+			}
+			c.viewChangeBackoff = backoff
+			c.mu.Unlock()
+			viewTimer.Reset(backoff)
 
 		case <-c.ctx.Done(): // Consensus stopping
 			logger.Info("Consensus loop stopped for node %s", c.nodeID)
@@ -808,6 +838,12 @@ func (c *Consensus) processProposal(proposal *Proposal) {
 	// Accept the proposal
 	logger.Info("✅ Node %s accepting proposal for block %s at view %d (height %d, nonce: %s)",
 		c.nodeID, proposal.Block.GetHash(), proposal.View, proposal.Block.GetHeight(), nonceStr)
+
+	// P2-5: record proposal arrival time for partition detection
+	c.lastProposalTime = common.GetTimeService().Now()
+
+	// P2-4: reset view change backoff on successful proposal receipt
+	c.viewChangeBackoff = 2 * time.Second
 
 	// Store prepared block and move to pre-prepared phase
 	c.preparedBlock = proposal.Block
