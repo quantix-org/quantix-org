@@ -81,6 +81,9 @@ const (
 	SHA512_224    OpCode = 0x12
 	SHA512_256    OpCode = 0x13
 	SHA3_Shake256 OpCode = 0x14
+
+	// SphinxHash is the opcode for the SPHINCS-based SpxHash function.
+	SphinxHash OpCode = 0x15
 )
 
 const (
