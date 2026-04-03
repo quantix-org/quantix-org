@@ -39,6 +39,7 @@ services:
       - "32307"
       - -tcp-addr
       - "0.0.0.0:32307"
+      - -dev-mode
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8560/blockcount"]
       interval: 15s
@@ -76,6 +77,9 @@ services:
       - "0.0.0.0:32308"
       - -seeds
       - "validator-0:32307"
+      - -seed-http-port
+      - "8560"
+      - -dev-mode
     depends_on:
       validator-0:
         condition: service_healthy
@@ -110,6 +114,9 @@ services:
       - "0.0.0.0:32309"
       - -seeds
       - "validator-0:32307"
+      - -seed-http-port
+      - "8560"
+      - -dev-mode
     depends_on:
       validator-0:
         condition: service_healthy
@@ -144,6 +151,9 @@ services:
       - "0.0.0.0:32310"
       - -seeds
       - "validator-0:32307"
+      - -seed-http-port
+      - "8560"
+      - -dev-mode
     depends_on:
       validator-0:
         condition: service_healthy
