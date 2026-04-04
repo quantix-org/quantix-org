@@ -80,15 +80,16 @@ type Block struct {
 
 // Transaction represents a blockchain transaction
 type Transaction struct {
-	ID        string   `json:"id"`
-	Sender    string   `json:"sender"`
-	Receiver  string   `json:"receiver"`
-	Amount    *big.Int `json:"amount"`
-	GasLimit  *big.Int `json:"gas_limit"`
-	GasPrice  *big.Int `json:"gas_price"`
-	Nonce     uint64   `json:"nonce"`
-	Timestamp int64    `json:"timestamp"`
-	Signature []byte   `json:"signature"`
+	ID          string   `json:"id"`
+	Sender      string   `json:"sender"`
+	Receiver    string   `json:"receiver"`
+	Amount      *big.Int `json:"amount"`
+	GasLimit    *big.Int `json:"gas_limit"`
+	GasPrice    *big.Int `json:"gas_price"`
+	Nonce       uint64   `json:"nonce"`
+	Timestamp   int64    `json:"timestamp"`
+	Signature   []byte   `json:"signature"`
+	Fingerprint string   `json:"fingerprint,omitempty"` // USI fingerprint of sender (SHA-256 of SPHINCS+ pubkey)
 }
 
 // Outpoint represents a specific transaction output.
