@@ -23,26 +23,46 @@ import (
 // ---------------------------------------------------------------------------
 
 func TestValidatorRegister_NoEnvVar_403(t *testing.T) {
-	// Without VALIDATOR_REGISTER_SECRET set, the endpoint must return 403
+	// P2-PBFT: dev-mode bypasses secret gate. This test uses non-dev-mode to verify
+	// that prod-mode still enforces VALIDATOR_REGISTER_SECRET (SEC-P03).
 	os.Unsetenv("VALIDATOR_REGISTER_SECRET")
+	// Build a non-dev-mode server manually
 	srv := newTestServer(t)
+	srv.blockchain.SetDevMode(false) // disable dev-mode to enable secret gate
 
 	body := `{"public_key":"abc","stake_amount":"1000","node_address":"10.0.0.1:8080"}`
 	req := httptest.NewRequest(http.MethodPost, "/validator/register", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
-	// No X-Register-Secret header
 	w := httptest.NewRecorder()
 	srv.router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusForbidden {
-		t.Errorf("SEC-P03: without env var, expected 403, got %d — %s", w.Code, w.Body.String())
+		t.Errorf("SEC-P03: prod-mode without env var, expected 403, got %d — %s", w.Code, w.Body.String())
+	}
+}
+
+// TestValidatorRegister_DevMode_Bypass verifies that dev-mode allows registration
+// without VALIDATOR_REGISTER_SECRET (P2-PBFT intentional bypass for testnet).
+func TestValidatorRegister_DevMode_Bypass(t *testing.T) {
+	os.Unsetenv("VALIDATOR_REGISTER_SECRET")
+	srv := newTestServer(t) // dev-mode is ON by default in newTestServer
+
+	body := `{"public_key":"abc","stake_amount":"1000","node_address":"10.0.0.1:8080"}`
+	req := httptest.NewRequest(http.MethodPost, "/validator/register", bytes.NewBufferString(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	srv.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("P2-PBFT: dev-mode should bypass secret gate, expected 200, got %d — %s", w.Code, w.Body.String())
 	}
 }
 
 func TestValidatorRegister_WrongSecret_403(t *testing.T) {
-	// Correct env var but wrong header value
+	// SEC-P03 prod-mode: correct env var but wrong header → 403
 	t.Setenv("VALIDATOR_REGISTER_SECRET", "correct-secret")
 	srv := newTestServer(t)
+	srv.blockchain.SetDevMode(false) // prod-mode enforces secret
 
 	body := `{"public_key":"abc","stake_amount":"1000","node_address":"10.0.0.1:8080"}`
 	req := httptest.NewRequest(http.MethodPost, "/validator/register", bytes.NewBufferString(body))
@@ -52,7 +72,7 @@ func TestValidatorRegister_WrongSecret_403(t *testing.T) {
 	srv.router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusForbidden {
-		t.Errorf("SEC-P03: wrong secret header, expected 403, got %d — %s", w.Code, w.Body.String())
+		t.Errorf("SEC-P03: prod-mode wrong secret, expected 403, got %d — %s", w.Code, w.Body.String())
 	}
 }
 
