@@ -1133,6 +1133,9 @@ func (bc *Blockchain) AddTransaction(tx *types.Transaction) error {
 	if bc.tpsMonitor != nil {
 		bc.tpsMonitor.RecordTransaction() // Record for TPS calculation
 	}
+	// DIAG: log which blockchain instance is receiving the tx
+	logger.Info("[DIAG] AddTransaction: blockchain=%p mempool=%p tx.ID=%s sender=%s",
+		bc, bc.mempool, tx.ID, tx.Sender)
 	if err := bc.mempool.BroadcastTransaction(tx); err != nil {
 		return err
 	}
@@ -1307,7 +1310,11 @@ func (bc *Blockchain) CreateBlock() (*types.Block, error) {
 	}
 
 	// Get pending transactions from mempool
+	// DIAG: log which blockchain/mempool is being checked for block creation
+	logger.Info("[DIAG] CreateBlock: blockchain=%p mempool=%p", bc, bc.mempool)
 	pendingTxs := bc.mempool.GetPendingTransactions()
+	logger.Info("[DIAG] CreateBlock: pendingPool=%d allTxs=%d",
+		len(pendingTxs), bc.mempool.GetTransactionCount())
 	if len(pendingTxs) == 0 {
 		return nil, errors.New("no pending transactions in mempool")
 	}
@@ -2707,12 +2714,13 @@ func (bc *Blockchain) StartTPSReporting(ctx context.Context) {
 	}()
 }
 
-// GetPendingTransactionCount returns the number of transactions currently in the mempool.
+// GetPendingTransactionCount returns the number of transactions currently in the mempool
+// that are ready for block inclusion (in pendingPool state).
 func (bc *Blockchain) GetPendingTransactionCount() int {
 	if bc.mempool == nil {
 		return 0
 	}
-	return bc.mempool.GetTransactionCount()
+	return len(bc.mempool.GetPendingTransactions())
 }
 
 // DevnetMineBlock creates a new block from pending mempool transactions and

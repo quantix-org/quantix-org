@@ -293,9 +293,12 @@ func (mp *Mempool) performValidation(tx *types.Transaction) error {
 		return errors.New("invalid amount")
 	}
 
-	// Validate gas parameters
-	if tx.GasLimit == nil || tx.GasPrice == nil {
-		return errors.New("missing gas parameters")
+	// Validate gas parameters — treat nil as zero (valid for devnet/simple txs)
+	if tx.GasLimit == nil {
+		tx.GasLimit = big.NewInt(0)
+	}
+	if tx.GasPrice == nil {
+		tx.GasPrice = big.NewInt(0)
 	}
 
 	// Balance check: reject if sender cannot cover amount + gas fee.
