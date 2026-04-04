@@ -2707,6 +2707,14 @@ func (bc *Blockchain) StartTPSReporting(ctx context.Context) {
 	}()
 }
 
+// GetPendingTransactionCount returns the number of transactions currently in the mempool.
+func (bc *Blockchain) GetPendingTransactionCount() int {
+	if bc.mempool == nil {
+		return 0
+	}
+	return bc.mempool.GetTransactionCount()
+}
+
 // DevnetMineBlock creates a new block from pending mempool transactions and
 // commits it through CommitBlock (which executes state transitions and persists
 // the block with a real StateRoot). Safe for single-node devnet use.

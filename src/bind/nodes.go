@@ -247,12 +247,23 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 			// Register with the in-memory registry so local delivery also works.
 			network.RegisterConsensus(nodeID, cons)
 
-			// Start the consensus engine.
-			if err := cons.Start(); err != nil {
-				log.Printf("⚠️  P2-PBFT: consensus.Start failed: %v", err)
+			// Only start the consensus engine when PBFT quorum is reachable.
+			// With < 4 validators, the devnet miner goroutine below handles block
+			// production.  Starting the engine anyway causes an endless view-change
+			// loop (view 1 → 2 → 3 …) that holds consensus locks and prevents the
+			// devnet miner from committing blocks.
+			initialValidatorCount := 1 // self is always counted
+			if initialValidatorCount >= 4 {
+				if err := cons.Start(); err != nil {
+					log.Printf("⚠️  P2-PBFT: consensus.Start failed: %v", err)
+				} else {
+					pbftConsensus = cons
+					log.Printf("✅ P2-PBFT: consensus engine started for %s (dev-mode=%v)", nodeID, nodeConfig.DevMode)
+				}
 			} else {
-				pbftConsensus = cons
-				log.Printf("✅ P2-PBFT: consensus engine started for %s (dev-mode=%v)", nodeID, nodeConfig.DevMode)
+				pbftConsensus = cons // keep reference for later activation at 4+ validators
+				log.Printf("⏸️  P2-PBFT: consensus engine created but NOT started for %s — only %d validator(s), need %d for PBFT quorum (devnet miner active)",
+					nodeID, initialValidatorCount, 4)
 			}
 		}
 	}
@@ -369,6 +380,12 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 							log.Printf("✅ P2-PBFT: consensus validatorSet now has %d validators — PBFT active!", n)
 						}
 					}
+					// Start the consensus engine now that quorum is reachable.
+					if err := cons.Start(); err != nil {
+						log.Printf("⚠️  P2-PBFT: consensus.Start failed at quorum: %v", err)
+					} else {
+						log.Printf("🚀 P2-PBFT: consensus engine started — PBFT quorum reached (%d validators)", n)
+					}
 					return
 				}
 			}
@@ -403,6 +420,12 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 						_ = vs.AddValidator(vr.NodeAddress, stakeQTX.Uint64())
 					}
 					log.Printf("✅ P2-PBFT: seed node consensus validatorSet synced with %d validators", len(validators))
+				}
+				// Start the consensus engine now that quorum is reachable.
+				if err := cons.Start(); err != nil {
+					log.Printf("⚠️  P2-PBFT: seed node consensus.Start failed at quorum: %v", err)
+				} else {
+					log.Printf("🚀 P2-PBFT: seed node consensus engine started — PBFT quorum reached")
 				}
 				return
 			}
@@ -446,6 +469,8 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 							log.Printf("⚠️  Devnet miner tick panic: %v", r)
 						}
 					}()
+					pendingCount := bc.GetPendingTransactionCount()
+					log.Printf("DevnetMineBlock attempt: pending=%d", pendingCount)
 					height, err := bc.DevnetMineBlock(nodeConfig.Name)
 					if err != nil {
 						if !strings.Contains(err.Error(), "no pending transactions") {
