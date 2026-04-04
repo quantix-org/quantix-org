@@ -423,14 +423,40 @@ func (s *Server) handleGetBlock(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid block ID"})
 		return
 	}
-	blocks := s.blockchain.GetBlocks()
-	for _, block := range blocks {
-		if block.Header.Block == id {
-			c.JSON(http.StatusOK, block)
+
+	type result struct {
+		block interface{}
+		found bool
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	ch := make(chan result, 1)
+	go func() {
+		blocks := s.blockchain.GetBlocks()
+		for _, block := range blocks {
+			if block.Header == nil {
+				continue
+			}
+			if block.Header.Block == id {
+				ch <- result{block: block, found: true}
+				return
+			}
+		}
+		ch <- result{found: false}
+	}()
+
+	select {
+	case <-ctx.Done():
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "request timed out fetching block"})
+	case res := <-ch:
+		if !res.found {
+			c.JSON(http.StatusNotFound, gin.H{"error": "block not found"})
 			return
 		}
+		c.JSON(http.StatusOK, res.block)
 	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "block not found"})
 }
 
 func (s *Server) handleGetBestBlockHash(c *gin.Context) {
