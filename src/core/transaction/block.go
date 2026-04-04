@@ -902,5 +902,13 @@ func (tx *Transaction) SanityCheck() error {
 		return fmt.Errorf("invalid gas price: %s", tx.GasPrice.String())
 	}
 
+	// SEC-V05: If Fingerprint is provided, it must equal Sender.
+	// In Quantix, Sender IS the USI fingerprint (SHA-256 of SPHINCS+ pubkey).
+	// A mismatch means the transaction claims a different identity than its sender,
+	// which is an identity spoofing attempt.
+	if tx.Fingerprint != "" && tx.Fingerprint != tx.Sender {
+		return fmt.Errorf("fingerprint mismatch: tx.Fingerprint %s does not match tx.Sender %s", tx.Fingerprint, tx.Sender)
+	}
+
 	return nil
 }
