@@ -44,6 +44,7 @@ package usi
 
 import (
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
@@ -169,7 +170,9 @@ func VerifyUSIMeta(data []byte, meta *USIMeta, sm *sign.SphincsManager, km *key.
 	// --- Step 1: verify file_hash ---
 	fileHashArr := sha256.Sum256(data)
 	expectedFileHash := hex.EncodeToString(fileHashArr[:])
-	if meta.FileHash != expectedFileHash {
+	// SEC-V02: Use constant-time compare for all hash/fingerprint verification
+	// to prevent timing oracle attacks on cryptographic values.
+	if subtle.ConstantTimeCompare([]byte(meta.FileHash), []byte(expectedFileHash)) == 0 {
 		return false, fmt.Errorf("usi: file_hash mismatch: got %s, want %s", meta.FileHash, expectedFileHash)
 	}
 
@@ -180,7 +183,7 @@ func VerifyUSIMeta(data []byte, meta *USIMeta, sm *sign.SphincsManager, km *key.
 	}
 	fpArr := sha256.Sum256(pkBytes)
 	expectedFP := hex.EncodeToString(fpArr[:])
-	if meta.Fingerprint != expectedFP {
+	if subtle.ConstantTimeCompare([]byte(meta.Fingerprint), []byte(expectedFP)) == 0 {
 		return false, fmt.Errorf("usi: fingerprint mismatch: got %s, want %s", meta.Fingerprint, expectedFP)
 	}
 
@@ -237,7 +240,7 @@ func VerifyUSIMeta(data []byte, meta *USIMeta, sm *sign.SphincsManager, km *key.
 	finalInput := append(append([]byte(nil), data...), sigBytes...)
 	finalHashArr := sha256.Sum256(finalInput)
 	expectedFinalHash := hex.EncodeToString(finalHashArr[:])
-	if meta.FinalDocHash != expectedFinalHash {
+	if subtle.ConstantTimeCompare([]byte(meta.FinalDocHash), []byte(expectedFinalHash)) == 0 {
 		return false, fmt.Errorf("usi: final_doc_hash mismatch: got %s, want %s", meta.FinalDocHash, expectedFinalHash)
 	}
 

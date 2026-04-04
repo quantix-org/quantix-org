@@ -56,10 +56,12 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"time"
 
@@ -93,7 +95,12 @@ type Vault struct {
 // using HKDF-SHA256. The info string binds the key to the specific vault
 // participants, preventing cross-vault key reuse.
 func deriveKey(passphrase, creatorFP string, recipientFPs []string) ([]byte, error) {
-	info := creatorFP + "|" + strings.Join(recipientFPs, ",")
+	// SEC-V03: Sort recipients before joining so key derivation is stable
+	// regardless of the order recipients appear in the vault JSON / caller args.
+	sorted := make([]string, len(recipientFPs))
+	copy(sorted, recipientFPs)
+	sort.Strings(sorted)
+	info := creatorFP + "|" + strings.Join(sorted, ",")
 	salt := sha256.Sum256([]byte(info))
 	r := hkdf.New(sha256.New, []byte(passphrase), salt[:], []byte("quantix-vault-v1"))
 	key := make([]byte, 32)
@@ -175,15 +182,15 @@ func OpenVault(vault *Vault, callerFP string, passphrase string) ([]byte, error)
 		return nil, errors.New("vault: callerFP must not be empty")
 	}
 
-	// Check caller is an authorised recipient
-	allowed := false
+	// SEC-V01: Constant-time recipient check to prevent timing oracle.
+	// An attacker probing vault access with different fingerprints must not be
+	// able to infer partial fingerprint matches via response timing.
+	allowed := 0
+	callerFPBytes := []byte(callerFP)
 	for _, fp := range vault.Recipients {
-		if fp == callerFP {
-			allowed = true
-			break
-		}
+		allowed |= subtle.ConstantTimeCompare([]byte(fp), callerFPBytes)
 	}
-	if !allowed {
+	if allowed == 0 {
 		return nil, fmt.Errorf("vault: fingerprint %s is not in recipients list", callerFP)
 	}
 
