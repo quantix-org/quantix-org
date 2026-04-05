@@ -94,9 +94,9 @@ func TestDomainConstructors_Labels(t *testing.T) {
 
 func TestDefaultGenesisAllocations_Count(t *testing.T) {
 	allocs := DefaultGenesisAllocations()
-	// The default distribution has 14 entries (3 founders + 2 reserve +
-	// 2 treasury + 2 community + 5 validators).
-	const want = 14 // ← correct
+	// The default distribution has 19 entries (3 founders + 2 reserve +
+	// 2 treasury + 2 community + 5 validators + 5 testnet wallets added in 62ef33c).
+	const want = 19 // ← updated: +5 testnet wallets (10,000 QTX each)
 	if len(allocs) != want {
 		t.Errorf("DefaultGenesisAllocations: want %d entries, got %d", want, len(allocs))
 	}
@@ -109,8 +109,12 @@ func TestDefaultGenesisAllocations_TotalSupply(t *testing.T) {
 		total.Add(total, a.BalanceNQTX)
 	}
 
-	// 1,000,000,000 QTX × 10^18 nQTX/QTX
-	wantNSPX := new(big.Int).Mul(big.NewInt(1_000_000_000), big.NewInt(1e18))
+	// 1,000,000,000 QTX × 10^18 nQTX/QTX + 5 testnet wallets × 10,000 QTX (62ef33c)
+	testnetsExtra := new(big.Int).Mul(big.NewInt(5*10_000), big.NewInt(1e18))
+	wantNSPX := new(big.Int).Add(
+		new(big.Int).Mul(big.NewInt(1_000_000_000), big.NewInt(1e18)),
+		testnetsExtra,
+	)
 	if total.Cmp(wantNSPX) != 0 {
 		t.Errorf("total supply: want %s nQTX, got %s nQTX", wantNSPX.String(), total.String())
 	}
@@ -126,8 +130,9 @@ func TestDefaultGenesisAllocations_NoNilBalances(t *testing.T) {
 
 func TestDefaultGenesisAllocations_ValidAddresses(t *testing.T) {
 	for i, a := range DefaultGenesisAllocations() {
-		if len(a.Address) != 40 {
-			t.Errorf("allocation[%d]: address length want 40, got %d (%q)",
+		// Accept both 40-char (legacy) and 64-char (SPHINCS+ fingerprint) addresses (SEC-A01).
+		if len(a.Address) != 40 && len(a.Address) != 64 {
+			t.Errorf("allocation[%d]: address length must be 40 or 64, got %d (%q)",
 				i, len(a.Address), a.Address)
 		}
 		if _, err := hex.DecodeString(a.Address); err != nil {
@@ -420,7 +425,12 @@ func TestAllocationSet_TotalSupplyMatchesDefaultAllocations(t *testing.T) {
 		t.Fatalf("NewAllocationSet: %v", err)
 	}
 
-	want := new(big.Int).Mul(big.NewInt(1_000_000_000), big.NewInt(1e18))
+	// 1,000,000,000 QTX base + 5 testnet wallets × 10,000 QTX (62ef33c)
+	testnetsExtra2 := new(big.Int).Mul(big.NewInt(5*10_000), big.NewInt(1e18))
+	want := new(big.Int).Add(
+		new(big.Int).Mul(big.NewInt(1_000_000_000), big.NewInt(1e18)),
+		testnetsExtra2,
+	)
 	if s.TotalSupplyNSPX().Cmp(want) != 0 {
 		t.Errorf("TotalSupplyNSPX mismatch: want %s, got %s",
 			want.String(), s.TotalSupplyNSPX().String())
