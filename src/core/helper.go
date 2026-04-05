@@ -202,6 +202,17 @@ func (bc *Blockchain) AddBlockFromPeer(block *types.Block) error {
 	if latest != nil && block.GetHeight() <= latest.GetHeight() {
 		return nil // already have it
 	}
+
+	// SEC-P2P02: Validate block structure (hash integrity, parent chain, MerkleRoot)
+	// before trusting it. This ensures fabricated/corrupted peer blocks are rejected
+	// before peerSyncInProgress bypasses SEC-E03 tx signature verification.
+	// Note: PBFT attestation signature verification is not yet implemented (SEC-P2P03);
+	// until then, block hash + chain integrity is the structural trust anchor.
+	helper := NewBlockHelper(block)
+	if err := bc.ValidateBlock(helper); err != nil {
+		return fmt.Errorf("AddBlockFromPeer: block validation failed: %w", err)
+	}
+
 	// Mark peer-sync in progress so applyTransactions skips SEC-E03.
 	// Blocks from peers were already validated by a PBFT quorum; PBFT
 	// attestations are the trust anchor, not individual tx signatures.
@@ -215,7 +226,7 @@ func (bc *Blockchain) AddBlockFromPeer(block *types.Block) error {
 		bc.peerSyncMu.Unlock()
 	}()
 	// Full commit path (validates, executes state, stores).
-	helper := NewBlockHelper(block)
+	// Re-use the helper created for ValidateBlock above.
 	if err := bc.CommitBlock(helper); err != nil {
 		return fmt.Errorf("AddBlockFromPeer: %w", err)
 	}
