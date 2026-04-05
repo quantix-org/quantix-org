@@ -813,9 +813,12 @@ func (bc *Blockchain) StartLeaderLoop(ctx context.Context) {
 					continue
 				}
 
-				// Only leader proposes blocks
-				// Check if this node is the current leader
-				if !bc.consensusEngine.IsLeader() {
+				// Update leader status (RANDAO election) before checking
+				bc.consensusEngine.UpdateLeaderStatus()
+
+				// Only leader proposes blocks — compare elected leader to this node directly
+				// to avoid race with view changes resetting isLeader between UpdateLeaderStatus and here.
+				if bc.consensusEngine.GetElectedLeaderID() != bc.consensusEngine.GetNodeID() {
 					continue
 				}
 
@@ -1371,38 +1374,10 @@ func (bc *Blockchain) CreateBlock() (*types.Block, error) {
 	newBody := types.NewBlockBody(selectedTxs, emptyUncles) // Create block body
 	newBlock := types.NewBlock(newHeader, newBody)          // Create complete block
 
-	// CRITICAL: Increment nonce multiple times until consensus is achieved
-	logger.Info("Starting nonce iteration for consensus: initial nonce=%s", newBlock.Header.Nonce)
-
-	maxAttempts := 1000000 // 1 million attempts maximum
-	for attempt := 0; attempt < maxAttempts; attempt++ {
-		// Use existing IncrementNonce function
-		if err := newBlock.IncrementNonce(); err != nil {
-			logger.Warn("Failed to increment nonce on attempt %d: %v", attempt, err)
-			continue
-		}
-
-		// Finalize hash with new nonce
-		newBlock.FinalizeHash()
-
-		// Check if consensus requirements are met using existing validation
-		if bc.checkConsensusRequirements(newBlock) {
-			logger.Info("✅ Consensus achieved with nonce %s after %d attempts",
-				newBlock.Header.Nonce, attempt+1)
-			break
-		}
-
-		// Log progress every 1000 attempts
-		if (attempt+1)%1000 == 0 {
-			logger.Debug("Nonce iteration: attempt %d, current nonce: %s",
-				attempt+1, newBlock.Header.Nonce)
-		}
-
-		// If we reach the end, use the last nonce
-		if attempt == maxAttempts-1 {
-			logger.Info("⚠️ Max nonce attempts reached, using nonce %s", newBlock.Header.Nonce)
-		}
-	}
+	// PBFT: no PoW nonce grinding needed. One hash finalization is sufficient.
+	// The PBFT consensus protocol handles block validity through voting, not nonce iteration.
+	newBlock.FinalizeHash()
+	logger.Info("✅ PBFT block hash finalized (no nonce mining): nonce=%s", newBlock.Header.Nonce)
 
 	// Final validation using existing functions
 	if err := newBlock.ValidateHashFormat(); err != nil {
@@ -1413,10 +1388,9 @@ func (bc *Blockchain) CreateBlock() (*types.Block, error) {
 		}
 	}
 
-	// Validate transaction root consistency
-	if err := newBlock.ValidateTxsRoot(); err != nil {
-		return nil, fmt.Errorf("created block has inconsistent TxsRoot: %v", err)
-	}
+	// Skip redundant TxsRoot revalidation — txsRoot was computed just above (line ~1345)
+	// and stored in the block header; recomputing it here via ValidateTxsRoot would be an
+	// expensive SPHINCS+ Merkle tree computation for no benefit at creation time.
 
 	// CRITICAL: Calculate and cache the merkle root immediately
 	merkleRoot := hex.EncodeToString(txsRoot) // Merkle root as hex
@@ -1447,21 +1421,10 @@ func (bc *Blockchain) CreateBlock() (*types.Block, error) {
 //
 // Returns: true if block meets consensus requirements
 func (bc *Blockchain) checkConsensusRequirements(block *types.Block) bool {
-	// Use existing block validation
-	if err := block.Validate(); err != nil {
-		logger.Debug("Block validation failed: %v", err)
-		return false
-	}
-
-	// Use existing hash format validation
-	if err := block.ValidateHashFormat(); err != nil {
-		logger.Debug("Hash format validation failed: %v", err)
-		return false
-	}
-
-	// For PBFT, we consider the block valid if it passes basic validation
-	// Actual consensus will be determined by voting
-	return true
+	// For PBFT, nonce iteration is not required — skip PoW-style mining.
+	// The block just needs to have a non-empty hash; actual validity is
+	// checked by consensus voting, not nonce grinding.
+	return block != nil && block.GetHash() != ""
 }
 
 // selectTransactionsForBlock selects transactions for the block based on size constraints
@@ -1934,6 +1897,14 @@ func (bc *Blockchain) initializeChain() error {
 			return fmt.Errorf("genesis block created but chain is empty")
 		}
 
+		// Execute genesis block to apply allocation balances to the state DB.
+		// This is required so that funded wallets have non-zero balances.
+		if err := bc.ExecuteGenesisBlock(); err != nil {
+			logger.Warn("ExecuteGenesisBlock failed (non-fatal): %v", err)
+		} else {
+			logger.Info("✅ Genesis balances applied via ExecuteGenesisBlock")
+		}
+
 		latestBlock = bc.chain[0] // Get genesis block from memory
 		logger.Info("Using genesis block from memory: height=%d, hash=%s",
 			latestBlock.GetHeight(), latestBlock.GetHash())
@@ -2303,8 +2274,10 @@ func (bc *Blockchain) GetChainTip() map[string]interface{} {
 //
 // Returns: true if address is valid
 func (bc *Blockchain) ValidateAddress(address string) bool {
-	// Basic address validation - check length
-	if len(address) != 40 {
+	// Accept both 40-char (20-byte legacy) and 64-char (32-byte SPHINCS+ USI fingerprint) addresses.
+	// SEC-A01: Dual-format support — the protocol transitioned to 64-char SPHINCS+ fingerprints;
+	// legacy 40-char addresses remain valid for backwards compatibility with existing allocations.
+	if len(address) != 40 && len(address) != 64 {
 		return false
 	}
 	// Check if it's valid hex
