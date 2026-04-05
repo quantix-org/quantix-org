@@ -237,6 +237,13 @@ func (s *StateDB) IncrementTotalSupply(amount *big.Int) {
 	s.totalSupply.Add(s.totalSupply, amount)
 }
 
+// DecrementTotalSupply subtracts amount from the tracked circulating supply (e.g. burned fees).
+func (s *StateDB) DecrementTotalSupply(amount *big.Int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.totalSupply.Sub(s.totalSupply, amount)
+}
+
 // ----------------------------------------------------------------------------
 // Commit
 // ----------------------------------------------------------------------------

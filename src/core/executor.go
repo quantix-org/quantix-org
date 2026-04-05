@@ -174,9 +174,7 @@ func (bc *Blockchain) applyTransactions(block *types.Block, stateDB *StateDB) er
 				logger.Warn("executor: dev-mode: skipping balance check for tx[%d] %s (bal=%s needs=%s)",
 					i, tx.ID, bal.String(), totalCost.String())
 				stateDB.AddBalance(tx.Receiver, tx.Amount)
-				if proposerID != "" && gasFee.Sign() > 0 {
-					stateDB.AddBalance(proposerID, gasFee)
-				}
+				bc.distributeGasFee(gasFee, proposerID, block.Body.Attestations, stateDB)
 				stateDB.IncrementNonce(tx.Sender)
 				logger.Info("executor: tx[%d] %s → %s %s nQTX (gas %s nQTX) ✓ [dev-mode]",
 					i, tx.Sender, tx.Receiver, tx.Amount.String(), gasFee.String())
@@ -190,16 +188,52 @@ func (bc *Blockchain) applyTransactions(block *types.Block, stateDB *StateDB) er
 			return fmt.Errorf("tx[%d] SubBalance: %w", i, err)
 		}
 		stateDB.AddBalance(tx.Receiver, tx.Amount)
-
-		if proposerID != "" && gasFee.Sign() > 0 {
-			stateDB.AddBalance(proposerID, gasFee)
-		}
+		bc.distributeGasFee(gasFee, proposerID, block.Body.Attestations, stateDB)
 
 		stateDB.IncrementNonce(tx.Sender)
 		logger.Info("executor: tx[%d] %s → %s %s nQTX (gas %s nQTX) ✓",
 			i, tx.Sender, tx.Receiver, tx.Amount.String(), gasFee.String())
 	}
 	return nil
+}
+
+// distributeGasFee splits a gas fee: 70% burned, 20% to attestors, 10% to proposer.
+// If no attestors are present, all non-burned amount goes to proposer.
+func (bc *Blockchain) distributeGasFee(gasFee *big.Int, proposerID string, attestations []*types.Attestation, stateDB *StateDB) {
+	if gasFee == nil || gasFee.Sign() <= 0 || proposerID == "" {
+		return
+	}
+
+	// 70% burned (already deducted from sender — just don't credit it)
+	burnAmt := new(big.Int).Mul(gasFee, big.NewInt(70))
+	burnAmt.Div(burnAmt, big.NewInt(100))
+
+	// 10% → proposer
+	proposerAmt := new(big.Int).Mul(gasFee, big.NewInt(10))
+	proposerAmt.Div(proposerAmt, big.NewInt(100))
+
+	// 20% → attestors (remainder after burn + proposer)
+	attestorPool := new(big.Int).Sub(gasFee, new(big.Int).Add(burnAmt, proposerAmt))
+
+	stateDB.DecrementTotalSupply(burnAmt)
+	stateDB.AddBalance(proposerID, proposerAmt)
+
+	if len(attestations) > 0 && attestorPool.Sign() > 0 {
+		perAttestor := new(big.Int).Div(attestorPool, big.NewInt(int64(len(attestations))))
+		if perAttestor.Sign() > 0 {
+			for _, att := range attestations {
+				if att.ValidatorID != "" {
+					stateDB.AddBalance(att.ValidatorID, perAttestor)
+				}
+			}
+		}
+	} else if proposerID != "" {
+		// No attestors: give attestor pool to proposer
+		stateDB.AddBalance(proposerID, attestorPool)
+	}
+
+	logger.Info("gasFee distribution: burned=%s nQTX (70%%), proposer=%s nQTX (10%%), attestors=%d x each from pool=%s nQTX (20%%)",
+		burnAmt.String(), proposerAmt.String(), len(attestations), attestorPool.String())
 }
 
 // mintBlockReward issues BaseBlockReward to the block proposer, respecting
@@ -260,15 +294,41 @@ func (bc *Blockchain) mintBlockReward(block *types.Block, stateDB *StateDB) {
 		reward = remaining
 	}
 
-	stateDB.AddBalance(proposerID, reward)
+	// Model C: 40% → proposer, 60% → attestors equally
+	attestations := block.Body.Attestations
+	proposerShare := new(big.Int).Mul(reward, big.NewInt(40))
+	proposerShare.Div(proposerShare, big.NewInt(100))
+	attestorPool := new(big.Int).Sub(reward, proposerShare)
+
+	stateDB.AddBalance(proposerID, proposerShare)
 	stateDB.IncrementTotalSupply(reward)
 
-	rewardSPX := new(big.Float).Quo(
-		new(big.Float).SetInt(reward),
-		new(big.Float).SetInt(big.NewInt(1e18)),
-	)
-	logger.Info("✅ mintBlockReward: %.6f QTX → %s (block %d)",
-		rewardSPX, proposerID, block.GetHeight())
+	attestorIDs := make([]string, 0, len(attestations))
+	if len(attestations) > 0 {
+		perAttestor := new(big.Int).Div(attestorPool, big.NewInt(int64(len(attestations))))
+		if perAttestor.Sign() > 0 {
+			for _, att := range attestations {
+				if att.ValidatorID != "" {
+					stateDB.AddBalance(att.ValidatorID, perAttestor)
+					attestorIDs = append(attestorIDs, att.ValidatorID)
+				}
+			}
+		}
+	} else {
+		// No attestors (genesis, devmode early blocks): 100% to proposer
+		stateDB.AddBalance(proposerID, attestorPool)
+	}
+
+	proposerSPX := new(big.Float).Quo(new(big.Float).SetInt(proposerShare), new(big.Float).SetInt(big.NewInt(1e18)))
+	attestorSPX := new(big.Float)
+	if len(attestations) > 0 {
+		attestorSPX.Quo(
+			new(big.Float).SetInt(new(big.Int).Div(attestorPool, big.NewInt(int64(len(attestations))))),
+			new(big.Float).SetInt(big.NewInt(1e18)),
+		)
+	}
+	logger.Info("✅ distributedReward: proposer %s got %.6f QTX (40%%), attestors %v got %.6f QTX each (60%%) (block %d)",
+		proposerID, proposerSPX, attestorIDs, attestorSPX, block.GetHeight())
 }
 
 // ExecuteBlock is called from CommitBlock.  It applies transactions, mints the
