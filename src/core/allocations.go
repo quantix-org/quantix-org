@@ -135,6 +135,13 @@ func DefaultGenesisAllocations() []*GenesisAllocation {
 		NewValidatorAlloc("5000000000000000000000000000000000000003", 30_000_000),
 		NewValidatorAlloc("5000000000000000000000000000000000000004", 30_000_000),
 		NewValidatorAlloc("5000000000000000000000000000000000000005", 30_000_000),
+
+		// ── Testnet Wallets (genesis mint 10,000 QTX each) ────────────────
+		NewGenesisAllocationQTX("d114e19f31c748fd6cc0fd74e5ef7a285cb6e34a1b3db3006d132b014ed6bfd1", 10_000, "Testnet-Hawkeye"),
+		NewGenesisAllocationQTX("6abf7040b4585227420c6e6c96f0b45ab40c567e4b8ee6244fa245d9f3fec894", 10_000, "Testnet-Alice"),
+		NewGenesisAllocationQTX("10ef3b54bf3f2776ebec4dae52387f16f6c1f8eb7a71c534656b6a8225e1976b", 10_000, "Testnet-Bob"),
+		NewGenesisAllocationQTX("2eba4fb50d700a57c39565d2209391f6a51913462664c0251ca8f839c467c8e7", 10_000, "Testnet-Carol"),
+		NewGenesisAllocationQTX("165853060fa38c509481727461cf8c51317f6412e28e30071e58729234d36428", 10_000, "Testnet-Dave"),
 	}
 }
 
@@ -196,15 +203,16 @@ func (a *GenesisAllocation) validate() error {
 	if a == nil {
 		return fmt.Errorf("allocation is nil")
 	}
-	if len(a.Address) != 40 {
-		return fmt.Errorf("address must be 40 hex characters, got %d", len(a.Address))
+	// Accept both 40-char (20-byte Ethereum-style) and 64-char (32-byte SPHINCS+ fingerprint) addresses.
+	if len(a.Address) != 40 && len(a.Address) != 64 {
+		return fmt.Errorf("address must be 40 or 64 hex characters, got %d", len(a.Address))
 	}
 	addrBytes, err := hex.DecodeString(a.Address)
 	if err != nil {
 		return fmt.Errorf("address is not valid hex: %w", err)
 	}
-	if len(addrBytes) != 20 {
-		return fmt.Errorf("address decodes to %d bytes, want 20", len(addrBytes))
+	if len(addrBytes) != 20 && len(addrBytes) != 32 {
+		return fmt.Errorf("address decodes to %d bytes, want 20 or 32", len(addrBytes))
 	}
 	if a.BalanceNQTX == nil {
 		return fmt.Errorf("balance_nspx is nil")
