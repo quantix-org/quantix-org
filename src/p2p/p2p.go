@@ -25,6 +25,7 @@ package p2p
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -693,6 +694,29 @@ func (s *Server) handleMessages() {
 			if rawBytes != nil && s.consensus != nil {
 				if err := RouteConsensusMessage(rawBytes, s.consensus); err != nil {
 					log.Printf("consensus_msg: route error: %v", err)
+				}
+				// FIX-PBFT-DEADLOCK: relay consensus_msg to all peers for star-topology support.
+				// Without this, nodes connected only to node-0 don't see messages from other nodes.
+				// Use a simple hash key to avoid re-broadcasting messages we've already seen.
+				// FIX-PBFT-GOSSIP: use SHA256 hash of the full message as dedup key.
+				// The old 32-byte prefix caused all prepare/commit/vote messages to share
+				// the same key (they all start with {"type":"prepare",...}) so only the
+				// first message per type was relayed — follower nodes never saw each other's
+				// votes and could never reach prepare quorum.
+				msgHashBytes := sha256.Sum256(rawBytes)
+				msgKey := hex.EncodeToString(msgHashBytes[:])
+				s.mu.Lock()
+				if s.seenConsensusMsgs == nil {
+					s.seenConsensusMsgs = make(map[string]struct{})
+				}
+				if _, seen := s.seenConsensusMsgs[msgKey]; !seen {
+					s.seenConsensusMsgs[msgKey] = struct{}{}
+					s.mu.Unlock()
+					// Relay to all connections using rawBytes as data
+					secureMsg := &security.Message{Type: "consensus_msg", Data: string(rawBytes)}
+					go transport.BroadcastToAll(secureMsg) //nolint
+				} else {
+					s.mu.Unlock()
 				}
 			} else if s.consensus == nil {
 				log.Printf("consensus_msg: consensus not initialized, dropping")

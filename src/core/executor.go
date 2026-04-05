@@ -128,8 +128,8 @@ func (bc *Blockchain) applyTransactions(block *types.Block, stateDB *StateDB) er
 		//
 		// If the sender's public key is not yet on-chain, we register it on
 		// first use (validated against the Fingerprint / SHA-256(pubkey) binding).
-		// If sigVerifier is nil, verification is skipped (devnet backwards compat).
-		if bc.sigVerifier != nil && len(tx.Signature) > 0 {
+		// If sigVerifier is nil OR devMode is enabled, verification is skipped (devnet backwards compat).
+		if bc.sigVerifier != nil && len(tx.Signature) > 0 && !bc.devMode {
 			pubKey := tx.SenderPublicKey
 			if len(pubKey) == 0 {
 				// Attempt to load a previously registered public key from StateDB.
