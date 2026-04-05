@@ -707,10 +707,19 @@ func (s *Server) handleMessages() {
 				msgKey := hex.EncodeToString(msgHashBytes[:])
 				s.mu.Lock()
 				if s.seenConsensusMsgs == nil {
-					s.seenConsensusMsgs = make(map[string]struct{})
+					s.seenConsensusMsgs = make(map[string]time.Time)
+				}
+				// SEC-P2P01: lazy prune — evict entries older than seenConsensusMsgsTTL
+				// to bound memory. Without this, a flood of unique messages would grow
+				// the map without limit.
+				now := time.Now()
+				for k, t := range s.seenConsensusMsgs {
+					if now.Sub(t) > seenConsensusMsgsTTL {
+						delete(s.seenConsensusMsgs, k)
+					}
 				}
 				if _, seen := s.seenConsensusMsgs[msgKey]; !seen {
-					s.seenConsensusMsgs[msgKey] = struct{}{}
+					s.seenConsensusMsgs[msgKey] = now
 					s.mu.Unlock()
 					// Relay to all connections using rawBytes as data
 					secureMsg := &security.Message{Type: "consensus_msg", Data: string(rawBytes)}
@@ -852,6 +861,11 @@ func (s *Server) BroadcastBlock(block *types.Block) {
 
 // seenBlocksTTL is how long a block hash is remembered for dedup (5 minutes).
 const seenBlocksTTL = 5 * time.Minute
+
+// seenConsensusMsgsTTL is how long a consensus message hash is remembered for dedup.
+// SEC-P2P01: PBFT consensus rounds complete in seconds; 2 minutes is ample for dedup
+// while bounding memory to O(msgs-per-2min) instead of O(all-time-msgs).
+const seenConsensusMsgsTTL = 2 * time.Minute
 
 // markBlockSeen records a block hash as recently seen.
 // Old entries (> seenBlocksTTL) are pruned lazily on each call.
