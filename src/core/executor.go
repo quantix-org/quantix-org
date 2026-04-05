@@ -216,6 +216,20 @@ func (bc *Blockchain) distributeGasFee(gasFee *big.Int, proposerID string, attes
 		return
 	}
 
+	// SEC-P2P03 partial mitigation: cap attestation count at MaxValidators.
+	// Full attestation signature verification is pending (requires validator pubkeys
+	// on-chain). The cap prevents a fabricated block from claiming rewards for an
+	// unbounded number of fake ValidatorIDs.
+	maxAttestors := 100 // matches QuantixChainParameters.MaxValidators
+	if bc.chainParams != nil && bc.chainParams.ConsensusConfig != nil && bc.chainParams.ConsensusConfig.MaxValidators > 0 {
+		maxAttestors = bc.chainParams.ConsensusConfig.MaxValidators
+	}
+	if len(attestations) > maxAttestors {
+		logger.Warn("distributeGasFee: capping attestation count %d → %d (SEC-P2P03)",
+			len(attestations), maxAttestors)
+		attestations = attestations[:maxAttestors]
+	}
+
 	// 70% burned (already deducted from sender — just don't credit it)
 	burnAmt := new(big.Int).Mul(gasFee, big.NewInt(70))
 	burnAmt.Div(burnAmt, big.NewInt(100))
@@ -308,6 +322,16 @@ func (bc *Blockchain) mintBlockReward(block *types.Block, stateDB *StateDB) {
 
 	// Model C: 40% → proposer, 60% → attestors equally
 	attestations := block.Body.Attestations
+	// SEC-P2P03 partial mitigation: cap attestation count at MaxValidators.
+	maxAttestors := 100
+	if bc.chainParams != nil && bc.chainParams.ConsensusConfig != nil && bc.chainParams.ConsensusConfig.MaxValidators > 0 {
+		maxAttestors = bc.chainParams.ConsensusConfig.MaxValidators
+	}
+	if len(attestations) > maxAttestors {
+		logger.Warn("distributeMinerReward: capping attestation count %d → %d (SEC-P2P03)",
+			len(attestations), maxAttestors)
+		attestations = attestations[:maxAttestors]
+	}
 	proposerShare := new(big.Int).Mul(reward, big.NewInt(40))
 	proposerShare.Div(proposerShare, big.NewInt(100))
 	attestorPool := new(big.Int).Sub(reward, proposerShare)
