@@ -74,7 +74,9 @@ func newBlockchainWithVerifier(t *testing.T, verifier *mockSigVerifier, seeds ma
 	t.Helper()
 	db := newTestDB(t)
 	seedStateDB(t, db, seeds)
-	bc := minimalBC(t, db)
+	// Use mainnet params: devnet (IsDevnet()) bypasses SEC-E03 per 252b5ff.
+	// These tests require strict sig verification (devMode=false, non-devnet).
+	bc := minimalBCMainnet(t, db)
 	if verifier != nil {
 		bc.SetSigVerifier(verifier)
 	}

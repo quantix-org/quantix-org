@@ -41,7 +41,7 @@ func TestSEC_C01_ProdMode_BadNonce_ReturnsError(t *testing.T) {
 	}
 	block := makeBlock(1, []*types.Transaction{badNonceTx})
 
-	bc := fastMinimalBC(t, db) // devMode = false
+	bc := fastMainnetBC(t, db) // mainnet: strict enforcement (devnet skips nonce/balance per 252b5ff)
 	_, err := bc.ExecuteBlock(block)
 	if err == nil {
 		t.Error("SEC-C01: prod-mode bad-nonce tx must return error, not be silently dropped")
@@ -93,7 +93,7 @@ func TestSEC_C01_ProdMode_StateUnchanged_OnBadNonce(t *testing.T) {
 		Amount: big.NewInt(500), GasLimit: big.NewInt(0), GasPrice: big.NewInt(0),
 		Nonce: 99,
 	}
-	bc := fastMinimalBC(t, db)
+	bc := fastMainnetBC(t, db) // mainnet: strict nonce enforcement
 	bc.ExecuteBlock(makeBlock(1, []*types.Transaction{badNonceTx}))
 
 	sdb := NewStateDB(db)
@@ -196,7 +196,7 @@ func TestSEC_C01_ProdMode_MixedBlock_FailsAll(t *testing.T) {
 	}
 	block := makeBlock(1, []*types.Transaction{validTx, badNonceTx})
 
-	bc := fastMinimalBC(t, db)
+	bc := fastMainnetBC(t, db) // mainnet: strict nonce enforcement
 	_, err := bc.ExecuteBlock(block)
 
 	// Prod-mode: bad-nonce causes block failure

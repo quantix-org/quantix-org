@@ -99,6 +99,27 @@ func minimalBC(t *testing.T, db *database.DB) *Blockchain {
 	return bc
 }
 
+// minimalBCMainnet creates a *Blockchain with mainnet params (ChainID=7331).
+// Use this for tests that need strict balance/nonce enforcement — devnet
+// (ChainID=73310) skips these checks per the JARVIS executor update (252b5ff).
+func minimalBCMainnet(t *testing.T, db *database.DB) *Blockchain {
+	t.Helper()
+	dir := t.TempDir()
+	store, err := storage.NewStorage(dir)
+	if err != nil {
+		t.Fatalf("NewStorage: %v", err)
+	}
+	store.SetDB(db)
+	bc := &Blockchain{
+		storage:     store,
+		chain:       []*types.Block{},
+		lock:        sync.RWMutex{},
+		chainParams: GetMainnetChainParams(),
+	}
+	t.Cleanup(func() { _ = store.Close() })
+	return bc
+}
+
 // seedStateDB seeds address→balance into a StateDB and commits to LevelDB.
 func seedStateDB(t *testing.T, db *database.DB, seeds map[string]*big.Int) {
 	t.Helper()
@@ -251,7 +272,8 @@ func TestExecuteBlock_RejectInsufficientBalance(t *testing.T) {
 	tx := makeTx(alice, bob, 200, 0) // tries to send 200
 	block := makeBlock(5, []*types.Transaction{tx})
 
-	bc := minimalBC(t, db)
+	// Use mainnet params — devnet skips balance checks per 252b5ff
+	bc := minimalBCMainnet(t, db)
 	_, err := bc.ExecuteBlock(block)
 	if err == nil {
 		t.Error("ExecuteBlock should fail when sender has insufficient balance")
@@ -273,22 +295,15 @@ func TestExecuteBlock_RejectBadNonce(t *testing.T) {
 		alice: big.NewInt(1000),
 	})
 
-	// SEC-C01: in dev-mode, bad-nonce txs are gracefully dropped (not block-fatal).
-	// The block should succeed but alice's balance must be unchanged (tx dropped).
+	// SEC-C01: On mainnet (non-devnet), bad nonce is a hard error.
+	// On devnet/dev-mode, the executor now accepts out-of-order nonces by advancing
+	// the nonce (per 252b5ff JARVIS update).
 	tx := makeTx(alice, bob, 100, 5) // alice's nonce is 0, tx says 5
 	block := makeBlock(5, []*types.Transaction{tx})
 
-	bc := minimalBC(t, db)
-	bc.devMode = true // SEC-C01: graceful drop only in dev-mode
+	bc := minimalBCMainnet(t, db) // mainnet: strict nonce enforcement
 	_, err := bc.ExecuteBlock(block)
-	if err != nil {
-		t.Errorf("dev-mode ExecuteBlock should not fail on bad-nonce tx (graceful drop): %v", err)
-	}
-
-	// Verify the bad-nonce tx was dropped: alice's balance unchanged
-	sdb := NewStateDB(db)
-	aliceBal := sdb.GetBalance(alice)
-	if aliceBal.Cmp(big.NewInt(1000)) != 0 {
-		t.Errorf("alice balance = %s, want 1000 (bad-nonce tx should be dropped)", aliceBal)
+	if err == nil {
+		t.Errorf("mainnet ExecuteBlock: bad-nonce tx must return error (SEC-C01)")
 	}
 }
