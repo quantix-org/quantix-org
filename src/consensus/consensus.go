@@ -615,28 +615,9 @@ func (c *Consensus) consensusLoop() {
 			c.viewChangeBackoff = backoff
 			c.mu.Unlock()
 
-			// FIX-COMMIT-01: PBFT deadlock fallback.
-			// If we've been in PBFT with no committed block for 60s, temporarily
-			// mine a block via DEVNET_SOLO to break the deadlock (e.g. first block
-			// on a fresh 4-node testnet before PBFT quorum is fully established).
-			// SEC-C02: only the current leader fires this fallback to prevent
-			// every node simultaneously mining a competing block.
-			c.mu.RLock()
-			timeSinceBlock := common.GetTimeService().Now().Sub(c.lastBlockTime)
-			c.mu.RUnlock()
-			if timeSinceBlock > 60*time.Second && c.blockChain != nil && c.IsLeader() {
-				logger.Warn("⚠️  PBFT deadlock detected: no committed block for %v — forcing DEVNET_SOLO fallback mine",
-					timeSinceBlock.Truncate(time.Second))
-				if _, err := c.blockChain.DevnetMineBlock(c.nodeID); err != nil {
-					logger.Warn("PBFT deadlock fallback mine failed: %v", err)
-				} else {
-					logger.Info("✅ PBFT deadlock fallback: DEVNET_SOLO mined a block; resuming PBFT")
-					c.mu.Lock()
-					c.lastBlockTime = common.GetTimeService().Now()
-					c.viewChangeBackoff = 2 * time.Second
-					c.mu.Unlock()
-				}
-			}
+			// NOTE: DEVNET_SOLO fallback removed — it causes chain forks when multiple
+			// nodes simultaneously think they're the leader after rapid view changes.
+			// The leader loop's view-change detection now handles recovery correctly.
 
 			viewTimer.Reset(backoff)
 
@@ -1681,7 +1662,7 @@ func (c *Consensus) startViewChange() {
 			c.mu.Unlock()
 			return // Only change view in idle phase
 		}
-		if common.GetTimeService().Now().Sub(c.lastViewChange) < 10*time.Second {
+		if common.GetTimeService().Now().Sub(c.lastViewChange) < 30*time.Second {
 			c.mu.Unlock()
 			return // Rate limit view changes
 		}

@@ -803,6 +803,8 @@ func (bc *Blockchain) StartLeaderLoop(ctx context.Context) {
 	var isProposing bool
 	// Height at which the current proposal was started (used to detect commit and reset faster)
 	var proposingAtHeight uint64
+	// View at which proposal was started (used to detect view change and reset)
+	var proposingAtView uint64
 
 	// Start goroutine for leader loop
 	go func() {
@@ -839,8 +841,13 @@ func (bc *Blockchain) StartLeaderLoop(ctx context.Context) {
 					// Fast-reset: if chain has advanced past the height we were proposing at,
 					// the block was committed by another path (e.g., gossip/follower) — safe to reset.
 					currentChainHeight := bc.GetBlockCount()
+					currentView := bc.consensusEngine.GetCurrentView()
 					if currentChainHeight > proposingAtHeight {
 						logger.Info("Leader: block at height %d committed externally — resetting isProposing", proposingAtHeight)
+						isProposing = false
+					} else if currentView != proposingAtView {
+						// View changed — a new leader may have taken over; reset so we can re-propose if elected
+						logger.Info("Leader: view changed from %d to %d — resetting isProposing", proposingAtView, currentView)
 						isProposing = false
 					} else {
 						leaderMutex.Unlock()
@@ -850,6 +857,7 @@ func (bc *Blockchain) StartLeaderLoop(ctx context.Context) {
 				}
 				isProposing = true // Mark as proposing
 				proposingAtHeight = bc.GetBlockCount()
+				proposingAtView = bc.consensusEngine.GetCurrentView()
 				leaderMutex.Unlock()
 
 				// Log proposal start
@@ -916,7 +924,7 @@ func (bc *Blockchain) StartLeaderLoop(ctx context.Context) {
 
 				// Reset proposing flag after a delay to allow consensus to complete
 				// Launch goroutine to wait and reset
-				go func(proposedAtHeight uint64) {
+				go func(proposedAtHeight uint64, proposedAtView uint64) {
 					// Poll for chain advancement (block committed) or timeout
 					deadline := time.Now().Add(20 * time.Second)
 					for time.Now().Before(deadline) {
@@ -924,11 +932,14 @@ func (bc *Blockchain) StartLeaderLoop(ctx context.Context) {
 						if bc.GetBlockCount() > proposedAtHeight {
 							break // block committed, reset immediately
 						}
+						if bc.consensusEngine != nil && bc.consensusEngine.GetCurrentView() != proposedAtView {
+							break // view changed, reset immediately
+						}
 					}
 					leaderMutex.Lock()
 					isProposing = false // Reset proposing flag
 					leaderMutex.Unlock()
-				}(proposingAtHeight)
+				}(proposingAtHeight, proposingAtView)
 			}
 		}
 	}()
