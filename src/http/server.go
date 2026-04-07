@@ -710,6 +710,7 @@ func (s *Server) handleGetValidators(c *gin.Context) {
 	}
 
 	// Scan recent blocks to count blocks produced per proposer.
+	// Skip genesis/vault address (all-zeros or very short addresses).
 	proposerCount := map[string]int64{}
 	blockCount := s.blockchain.GetBlockCount()
 	scanStart := uint64(0)
@@ -722,9 +723,21 @@ func (s *Server) handleGetValidators(c *gin.Context) {
 			continue
 		}
 		pid := blk.Header.ProposerID
-		if pid != "" {
-			proposerCount[pid]++
+		// Skip vault/genesis addresses (all-zeros pattern or too short)
+		if pid == "" || len(pid) < 32 {
+			continue
 		}
+		isZero := true
+		for _, c := range pid {
+			if c != '0' {
+				isZero = false
+				break
+			}
+		}
+		if isZero {
+			continue
+		}
+		proposerCount[pid]++
 	}
 
 	// Build enriched response. public_key in ValidatorRegistration is the
