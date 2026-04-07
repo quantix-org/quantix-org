@@ -24,7 +24,7 @@
 package sigproof
 
 import (
-	"bytes"
+	"crypto/subtle"
 	"errors"
 	"sync"
 
@@ -67,11 +67,12 @@ func generateHashFromParts(parts [][]byte, leaves [][]byte, pkBytes []byte) []by
 	return common.SpxHash(combined)
 }
 
-// VerifySigProof compares the generated hash with the expected proof hash
+// VerifySigProof compares the generated hash with the expected proof hash.
+// SEC-PROOF01: uses constant-time comparison to prevent timing oracle attacks.
 func VerifySigProof(proofHash, generatedHash []byte) bool {
 	mu.Lock()
 	defer mu.Unlock()
-	return bytes.Equal(proofHash, generatedHash)
+	return subtle.ConstantTimeCompare(proofHash, generatedHash) == 1
 }
 
 // SetStoredProof safely sets the stored proof

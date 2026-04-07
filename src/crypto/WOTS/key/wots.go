@@ -24,6 +24,7 @@ package wots
 
 import (
 	"crypto/rand"
+	"crypto/subtle"
 	"fmt"
 
 	"golang.org/x/crypto/sha3"
@@ -245,14 +246,11 @@ func (pk *PublicKey) Verify(message []byte, sig *Signature) (bool, error) {
 			// Updates current with the hash result
 			copy(current, hash)
 		}
-		// Loops through each byte of the hashed result
-		for j := 0; j < params.N; j++ {
-			// Compares the hashed result with the i-th public key component
-			if current[j] != pk.Key[i][j] {
+		// SEC-WOTS01: use constant-time comparison to prevent timing oracle
+		if subtle.ConstantTimeCompare(current, pk.Key[i]) != 1 {
 				// Returns false and nil error if any byte does not match
 				return false, nil
 			}
-		}
 	}
 
 	// Returns true and nil error, indicating the signature is valid

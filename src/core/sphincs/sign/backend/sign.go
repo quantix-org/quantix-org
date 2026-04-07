@@ -24,6 +24,7 @@
 package sign
 
 import (
+	"crypto/subtle"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
@@ -332,12 +333,11 @@ func VerifyCommitmentInRoot(rebuiltRoot *hashtree.HashTreeNode, expectedRoot *ha
 	if rebuiltRoot == nil || expectedRoot == nil {
 		return false
 	}
+	// SEC-COMMIT01: use constant-time comparison to prevent timing oracle attacks.
 	// Both roots must have been derived from the same commitment-prepended
 	// leaf[0] and commitment-hashed leaf[4] for this check to pass.
 	// Pedersen analogy: verifying that two openings of c produce the same value.
-	rebuiltHash := hex.EncodeToString(rebuiltRoot.Hash.Bytes())
-	expectedHash := hex.EncodeToString(expectedRoot.Hash.Bytes())
-	return rebuiltHash == expectedHash
+	return subtle.ConstantTimeCompare(rebuiltRoot.Hash.Bytes(), expectedRoot.Hash.Bytes()) == 1
 }
 
 // serializePK extracts public key bytes by calling pk.SerializePK() directly.
