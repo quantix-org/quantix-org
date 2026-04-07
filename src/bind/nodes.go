@@ -563,10 +563,16 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 				go func() {
 					time.Sleep(5 * time.Second)
 					log.Printf("🔄 Devnet miner restarting after panic")
-					ticker2 := time.NewTicker(3 * time.Second)
+					ticker2 := time.NewTicker(8 * time.Second)
 					defer ticker2.Stop()
 					bc2 := resources[0].Blockchain
 					for range ticker2.C {
+						// Validator-count-aware pause: slow down if peers haven't synced yet
+						if vv, err2 := bc2.GetValidators(); err2 == nil && len(vv) < 4 && bc2.GetBlockCount() > 5 {
+							log.Printf("⏳ Devnet miner pausing — only %d/4 validators registered", len(vv))
+							time.Sleep(8 * time.Second)
+							continue
+						}
 						if height, err := bc2.DevnetMineBlock(nodeConfig.Name); err != nil {
 							if !strings.Contains(err.Error(), "no pending transactions") {
 								log.Printf("⚠️  Devnet miner: %v", err)
@@ -578,10 +584,10 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 				}()
 			}
 		}()
-		ticker := time.NewTicker(3 * time.Second)
+		ticker := time.NewTicker(8 * time.Second)
 		defer ticker.Stop()
 		bc := resources[0].Blockchain
-		log.Printf("🔨 Devnet miner started for %s — producing blocks every 3s", nodeConfig.Name)
+		log.Printf("🔨 Devnet miner started for %s — producing blocks every 8s", nodeConfig.Name)
 		for {
 			select {
 			case <-minerStopCh:
@@ -594,6 +600,12 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 							log.Printf("⚠️  Devnet miner tick panic: %v", r)
 						}
 					}()
+					// Validator-count-aware pause: slow down if peers haven't synced yet
+					if vv, err2 := bc.GetValidators(); err2 == nil && len(vv) < 4 && bc.GetBlockCount() > 5 {
+						log.Printf("⏳ Devnet miner pausing — only %d/4 validators registered", len(vv))
+						time.Sleep(8 * time.Second)
+						return
+					}
 					pendingCount := bc.GetPendingTransactionCount()
 					log.Printf("DevnetMineBlock attempt: pending=%d", pendingCount)
 					height, err := bc.DevnetMineBlock(nodeConfig.Name)
