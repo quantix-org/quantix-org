@@ -403,25 +403,31 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 			// Check the seed's validator list (authoritative) rather than local DB.
 			type validatorResp struct {
 				Count      int `json:"count"`
+				Active     int `json:"active"`
+				Total      int `json:"total"`
 				Validators []struct {
 					PublicKey   string `json:"public_key"`
 					StakeAmount string `json:"stake_amount"`
 					NodeAddress string `json:"node_address"`
+					NodeID      string `json:"node_id"`
 					Active      bool   `json:"active"`
+					Status      string `json:"status"`
 				} `json:"validators"`
 			}
 			ticker := time.NewTicker(5 * time.Second)
 			defer ticker.Stop()
 			pbftReady := false
+			var lastValidators []struct {
+				PublicKey   string `json:"public_key"`
+				StakeAmount string `json:"stake_amount"`
+				NodeAddress string `json:"node_address"`
+				NodeID      string `json:"node_id"`
+				Active      bool   `json:"active"`
+				Status      string `json:"status"`
+			}
 			for range ticker.C {
 				// Prefer seed HTTP for validator count so all nodes see the global count.
 				var n int
-				var validators []struct {
-					PublicKey   string `json:"public_key"`
-					StakeAmount string `json:"stake_amount"`
-					NodeAddress string `json:"node_address"`
-					Active      bool   `json:"active"`
-				}
 				for _, seedURL := range seedHTTPs {
 					resp, err2 := nethttp.Get(seedURL + "/validators") //nolint:noctx
 					if err2 != nil {
@@ -429,8 +435,18 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 					}
 					var vresp validatorResp
 					if err2 = json.NewDecoder(resp.Body).Decode(&vresp); err2 == nil {
+						// /validators endpoint returns "active"/"total", not "count"
 						n = vresp.Count
-						validators = vresp.Validators
+						if n == 0 {
+							n = vresp.Active
+						}
+						if n == 0 {
+							n = vresp.Total
+						}
+						if n == 0 {
+							n = len(vresp.Validators)
+						}
+						lastValidators = vresp.Validators
 					}
 					resp.Body.Close()
 					break
@@ -444,8 +460,11 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 					if cons != nil {
 						vs := cons.GetValidatorSet()
 						if vs != nil {
-							for _, vr := range validators {
-								nodeAddr := vr.NodeAddress
+							for _, vr := range lastValidators {
+								nodeAddr := vr.NodeID
+								if nodeAddr == "" {
+									nodeAddr = vr.NodeAddress
+								}
 								// Use node address as validator ID (matches how nodes identify)
 								stake, ok := new(big.Int).SetString(vr.StakeAmount, 10)
 								if !ok || stake.Sign() <= 0 {
@@ -538,9 +557,10 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 					resources[0].Blockchain.StartLeaderLoop(context.Background())
 					log.Printf("🏁 P2-PBFT: leader loop started for seed node")
 				}
-				// NOTE: devnet miner keeps running as fallback — PBFT commits blocks when it can,
-				// miner fills in when PBFT stalls. close(minerStopCh) intentionally omitted.
-				log.Printf("⚖️ P2-PBFT: consensus engine active — devnet miner continues as fallback on seed node")
+				// Stop devnet miner so PBFT is the sole block producer.
+				// Running both causes solo-mined blocks with no attestors, breaking reward distribution.
+				close(minerStopCh)
+				log.Printf("🔨→⚖️ Devnet miner stopped on seed node — PBFT is now the sole block producer")
 				return
 			}
 		}()
