@@ -65,14 +65,13 @@ const (
 )
 
 // genesisBlockDefinition is the single canonical source for fields that feed
-// into the genesis hash. It is environment-agnostic: devnet, testnet, and
-// mainnet all derive their genesis block from these exact values so that a
-// validator who started on devnet can verify ancestry on testnet or mainnet
-// without rebuilding or re-downloading block 0.
+// into the genesis hash. The Timestamp is set dynamically to time.Now() when
+// getCachedGenesisBlock() is first called, so each fresh deployment gets an
+// accurate genesis time. Peer nodes replace their local genesis with the seed's.
 var genesisBlockDefinition = &types.BlockHeader{
 	Version:   1,
 	Height:    0,
-	Timestamp: 1732070400, // Nov 20 2024 00:00:00 UTC — FROZEN, never change
+	Timestamp: 0, // set to time.Now().Unix() in getCachedGenesisBlock via sync.Once
 
 	// Difficulty and GasLimit must match GenesisStateFromChainParams constants.
 	Difficulty: big.NewInt(17179869184),
@@ -150,6 +149,8 @@ func (bc *Blockchain) UpdateValidatorStake(validatorID string, delta *big.Int) e
 // GetGenesisBlockDefinition returns the standardized genesis block definition
 func GetGenesisBlockDefinition() *types.BlockHeader {
 	// Return a copy to prevent modification
+	// Ensure genesis is computed so genesisBlockDefinition.Timestamp is set.
+	getCachedGenesisBlock()
 	return &types.BlockHeader{
 		Version:    genesisBlockDefinition.Version,
 		Height:     genesisBlockDefinition.Height,
@@ -169,43 +170,8 @@ func GetGenesisBlockDefinition() *types.BlockHeader {
 
 // CreateStandardGenesisBlock creates a standardized genesis block that all nodes should use
 func CreateStandardGenesisBlock() *types.Block {
-	// Create the genesis header directly to ensure all fields are properly set
-	genesisHeader := &types.BlockHeader{
-		Version:    1,
-		Block:      0, // Same as Height
-		Height:     0,
-		Timestamp:  1732070400,               // Fixed: Nov 20, 2024 00:00:00 UTC
-		Difficulty: big.NewInt(17179869184),  // Substantial initial difficulty
-		Nonce:      common.FormatNonce(1),    // FIXED: "0000000000000001"
-		TxsRoot:    common.SpxHash([]byte{}), // Empty transactions root
-		StateRoot:  common.SpxHash([]byte("quantix-genesis-state-root")),
-		GasLimit:   big.NewInt(5000), // Initial gas limit
-		GasUsed:    big.NewInt(0),
-		ExtraData:  []byte("Quantix Network Genesis Block - Decentralized Future"),
-		Miner:      make([]byte, 20), // Zero address for genesis
-		ParentHash: make([]byte, 32), // Genesis has no parent
-		UnclesHash: common.SpxHash([]byte("genesis-no-uncles")),
-		Hash:       []byte{}, // Will be set by FinalizeHash
-	}
-
-	// Create empty uncles slice for genesis
-	emptyUncles := []*types.BlockHeader{}
-
-	// Create block body with empty transactions and uncles
-	genesisBody := types.NewBlockBody([]*types.Transaction{}, emptyUncles)
-	genesis := types.NewBlock(genesisHeader, genesisBody)
-
-	// Finalize the hash
-	genesis.FinalizeHash()
-
-	// Log the genesis block details for verification
-	logger.Info("✅ Created standardized genesis block:")
-	logger.Info("   - Height: %d", genesis.Header.Height)
-	logger.Info("   - Nonce: %s", genesis.Header.Nonce)
-	logger.Info("   - Hash: %s", genesis.GetHash())
-	logger.Info("   - Difficulty: %s", genesis.Header.Difficulty.String())
-
-	return genesis
+	// Use the cached genesis so all code paths produce the same block.
+	return getCachedGenesisBlock()
 }
 
 // genesisOnce ensures BuildBlock() runs exactly once per process.
@@ -224,13 +190,19 @@ var (
 // to ApplyGenesisWithCachedBlock, NOT by this function.
 func getCachedGenesisBlock() *types.Block {
 	genesisOnce.Do(func() {
+		// Use current time so the genesis block shows an accurate timestamp
+		// in the explorer. Peer nodes will replace their local genesis with
+		// the seed's genesis during SyncFromSeeds.
+		now := time.Now().Unix()
+		genesisBlockDefinition.Timestamp = now
 		// DefaultGenesisState() provides the canonical cryptographic inputs.
 		// ChainName here is irrelevant to the hash — only timestamp, difficulty,
 		// gas limit, and extra data feed into BuildBlock() → FinalizeHash().
 		gs := DefaultGenesisState()
+		gs.Timestamp = now
 		genesisCached = gs.BuildBlock()
 		genesisHashValue = genesisCached.GetHash()
-		logger.Info("Genesis block computed once: %s", genesisHashValue)
+		logger.Info("Genesis block computed once: hash=%s timestamp=%d", genesisHashValue, now)
 	})
 	return genesisCached
 }
@@ -239,6 +211,19 @@ func getCachedGenesisBlock() *types.Block {
 func GetGenesisHash() string {
 	getCachedGenesisBlock()
 	return genesisHashValue
+}
+
+// resetCachedGenesis replaces the in-process cached genesis with a block
+// received from a seed peer. Called by syncFromPeer when the seed's genesis
+// hash differs from the locally-generated genesis.
+func resetCachedGenesis(block *types.Block) {
+	// genesisOnce.Do already ran — directly overwrite the cached values.
+	// Future calls to getCachedGenesisBlock() return genesisCached (already set).
+	genesisCached = block
+	genesisHashValue = block.GetHash()
+	if block.Header != nil {
+		genesisBlockDefinition.Timestamp = block.Header.Timestamp
+	}
 }
 
 // GenerateGenesisHash is deprecated - use GetGenesisHash instead for consistency

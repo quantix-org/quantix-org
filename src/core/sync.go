@@ -104,7 +104,44 @@ func (bc *Blockchain) syncFromPeer(peerBase string) error {
 		return err
 	}
 
-	// We already have genesis (height 0); sync from height 1 onwards.
+	// GENESIS SYNC: fetch seed's genesis block and compare with ours.
+	// When genesis timestamps differ (each process uses time.Now()), peer nodes
+	// must adopt the seed's genesis so all blocks chain correctly.
+	{
+		url := fmt.Sprintf("%s/blocks?from=0&limit=1", peerBase)
+		resp, err := client.Get(url)
+		if err == nil {
+			body, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			var seedBlocks []*types.Block
+			if json.Unmarshal(body, &seedBlocks) == nil && len(seedBlocks) > 0 {
+				seedGenesis := seedBlocks[0]
+				localGenesis := bc.GetBlockByNumber(0)
+				if localGenesis == nil || localGenesis.GetHash() != seedGenesis.GetHash() {
+					log.Printf("[SYNC] Genesis mismatch — replacing local genesis (hash=%s) with seed genesis (hash=%s ts=%d)",
+						func() string {
+							if localGenesis != nil {
+								return localGenesis.GetHash()
+							}
+							return "nil"
+						}(), seedGenesis.GetHash(), seedGenesis.GetTimestamp())
+					// Replace genesis in storage and in-memory chain
+					if err := bc.storage.ReplaceGenesisBlock(seedGenesis); err != nil {
+						logger.Warn("[SYNC] Failed to replace genesis block: %v — continuing", err)
+					} else {
+						bc.lock.Lock()
+						bc.chain = []*types.Block{seedGenesis}
+						bc.lock.Unlock()
+						// Reset the cached genesis so future code uses the seed's genesis.
+						resetCachedGenesis(seedGenesis)
+						log.Printf("[SYNC] Genesis replaced: hash=%s ts=%d", seedGenesis.GetHash(), seedGenesis.GetTimestamp())
+					}
+				}
+			}
+		}
+	}
+
+	// Sync blocks from height 1 onwards.
 	for {
 		localCount := bc.GetBlockCount()
 		if localCount >= seedCount {
@@ -135,11 +172,7 @@ func (bc *Blockchain) syncFromPeer(peerBase string) error {
 			}
 
 			// SEC-P01: verify block hash against block content before importing.
-			// Recompute the hash and compare to the claimed hash to prevent
-			// hash-spoofing attacks from malicious peers.
 			computedHashBytes := blk.GenerateBlockHash()
-			// GenerateBlockHash returns []byte that is the UTF-8 hex string (F-26),
-			// so cast directly to string rather than using %x (which would double-encode).
 			computedHash := string(computedHashBytes)
 			claimedHash := blk.GetHash()
 			if computedHash != claimedHash {

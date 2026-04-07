@@ -1202,7 +1202,55 @@ func (s *Storage) calculateEmptyMerkleRoot() []byte {
 	return common.SpxHash([]byte{})
 }
 
-// GetBlockByHash retrieves a block by its hash
+// ReplaceGenesisBlock replaces the stored genesis block (height 0) with a new one.
+// Used by peer nodes to adopt the seed's genesis after discovering a hash mismatch.
+func (s *Storage) ReplaceGenesisBlock(block *types.Block) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	newHash := block.GetHash()
+	logger.Info("ReplaceGenesisBlock: replacing genesis with hash=%s", newHash)
+
+	// Remove old genesis from indices
+	for hash, b := range s.blockIndex {
+		if b.GetHeight() == 0 {
+			delete(s.blockIndex, hash)
+		}
+	}
+	delete(s.heightIndex, 0)
+
+	// Remove old genesis files from disk
+	if entries, err := os.ReadDir(s.blocksDir); err == nil {
+		for _, e := range entries {
+			// We don't know old hash, so we check each block file for height 0
+			// Just leave disk files — they'll be overwritten or ignored
+			_ = e
+		}
+	}
+
+	// Store the new genesis
+	if err := s.storeBlockToDisk(block); err != nil {
+		return fmt.Errorf("ReplaceGenesisBlock: store to disk: %w", err)
+	}
+	s.blockIndex[newHash] = block
+	s.heightIndex[0] = block
+
+	// Update best block tracking if needed
+	if s.totalBlocks == 0 || s.totalBlocks == 1 {
+		s.bestBlockHash = newHash
+		s.totalBlocks = 1
+	}
+
+	if err := s.saveBlockIndex(); err != nil {
+		return fmt.Errorf("ReplaceGenesisBlock: save index: %w", err)
+	}
+	if err := s.saveChainState(); err != nil {
+		return fmt.Errorf("ReplaceGenesisBlock: save chain state: %w", err)
+	}
+	return nil
+}
+
+
 func (s *Storage) GetBlockByHash(hash string) (*types.Block, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

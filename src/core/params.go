@@ -75,7 +75,7 @@ func GetQuantixChainParams() *QuantixChainParameters {
 		ChainID:       7331,             // Unique chain identifier
 		ChainName:     "Quantix Mainnet", // Human-readable network name
 		Symbol:        "QTX",            // Token symbol
-		GenesisTime:   1732070400,       // Fixed genesis timestamp - MUST MATCH genesisBlockDefinition
+		GenesisTime:   time.Now().Unix(), // Current time — set once at startup
 		GenesisHash:   genesisHash,      // Genesis block hash
 		Version:       "1.0.0",          // Protocol version
 		MagicNumber:   0x53504858,       // "SPHX" - Magic number for message validation

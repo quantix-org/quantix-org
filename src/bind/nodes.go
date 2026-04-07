@@ -563,7 +563,7 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 				go func() {
 					time.Sleep(5 * time.Second)
 					log.Printf("🔄 Devnet miner restarting after panic")
-					ticker2 := time.NewTicker(10 * time.Second)
+					ticker2 := time.NewTicker(3 * time.Second)
 					defer ticker2.Stop()
 					bc2 := resources[0].Blockchain
 					for range ticker2.C {
@@ -578,10 +578,10 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 				}()
 			}
 		}()
-		ticker := time.NewTicker(10 * time.Second)
+		ticker := time.NewTicker(3 * time.Second)
 		defer ticker.Stop()
 		bc := resources[0].Blockchain
-		log.Printf("🔨 Devnet miner started for %s — producing blocks every 10s", nodeConfig.Name)
+		log.Printf("🔨 Devnet miner started for %s — producing blocks every 3s", nodeConfig.Name)
 		for {
 			select {
 			case <-minerStopCh:

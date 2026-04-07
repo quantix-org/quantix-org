@@ -56,7 +56,7 @@ func DefaultGenesisState() *GenesisState {
 		ChainID:           7331,
 		ChainName:         "Quantix Mainnet",
 		Symbol:            "QTX",
-		Timestamp:         1732070400, // Nov 20 2024 00:00:00 UTC — MUST match genesisBlockDefinition
+		Timestamp:         time.Now().Unix(), // Current time — accurate genesis timestamp
 		ExtraData:         []byte("Quantix Network Genesis Block - Decentralized Future"),
 		InitialDifficulty: big.NewInt(17179869184),
 		InitialGasLimit:   big.NewInt(5000),
@@ -83,10 +83,12 @@ func DefaultGenesisState() *GenesisState {
 func GenesisStateFromChainParams(p *QuantixChainParameters) *GenesisState {
 	// Canonical defaults — used when p.GenesisConfig is nil or fields are zero.
 	const (
-		canonicalTimestamp  = int64(1732070400) // Nov 20 2024 00:00:00 UTC, frozen forever
 		canonicalDifficulty = int64(17179869184)
 		canonicalGasLimit   = int64(5000)
 	)
+	// Use current time for an accurate genesis timestamp. Peer nodes replace
+	// their local genesis with the seed's genesis during SyncFromSeeds.
+	canonicalTimestamp := time.Now().Unix()
 	canonicalExtraData := []byte("Quantix Network Genesis Block - Decentralized Future")
 
 	// Apply GenesisConfig overrides when provided — allows tests and custom
