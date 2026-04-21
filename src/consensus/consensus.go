@@ -105,15 +105,15 @@ func NewConsensus(
 			minStake := validatorSet.GetMinStakeAmount()
 			// Check if node meets minimum stake requirement
 			if stake.Cmp(minStake) >= 0 {
-				// Convert to SPX units (div by denomination)
-				stakeSPX := new(big.Int).Div(stake, big.NewInt(denom.SPX))
-				validatorSet.AddValidator(nodeID, uint64(stakeSPX.Int64()))
+				// Convert to QTX units (div by denomination)
+				stakeQTX := new(big.Int).Div(stake, big.NewInt(denom.QTX))
+				validatorSet.AddValidator(nodeID, uint64(stakeQTX.Int64()))
 			}
 		}
 		// If node not in validator set, add with minimum stake
 		if validatorSet.validators[nodeID] == nil {
 			minStakeSPX := validatorSet.GetMinStakeSPX()
-			logger.Info("Adding self %s with minimum stake %d SPX", nodeID, minStakeSPX)
+			logger.Info("Adding self %s with minimum stake %d QTX", nodeID, minStakeSPX)
 			validatorSet.AddValidator(nodeID, minStakeSPX)
 		}
 	}
@@ -329,8 +329,8 @@ func (c *Consensus) getExpectedVDFParams() VDFParams {
 //
 // Terminal output per node:
 //
-//	Node X selected as proposer for slot Y with stake Z SPX
-//	Node X NOT selected for slot Y (selected: Z with W SPX)
+//	Node X selected as proposer for slot Y with stake Z QTX
+//	Node X NOT selected for slot Y (selected: Z with W QTX)
 func (c *Consensus) UpdateLeaderStatus() {
 	c.updateLeaderStatus() // Call private implementation
 }
@@ -375,10 +375,10 @@ func (c *Consensus) updateLeaderStatus() {
 
 	// Log selection status with appropriate formatting
 	if c.isLeader {
-		logger.Info("✅ Node %s selected as proposer for slot %d with stake %.2f SPX",
+		logger.Info("✅ Node %s selected as proposer for slot %d with stake %.2f QTX",
 			c.nodeID, currentSlot, selected.GetStakeInSPX())
 	} else {
-		logger.Info("   Node %s NOT selected for slot %d (selected: %s with %.2f SPX)",
+		logger.Info("   Node %s NOT selected for slot %d (selected: %s with %.2f QTX)",
 			c.nodeID, currentSlot, selected.ID, selected.GetStakeInSPX())
 	}
 }
@@ -1145,9 +1145,9 @@ func (c *Consensus) processPrepareVote(vote *Vote) {
 	stake := c.getValidatorStake(vote.VoterID)
 	c.weightedPrepareVotes[vote.BlockHash].Add(c.weightedPrepareVotes[vote.BlockHash], stake)
 
-	// Log vote receipt with stake amount in SPX
-	stakeSPX := new(big.Float).Quo(new(big.Float).SetInt(stake), new(big.Float).SetFloat64(denom.SPX))
-	logger.Info("📊 Prepare vote: %s, block=%s, stake=%.2f SPX", vote.VoterID, vote.BlockHash, stakeSPX)
+	// Log vote receipt with stake amount in QTX
+	stakeQTX := new(big.Float).Quo(new(big.Float).SetInt(stake), new(big.Float).SetFloat64(denom.QTX))
+	logger.Info("📊 Prepare vote: %s, block=%s, stake=%.2f QTX", vote.VoterID, vote.BlockHash, stakeQTX)
 
 	// Calculate current vote count and quorum requirements
 	totalVotes := len(c.prepareVotes[vote.BlockHash])
@@ -1397,8 +1397,8 @@ func (c *Consensus) processVote(vote *Vote) {
 	if stake.Cmp(big.NewInt(0)) == 0 {
 		if vote.VoterID == c.nodeID {
 			// Self stake fallback
-			stake = new(big.Int).Mul(big.NewInt(32), big.NewInt(denom.SPX))
-			logger.Info("⚠️ Self stake was zero, using default: 32 SPX")
+			stake = new(big.Int).Mul(big.NewInt(32), big.NewInt(denom.QTX))
+			logger.Info("⚠️ Self stake was zero, using default: 32 QTX")
 		} else {
 			logger.Warn("⚠️ Vote from %s has zero stake", vote.VoterID)
 		}
@@ -1408,8 +1408,8 @@ func (c *Consensus) processVote(vote *Vote) {
 	c.weightedCommitVotes[vote.BlockHash].Add(c.weightedCommitVotes[vote.BlockHash], stake)
 
 	// Log vote receipt with stake amount
-	stakeSPX := new(big.Float).Quo(new(big.Float).SetInt(stake), new(big.Float).SetFloat64(denom.SPX))
-	logger.Info("📊 Commit vote: %s, block=%s, stake=%.2f SPX", vote.VoterID, vote.BlockHash, stakeSPX)
+	stakeQTX := new(big.Float).Quo(new(big.Float).SetInt(stake), new(big.Float).SetFloat64(denom.QTX))
+	logger.Info("📊 Commit vote: %s, block=%s, stake=%.2f QTX", vote.VoterID, vote.BlockHash, stakeQTX)
 
 	// Calculate current vote count and quorum requirements
 	totalVotes := len(c.receivedVotes[vote.BlockHash])
@@ -1645,12 +1645,12 @@ func (c *Consensus) hasQuorum(blockHash string) bool {
 
 	// Log quorum details if achieved
 	if hasQuorum && totalStakeVoted.Cmp(big.NewInt(0)) > 0 {
-		votedSPX := new(big.Float).Quo(new(big.Float).SetInt(totalStakeVoted), new(big.Float).SetFloat64(denom.SPX))
-		totalSPX := new(big.Float).Quo(new(big.Float).SetInt(totalStake), new(big.Float).SetFloat64(denom.SPX))
-		if totalSPX.Cmp(big.NewFloat(0)) != 0 {
-			pct := new(big.Float).Quo(votedSPX, totalSPX)
+		votedQTX := new(big.Float).Quo(new(big.Float).SetInt(totalStakeVoted), new(big.Float).SetFloat64(denom.QTX))
+		totalQTX := new(big.Float).Quo(new(big.Float).SetInt(totalStake), new(big.Float).SetFloat64(denom.QTX))
+		if totalQTX.Cmp(big.NewFloat(0)) != 0 {
+			pct := new(big.Float).Quo(votedQTX, totalQTX)
 			pct.Mul(pct, big.NewFloat(100))
-			logger.Info("🎯 Quorum achieved: %.2f / %.2f SPX voted (%.1f%%)", votedSPX, totalSPX, pct)
+			logger.Info("🎯 Quorum achieved: %.2f / %.2f QTX voted (%.1f%%)", votedQTX, totalQTX, pct)
 		}
 	}
 	return hasQuorum

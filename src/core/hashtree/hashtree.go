@@ -69,7 +69,7 @@ func (tree *HashTree) Build() error {
 
 // Compute the hash of a given data slice using QuantixHash and return a uint256 value.
 func computeUint256(data []byte) *uint256.Int {
-	// Compute the hash using SpxHash
+	// Compute the hash using QtxHash
 	hash := common.QuantixHash(data)
 
 	// Convert the resulting hash (32 bytes for 256-bit) to uint256

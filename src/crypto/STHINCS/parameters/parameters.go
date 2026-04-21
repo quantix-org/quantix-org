@@ -356,13 +356,13 @@ func MakeSthincsPlus(n int, w int, h int, d int, k int, logt int, hashFunc strin
 			N:                   n,
 		}
 	case "QUANTIXHASH-robust":
-		params.Tweak = &tweakable.QuantixHashTweak{
+		params.Tweak = &tweakable.QtxHashTweak{
 			Variant:             tweakable.Robust,
 			MessageDigestLength: m,
 			N:                   n,
 		}
 	case "QUANTIXHASH-simple":
-		params.Tweak = &tweakable.QuantixHashTweak{
+		params.Tweak = &tweakable.QtxHashTweak{
 			Variant:             tweakable.Simple,
 			MessageDigestLength: m,
 			N:                   n,

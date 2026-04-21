@@ -87,7 +87,7 @@ func (bc *Blockchain) GetGenesisTime() time.Time {
 	return time.Unix(genesis.GetTimestamp(), 0)
 }
 
-// GetValidatorStake returns the stake amount for a validator in nSPX
+// GetValidatorStake returns the stake amount for a validator in nQTX
 func (bc *Blockchain) GetValidatorStake(validatorID string) *big.Int {
 	bc.lock.RLock()
 	defer bc.lock.RUnlock()
@@ -99,10 +99,10 @@ func (bc *Blockchain) GetValidatorStake(validatorID string) *big.Int {
 		return bc.chainParams.ConsensusConfig.MinStakeAmount
 	}
 
-	// Default fallback: 32 SPX in nSPX
+	// Default fallback: 32 QTX in nQTX
 	return new(big.Int).Mul(
 		big.NewInt(32),
-		big.NewInt(denom.SPX),
+		big.NewInt(denom.QTX),
 	)
 }
 
@@ -114,8 +114,8 @@ func (bc *Blockchain) GetTotalStaked() *big.Int {
 	// Placeholder - you need to implement actual total stake calculation
 	// For testing, return a reasonable value
 	totalStake := new(big.Int).Mul(
-		big.NewInt(1000), // Assume 1000 SPX total staked
-		big.NewInt(denom.SPX),
+		big.NewInt(1000), // Assume 1000 QTX total staked
+		big.NewInt(denom.QTX),
 	)
 	return totalStake
 }
@@ -126,7 +126,7 @@ func (bc *Blockchain) UpdateValidatorStake(validatorID string, delta *big.Int) e
 	defer bc.lock.Unlock()
 
 	// Placeholder - implement actual stake update logic
-	logger.Info("Updating stake for validator %s by %s nSPX", validatorID, delta.String())
+	logger.Info("Updating stake for validator %s by %s nQTX", validatorID, delta.String())
 	return nil
 }
 

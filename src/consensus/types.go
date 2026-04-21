@@ -143,11 +143,11 @@ type NodeStatus int
 // ConsensusPhase represents the current phase of the consensus protocol
 type ConsensusPhase int
 
-// StakedValidator represents a validator with SPX stake
+// StakedValidator represents a validator with QTX stake
 type StakedValidator struct {
 	ID              string
 	PublicKey       []byte
-	StakeAmount     *big.Int // In nSPX (base units)
+	StakeAmount     *big.Int // In nQTX (base units)
 	ActivationEpoch uint64
 	ExitEpoch       uint64
 	IsSlashed       bool

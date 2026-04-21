@@ -62,11 +62,11 @@ func (p *PolicyParameters) CalculatePinningCost(bytes uint64, months uint64) *bi
 	monthsFloat := new(big.Float).SetUint64(months)
 	gb.Mul(gb, monthsFloat)
 
-	// Multiply by PinRate (0.01 SPX)
+	// Multiply by PinRate (0.01 QTX)
 	rate := new(big.Float).SetFloat64(0.01)
 	gb.Mul(gb, rate)
 
-	// Convert to nSPX (1 SPX = 1e18 nSPX)
+	// Convert to nQTX (1 QTX = 1e18 nQTX)
 	nspx := new(big.Float).Mul(gb, new(big.Float).SetFloat64(1e18))
 
 	result, _ := nspx.Int(nil)

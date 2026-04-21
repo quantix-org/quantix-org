@@ -703,7 +703,7 @@ func (bc *Blockchain) SetSyncMode(mode SyncMode) {
 // Creates human-readable transaction summaries for hardware wallet displays
 // Parameters:
 //   - operation: Type of operation (send, receive, etc.)
-//   - amount: Amount in SPX
+//   - amount: Amount in QTX
 //   - address: Destination address
 //   - memo: Optional memo text
 //
@@ -718,7 +718,7 @@ func (bc *Blockchain) GenerateLedgerHeaders(operation string, amount float64, ad
 			"Chain: %s\n"+
 			"Chain ID: %d\n"+
 			"Operation: %s\n"+
-			"Amount: %.6f SPX\n"+
+			"Amount: %.6f QTX\n"+
 			"Address: %s\n"+
 			"Memo: %s\n"+
 			"BIP44: 44'/%d'/0'/0/0\n"+
@@ -763,8 +763,8 @@ func (bc *Blockchain) GetWalletDerivationPaths() map[string]string {
 	}
 }
 
-// ConvertDenomination converts between SPX denominations
-// Handles conversions between nSPX, gSPX, and SPX units
+// ConvertDenomination converts between QTX denominations
+// Handles conversions between nQTX, gQTX, and QTX units
 // Parameters:
 //   - amount: Amount to convert
 //   - fromDenom: Source denomination
@@ -784,7 +784,7 @@ func (bc *Blockchain) ConvertDenomination(amount *big.Int, fromDenom, toDenom st
 		return nil, fmt.Errorf("unknown denomination: %s or %s", fromDenom, toDenom)
 	}
 
-	// Convert to base units (nSPX) first
+	// Convert to base units (nQTX) first
 	// Multiply by source denomination multiplier
 	baseAmount := new(big.Int).Mul(amount, fromMultiplier)
 

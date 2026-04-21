@@ -52,7 +52,7 @@ func tempDir(t *testing.T, name string) string {
 
 // minimalGenesisState returns a GenesisState with only 2 allocations.
 //
-// WHY: common.SpxHash uses argon2 (a memory-hard KDF).  Each call takes
+// WHY: common.QtxHash uses argon2 (a memory-hard KDF).  Each call takes
 // ~8 s on typical hardware.  Building the Merkle tree for the full 7-entry
 // DefaultGenesisAllocations requires ~14 argon2 calls per BuildBlock
 // invocation — well beyond any test timeout.
@@ -66,7 +66,7 @@ func minimalGenesisState() *GenesisState {
 	return &GenesisState{
 		ChainID:           7331,
 		ChainName:         "Quantix Mainnet",
-		Symbol:            "SPX",
+		Symbol:            "QTX",
 		Timestamp:         1732070400, // Nov 20 2024 00:00:00 UTC — deterministic
 		ExtraData:         []byte("Quantix Network Genesis Block - Decentralized Future"),
 		InitialDifficulty: big.NewInt(17179869184),
@@ -284,7 +284,7 @@ func TestGenesisState_AddValidator(t *testing.T) {
 	}
 }
 
-// TestNewGenesisValidatorStake checks the SPX→nSPX conversion helper.
+// TestNewGenesisValidatorStake checks the QTX→nQTX conversion helper.
 func TestNewGenesisValidatorStake(t *testing.T) {
 	cases := []struct {
 		spx      int64
@@ -304,7 +304,7 @@ func TestNewGenesisValidatorStake(t *testing.T) {
 }
 
 // ============================================================================
-// 4. allocationToTx  (one SpxHash call per test — fast)
+// 4. allocationToTx  (one QtxHash call per test — fast)
 // ============================================================================
 
 // TestAllocationToTx_Fields checks sender, receiver, amount and zero gas.

@@ -33,9 +33,9 @@ import (
 // QuantixChainParams returns the mainnet parameters for Sphinx blockchain
 func QuantixChainParams() *ChainParameters {
 	return &ChainParameters{
-		ChainID:       7331,             // "SPX" in leet speak
+		ChainID:       7331,             // "QTX" in leet speak
 		ChainName:     "Quantix Mainnet", // Changed from "Quantix" to "Quantix Mainnet"
-		Symbol:        "SPX",
+		Symbol:        "QTX",
 		GenesisTime:   1731375284,
 		GenesisHash:   "quantix-genesis-2024",
 		Version:       "1.0.0",
@@ -70,7 +70,7 @@ func RegtestChainParams() *ChainParameters {
 	return params
 }
 
-// GenerateHeaders generates ledger and asset headers for SPX with proper chain identification
+// GenerateHeaders generates ledger and asset headers for QTX with proper chain identification
 func GenerateHeaders(ledger, asset string, amount float64, address string) string {
 	params := QuantixChainParams()
 
@@ -180,15 +180,15 @@ type SoftForkParameters struct {
 // GetSoftForks returns active and upcoming soft forks
 func GetSoftForks() map[string]*SoftForkParameters {
 	return map[string]*SoftForkParameters{
-		"spx-segwit": {
-			Name:                "SPX Segregated Witness",
+		"qtx-segwit": {
+			Name:                "QTX Segregated Witness",
 			Bit:                 1,
 			StartTime:           time.Now().AddDate(0, 1, 0).Unix(), // 1 month from now
 			Timeout:             time.Now().AddDate(1, 0, 0).Unix(), // 1 year from now
 			MinActivationHeight: 100000,
 		},
-		"spx-taproot": {
-			Name:                "SPX Taproot",
+		"qtx-taproot": {
+			Name:                "QTX Taproot",
 			Bit:                 2,
 			StartTime:           time.Now().AddDate(0, 6, 0).Unix(), // 6 months from now
 			Timeout:             time.Now().AddDate(2, 0, 0).Unix(), // 2 years from now

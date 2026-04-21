@@ -31,26 +31,26 @@ import (
 // NewPolicyParameters creates a new instance with the specified governance parameters
 // NewPolicyParameters creates a new instance with the specified governance parameters
 func NewPolicyParameters() *PolicyParameters {
-	// PinRate: 0.01 SPX/GB/month = 0.01 * 1e18 nSPX = 1e16 nSPX per GB/month
+	// PinRate: 0.01 QTX/GB/month = 0.01 * 1e18 nQTX = 1e16 nQTX per GB/month
 	pinRatePerGBMonth := new(big.Int).Mul(big.NewInt(1), new(big.Int).Exp(big.NewInt(10), big.NewInt(16), nil))
 
 	return &PolicyParameters{
-		// Fee parameters (all in nSPX)
-		BaseFeePerByte:    big.NewInt(20000),   // 20,000 nSPX/byte
-		StorageFeePerByte: big.NewInt(200000),  // 200,000 nSPX/byte
-		ComputeFeePerOp:   big.NewInt(5000000), // 5,000,000 nSPX/op
+		// Fee parameters (all in nQTX)
+		BaseFeePerByte:    big.NewInt(20000),   // 20,000 nQTX/byte
+		StorageFeePerByte: big.NewInt(200000),  // 200,000 nQTX/byte
+		ComputeFeePerOp:   big.NewInt(5000000), // 5,000,000 nQTX/op
 
 		// Consensus parameters
 		BlocksPerEpoch: 3,                // R = 3 blocks per epoch
 		BlockTime:      12 * time.Second, // 12 seconds block time
 
 		// Storage parameters
-		HashFee:        big.NewInt(10000),  // α = 10,000 nSPX/hash
-		BaseStorageFee: big.NewInt(200000), // β = 200,000 nSPX
-		TransactionFee: big.NewInt(1000),   // K_tx = 1,000 nSPX
+		HashFee:        big.NewInt(10000),  // α = 10,000 nQTX/hash
+		BaseStorageFee: big.NewInt(200000), // β = 200,000 nQTX
+		TransactionFee: big.NewInt(1000),   // K_tx = 1,000 nQTX
 
 		// Storage pricing
-		PinRatePerGBMonth: pinRatePerGBMonth, // 0.01 SPX/GB/month in nSPX
+		PinRatePerGBMonth: pinRatePerGBMonth, // 0.01 QTX/GB/month in nQTX
 
 		// Inflation parameters
 		InitialInflationRate: 0.05, // 5% annual inflation

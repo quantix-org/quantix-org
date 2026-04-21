@@ -5,14 +5,14 @@ import (
 	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/address"
 )
 
-// QuantixHashTweak must match the same field structure as Sha256Tweak
-type QuantixHashTweak struct {
+// QtxHashTweak must match the same field structure as Sha256Tweak
+type QtxHashTweak struct {
 	Variant             string
 	MessageDigestLength int
 	N                   int
 }
 
-func (s *QuantixHashTweak) Hmsg(R []byte, PKseed []byte, PKroot, M []byte) []byte {
+func (s *QtxHashTweak) Hmsg(R []byte, PKseed []byte, PKroot, M []byte) []byte {
 	var buffer []byte
 	buffer = append(buffer, R...)
 	buffer = append(buffer, PKseed...)
@@ -31,7 +31,7 @@ func (s *QuantixHashTweak) Hmsg(R []byte, PKseed []byte, PKroot, M []byte) []byt
 	return hash[:s.N]
 }
 
-func (s *QuantixHashTweak) PRF(SEED []byte, adrs *address.ADRS) []byte {
+func (s *QtxHashTweak) PRF(SEED []byte, adrs *address.ADRS) []byte {
 	var buffer []byte
 	buffer = append(buffer, SEED...)
 	buffer = append(buffer, adrs.GetBytes()...)
@@ -47,7 +47,7 @@ func (s *QuantixHashTweak) PRF(SEED []byte, adrs *address.ADRS) []byte {
 	return hash[:s.N]
 }
 
-func (s *QuantixHashTweak) PRFmsg(SKprf []byte, OptRand []byte, M []byte) []byte {
+func (s *QtxHashTweak) PRFmsg(SKprf []byte, OptRand []byte, M []byte) []byte {
 	var buffer []byte
 	buffer = append(buffer, SKprf...)
 	buffer = append(buffer, OptRand...)
@@ -64,7 +64,7 @@ func (s *QuantixHashTweak) PRFmsg(SKprf []byte, OptRand []byte, M []byte) []byte
 	return hash[:s.N]
 }
 
-func (s *QuantixHashTweak) F(PKseed []byte, adrs *address.ADRS, tmp []byte) []byte {
+func (s *QtxHashTweak) F(PKseed []byte, adrs *address.ADRS, tmp []byte) []byte {
 	var buffer []byte
 	buffer = append(buffer, PKseed...)
 	buffer = append(buffer, adrs.GetBytes()...)
@@ -81,7 +81,7 @@ func (s *QuantixHashTweak) F(PKseed []byte, adrs *address.ADRS, tmp []byte) []by
 	return hash[:s.N]
 }
 
-func (s *QuantixHashTweak) H(PKseed []byte, adrs *address.ADRS, tmp []byte) []byte {
+func (s *QtxHashTweak) H(PKseed []byte, adrs *address.ADRS, tmp []byte) []byte {
 	var buffer []byte
 	buffer = append(buffer, PKseed...)
 	buffer = append(buffer, adrs.GetBytes()...)
@@ -98,7 +98,7 @@ func (s *QuantixHashTweak) H(PKseed []byte, adrs *address.ADRS, tmp []byte) []by
 	return hash[:s.N]
 }
 
-func (s *QuantixHashTweak) T_l(PKseed []byte, adrs *address.ADRS, tmp []byte) []byte {
+func (s *QtxHashTweak) T_l(PKseed []byte, adrs *address.ADRS, tmp []byte) []byte {
 	var buffer []byte
 	buffer = append(buffer, PKseed...)
 	buffer = append(buffer, adrs.GetBytes()...)

@@ -178,9 +178,9 @@ func MakeSphincsPlus(n int, w int, h int, d int, k int, logt int, hashFunc strin
 	case "SHAKE256-simple":
 		params.Tweak = &tweakable.Shake256Tweak{tweakable.Simple, m, n}
 	case "QUANTIXHASH-robust":
-		params.Tweak = &tweakable.QuantixHashTweak{tweakable.Robust, m, n}
+		params.Tweak = &tweakable.QtxHashTweak{tweakable.Robust, m, n}
 	case "QUANTIXHASH-simple":
-		params.Tweak = &tweakable.QuantixHashTweak{tweakable.Simple, m, n}
+		params.Tweak = &tweakable.QtxHashTweak{tweakable.Simple, m, n}
 	default:
 		params.Tweak = &tweakable.Sha256Tweak{tweakable.Robust, m, n}
 	}

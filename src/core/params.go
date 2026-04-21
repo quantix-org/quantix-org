@@ -78,7 +78,7 @@ func GetQuantixChainParams() *QuantixChainParameters {
 		// Network Identification - unique identifiers for the blockchain
 		ChainID:       7331,             // Unique chain identifier
 		ChainName:     "Quantix Mainnet", // Human-readable network name
-		Symbol:        "SPX",            // Token symbol
+		Symbol:        "QTX",            // Token symbol
 		GenesisTime:   1732070400,       // Fixed genesis timestamp - MUST MATCH genesisBlockDefinition
 		GenesisHash:   genesisHash,      // Genesis block hash
 		Version:       "1.0.0",          // Protocol version
@@ -89,9 +89,9 @@ func GetQuantixChainParams() *QuantixChainParameters {
 
 		// Denominations - unit conversions for the native token
 		Denominations: map[string]*big.Int{
-			"nSPX": big.NewInt(1),    // Base unit (nano SPX) - smallest unit
-			"gSPX": big.NewInt(1e9),  // Giga SPX = 1,000,000,000 nSPX
-			"SPX":  big.NewInt(1e18), // Main unit = 1,000,000,000,000,000,000 nSPX
+			"nQTX": big.NewInt(1),    // Base unit (nano QTX) - smallest unit
+			"gQTX": big.NewInt(1e9),  // Giga QTX = 1,000,000,000 nQTX
+			"QTX":  big.NewInt(1e18), // Main unit = 1,000,000,000,000,000,000 nQTX
 		},
 
 		// Block Configuration - size and gas limits
@@ -99,7 +99,7 @@ func GetQuantixChainParams() *QuantixChainParameters {
 		MaxTransactionSize: 100 * 1024,                                        // 100KB - maximum transaction size
 		TargetBlockSize:    1 * 1024 * 1024,                                   // 1MB - target block size for optimization
 		BlockGasLimit:      big.NewInt(10000000),                              // 10 million gas - maximum gas per block
-		BaseBlockReward:    new(big.Int).Mul(big.NewInt(5), big.NewInt(1e18)), // 5 SPX = 5×10^18 nSPX
+		BaseBlockReward:    new(big.Int).Mul(big.NewInt(5), big.NewInt(1e18)), // 5 QTX = 5×10^18 nQTX
 
 		// Genesis-specific configuration - MUST MATCH genesis.go's DefaultGenesisState()
 		GenesisConfig: &GenesisConfig{
@@ -138,11 +138,11 @@ func GetDefaultMempoolConfig() *pool.MempoolConfig {
 // GetDefaultConsensusConfig returns the default consensus configuration
 // Defines how the PBFT consensus with RANDAO operates
 func GetDefaultConsensusConfig() *ConsensusConfig {
-	// Calculate 32 SPX in base units (nSPX)
-	// 32 * 1e18 = 32,000,000,000,000,000,000 nSPX
+	// Calculate 32 QTX in base units (nQTX)
+	// 32 * 1e18 = 32,000,000,000,000,000,000 nQTX
 	minStakeNSPX := new(big.Int).Mul(
-		big.NewInt(32),   // 32 SPX minimum stake requirement
-		big.NewInt(1e18), // 1e18 nSPX per SPX
+		big.NewInt(32),   // 32 QTX minimum stake requirement
+		big.NewInt(1e18), // 1e18 nQTX per QTX
 	)
 
 	return &ConsensusConfig{
@@ -150,10 +150,10 @@ func GetDefaultConsensusConfig() *ConsensusConfig {
 		EpochLength:      100,                            // Number of slots per epoch
 		ValidatorSetSize: 21,                             // Number of active validators
 		MaxValidators:    100,                            // Maximum total validators
-		MinStakeAmount:   minStakeNSPX,                   // Minimum stake to become validator (32 SPX)
+		MinStakeAmount:   minStakeNSPX,                   // Minimum stake to become validator (32 QTX)
 		UnbondingPeriod:  7 * 24 * time.Hour,             // 7 days - time to unbond stake
 		SlashingEnabled:  true,                           // Enable slashing for misbehavior
-		DoubleSignSlash:  big.NewInt(500000000000000000), // 0.5 SPX penalty for double signing
+		DoubleSignSlash:  big.NewInt(500000000000000000), // 0.5 QTX penalty for double signing
 	}
 }
 
@@ -318,10 +318,10 @@ func (p *QuantixChainParameters) IsTestnet() bool {
 // GetStakeDenomination returns the stake denomination
 // Returns the human-readable unit for stake amounts
 func (p *QuantixChainParameters) GetStakeDenomination() string {
-	return "SPX"
+	return "QTX"
 }
 
-// ConvertToBaseUnits converts amount to base units (nSPX)
+// ConvertToBaseUnits converts amount to base units (nQTX)
 // Converts from any denomination to the smallest unit
 func (p *QuantixChainParameters) ConvertToBaseUnits(amount *big.Int, fromDenom string) (*big.Int, error) {
 	// Look up the multiplier for the source denomination

@@ -37,10 +37,10 @@ import (
 	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
-// NewGenesisValidatorStake converts a whole-SPX amount to the nSPX big.Int
+// NewGenesisValidatorStake converts a whole-SPX amount to the nQTX big.Int
 // representation expected by GenesisValidator.StakeNSPX.
 //
-//	stake := NewGenesisValidatorStake(32) // 32 SPX → 32 × 10^18 nSPX
+//	stake := NewGenesisValidatorStake(32) // 32 QTX → 32 × 10^18 nQTX
 func NewGenesisValidatorStake(spx int64) *big.Int {
 	return new(big.Int).Mul(big.NewInt(spx), big.NewInt(1e18))
 }
@@ -55,7 +55,7 @@ func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		ChainID:           7331,
 		ChainName:         "Quantix Mainnet",
-		Symbol:            "SPX",
+		Symbol:            "QTX",
 		Timestamp:         1732070400, // Nov 20 2024 00:00:00 UTC — MUST match genesisBlockDefinition
 		ExtraData:         []byte("The Times 20/Nov/2024 Quantix Genesis. Privacy, sovereignty, human dignity. No surveillance."),
 		InitialDifficulty: big.NewInt(17179869184),
@@ -171,7 +171,7 @@ func (gs *GenesisState) AddValidator(nodeID, address string, stakeInSPX int64, p
 // Convention:
 //   - Sender   : "genesis" (no real signing key at block 0)
 //   - Receiver : the allocation address (hex, no 0x prefix)
-//   - Amount   : allocation.BalanceNSPX (in nSPX)
+//   - Amount   : allocation.BalanceNSPX (in nQTX)
 //   - Nonce    : sequential index i, so every transaction is unique
 //   - Timestamp: genesis block timestamp
 //   - ID       : deterministic — hex(QuantixHash(address || balance_bytes || nonce_bytes))
@@ -208,7 +208,7 @@ func allocationToTx(alloc *GenesisAllocation, index uint64, genesisTimestamp int
 		ID:        txID,             // Deterministic unique identifier
 		Sender:    "genesis",        // No real sender at block 0
 		Receiver:  alloc.Address,    // The pre-funded account
-		Amount:    amount,           // Initial balance in nSPX
+		Amount:    amount,           // Initial balance in nQTX
 		GasLimit:  big.NewInt(0),    // Genesis transactions consume no gas
 		GasPrice:  big.NewInt(0),    // Genesis transactions have zero gas price
 		Nonce:     index,            // Sequential to make each tx unique
@@ -497,7 +497,7 @@ func ApplyGenesisState(bc *Blockchain, gs *GenesisState) error {
 		}
 		stateDB.SetBalance(alloc.Address, alloc.BalanceNSPX)
 		totalMinted.Add(totalMinted, alloc.BalanceNSPX)
-		logger.Info("ApplyGenesisState: %s nSPX → %s (%s)",
+		logger.Info("ApplyGenesisState: %s nQTX → %s (%s)",
 			alloc.BalanceNSPX.String(), alloc.Address, alloc.Label)
 	}
 
@@ -517,9 +517,9 @@ func ApplyGenesisState(bc *Blockchain, gs *GenesisState) error {
 	}
 	bc.lock.Unlock()
 
-	totalSPX := new(big.Int).Div(totalMinted, big.NewInt(1e18))
-	logger.Info("✅ ApplyGenesisState: %d accounts, %s SPX, state_root=%x",
-		len(gs.Allocations), totalSPX.String(), stateRoot)
+	totalQTX := new(big.Int).Div(totalMinted, big.NewInt(1e18))
+	logger.Info("✅ ApplyGenesisState: %d accounts, %s QTX, state_root=%x",
+		len(gs.Allocations), totalQTX.String(), stateRoot)
 	return nil
 }
 
@@ -540,7 +540,7 @@ func (gs *GenesisState) writeGenesisStateFile(stateDir string) error {
 		if a.BalanceNSPX != nil {
 			total.Add(total, a.BalanceNSPX)
 		}
-		// Express balance in both nSPX and whole SPX for human readability.
+		// Express balance in both nQTX and whole QTX for human readability.
 		balSPX := new(big.Int)
 		nspxStr := "0"
 		if a.BalanceNSPX != nil {
@@ -554,22 +554,22 @@ func (gs *GenesisState) writeGenesisStateFile(stateDir string) error {
 			Label:       a.Label,
 		}
 	}
-	totalSPX := new(big.Int).Div(total, big.NewInt(1e18))
+	totalQTX := new(big.Int).Div(total, big.NewInt(1e18))
 
 	// Build per-validator rows.
 	valEntries := make([]genesisValidatorEntry, len(gs.InitialValidators))
 	for i, v := range gs.InitialValidators {
-		stakeSPX := new(big.Int)
+		stakeQTX := new(big.Int)
 		stakeNSPXStr := "0"
 		if v.StakeNSPX != nil {
-			stakeSPX.Div(v.StakeNSPX, big.NewInt(1e18))
+			stakeQTX.Div(v.StakeNSPX, big.NewInt(1e18))
 			stakeNSPXStr = v.StakeNSPX.String()
 		}
 		valEntries[i] = genesisValidatorEntry{
 			NodeID:    v.NodeID,
 			Address:   v.Address,
 			StakeNSPX: stakeNSPXStr,
-			StakeSPX:  stakeSPX.String(),
+			StakeSPX:  stakeQTX.String(),
 			PublicKey: v.PublicKey,
 		}
 	}
@@ -588,7 +588,7 @@ func (gs *GenesisState) writeGenesisStateFile(stateDir string) error {
 		Nonce:              gs.Nonce,
 		TotalAllocations:   len(gs.Allocations),
 		TotalAllocatedNSPX: total.String(),
-		TotalAllocatedSPX:  totalSPX.String(),
+		TotalAllocatedSPX:  totalQTX.String(),
 		TotalValidators:    len(gs.InitialValidators),
 		// Full ordered allocation list — previously missing, now populated.
 		Allocations: allocEntries,
@@ -606,8 +606,8 @@ func (gs *GenesisState) writeGenesisStateFile(stateDir string) error {
 		return fmt.Errorf("write error: %w", err)
 	}
 
-	logger.Info("Genesis state written to %s (%d allocations, total supply %s SPX)",
-		path, len(gs.Allocations), totalSPX.String())
+	logger.Info("Genesis state written to %s (%d allocations, total supply %s QTX)",
+		path, len(gs.Allocations), totalQTX.String())
 	return nil
 }
 

@@ -25,7 +25,7 @@ package types
 
 import "math/big"
 
-// GetGasFee returns GasLimit × GasPrice in nSPX.
+// GetGasFee returns GasLimit × GasPrice in nQTX.
 // Returns zero if either field is nil.
 func (tx *Transaction) GetGasFee() *big.Int {
 	if tx.GasLimit == nil || tx.GasPrice == nil {

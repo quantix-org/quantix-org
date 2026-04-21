@@ -40,7 +40,7 @@ import (
 const (
 	QuantixChainID       = 7331
 	QuantixChainName     = "Quantix"
-	QuantixSymbol        = "SPX"
+	QuantixSymbol        = "QTX"
 	QuantixBIP44CoinType = 7331
 	QuantixMagicNumber   = 0x53504858
 	QuantixDefaultPort   = 32307

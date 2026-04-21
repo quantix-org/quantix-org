@@ -41,7 +41,7 @@ var (
 )
 
 // pubKeyToHash hashes the public key twice using the QuantixHash algorithm
-// First hash the public key using SpxHash, then hash the result again to generate the final hash
+// First hash the public key using QtxHash, then hash the result again to generate the final hash
 func pubKeyToHash(pubKey []byte) []byte {
 	// Apply the QuantixHash algorithm twice to the public key
 	h1 := common.QuantixHash(pubKey)

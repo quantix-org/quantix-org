@@ -1,4 +1,4 @@
-// go/src/spxhash/testvc/test.go
+// go/src/qtxhash/testvc/test.go
 package test
 
 import (
@@ -19,15 +19,15 @@ import (
 )
 
 const (
-	// prime64 is defined locally to avoid importing github.com/quantix-org/quantix-org/src/spxhash/hash
-	prime64           = 0x9e3779b97f4a7c15 // Matches value from go/src/spxhash/hash/params.go
+	// prime64 is defined locally to avoid importing github.com/quantix-org/quantix-org/src/qtxhash/hash
+	prime64           = 0x9e3779b97f4a7c15 // Matches value from go/src/qtxhash/hash/params.go
 	testVectorKey     = "whats the Elvish word for friend"
 	testVectorContext = "spxHash 2019-12-27 16:29:52 test vectors context"
 )
 
 type testVec struct {
 	inputLen  int
-	hash      string // SpxHash output processed with SVM opcodes
+	hash      string // QtxHash output processed with SVM opcodes
 	keyedHash string // HMAC-SHA-512/256 with testVectorKey
 	deriveKey string // HKDF-SHA-512/256 with testVectorKey and testVectorContext
 }
@@ -40,7 +40,7 @@ func (tv *testVec) input() []byte {
 	return out
 }
 
-// vectors contains precomputed test vectors for SpxHash with SVM processing
+// vectors contains precomputed test vectors for QtxHash with SVM processing
 var vectors = []testVec{
 	{
 		inputLen:  0,
@@ -107,7 +107,7 @@ func init() {
 	}
 }
 
-// computeHash generates the SpxHash and applies SVM opcodes for a stack-based transformation.
+// computeHash generates the QtxHash and applies SVM opcodes for a stack-based transformation.
 func computeHash(inputLen int, logFile *os.File) string {
 	cacheMu.Lock()
 	if cachedHash, found := hashCache[inputLen]; found {
@@ -127,7 +127,7 @@ func computeHash(inputLen int, logFile *os.File) string {
 	for i := range input {
 		input[i] = uint8(i % 251)
 	}
-	// Compute base SpxHash
+	// Compute base QtxHash
 	hashBytes := common.QuantixHash(input)
 
 	// Indicate that QuantixHash opcode is used
@@ -209,7 +209,7 @@ func TestVectors(t *testing.T) {
 	fileMu.Unlock()
 }
 
-// BenchmarkSpxHash benchmarks the performance of the computeHash function for different input lengths.
+// BenchmarkQtxHash benchmarks the performance of the computeHash function for different input lengths.
 func BenchmarkQuantixHash(b *testing.B) {
 	filename := filepath.Join(".", "vectorsoutput.txt")
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
@@ -218,7 +218,7 @@ func BenchmarkQuantixHash(b *testing.B) {
 	}
 	defer f.Close()
 
-	header := "=== RUN   BenchmarkSpxHash"
+	header := "=== RUN   BenchmarkQtxHash"
 	fmt.Println(header)
 	fileMu.Lock()
 	fmt.Fprintln(f, header)
@@ -235,7 +235,7 @@ func BenchmarkQuantixHash(b *testing.B) {
 			}
 			// Log benchmark result with ns/op
 			result := fmt.Sprintf(
-				"BenchmarkSpxHash/inputLen=%d-%d %d %f ns/op",
+				"BenchmarkQtxHash/inputLen=%d-%d %d %f ns/op",
 				vec.inputLen, runtime.NumCPU(), b.N, float64(b.Elapsed().Nanoseconds())/float64(b.N),
 			)
 			fmt.Println(result)
@@ -245,7 +245,7 @@ func BenchmarkQuantixHash(b *testing.B) {
 		})
 	}
 
-	footer := "--- PASS: BenchmarkSpxHash"
+	footer := "--- PASS: BenchmarkQtxHash"
 	fmt.Println(footer)
 	fileMu.Lock()
 	fmt.Fprintln(f, footer)

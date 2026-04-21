@@ -99,9 +99,9 @@ type TransactionReceipt struct {
 
 // SendTransaction sends a transaction via JSON-RPC
 func SendTransaction(opts SendTxOptions) error {
-	logger.Infof("Sending transaction from %s to %s amount %s SPX", opts.From, opts.To, opts.Amount)
+	logger.Infof("Sending transaction from %s to %s amount %s QTX", opts.From, opts.To, opts.Amount)
 
-	// Convert amount to nSPX (assuming 1 SPX = 10^18 nSPX)
+	// Convert amount to nQTX (assuming 1 QTX = 10^18 nQTX)
 	amountBig, ok := new(big.Int).SetString(opts.Amount, 10)
 	if !ok {
 		return fmt.Errorf("invalid amount: %s", opts.Amount)
@@ -174,13 +174,13 @@ func GetBalance(opts GetBalanceOptions) error {
 		return fmt.Errorf("failed to parse balance: %s", balanceHex)
 	}
 
-	// Convert from nSPX to SPX (1 SPX = 10^18 nSPX)
+	// Convert from nQTX to QTX (1 QTX = 10^18 nQTX)
 	spxBalance := new(big.Float).Quo(
 		new(big.Float).SetInt(balanceBig),
 		new(big.Float).SetFloat64(1e18),
 	)
 
-	logger.Infof("Balance for %s: %.6f SPX", opts.Address, spxBalance)
+	logger.Infof("Balance for %s: %.6f QTX", opts.Address, spxBalance)
 	return nil
 }
 

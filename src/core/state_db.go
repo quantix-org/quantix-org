@@ -44,7 +44,7 @@ const (
 // Balance is kept as a decimal string so json.Marshal/Unmarshal round-trips
 // correctly without custom big.Int marshaling.
 type accountRecord struct {
-	Balance string `json:"balance"` // decimal string, nSPX
+	Balance string `json:"balance"` // decimal string, nQTX
 	Nonce   uint64 `json:"nonce"`
 }
 
@@ -62,7 +62,7 @@ type StateDB struct {
 	mu          sync.RWMutex
 	db          *database.DB             // the LevelDB wrapper from src/core/state/database.go
 	pending     map[string]*accountEntry // dirty accounts not yet written to disk
-	totalSupply *big.Int                 // circulating supply in nSPX
+	totalSupply *big.Int                 // circulating supply in nQTX
 }
 
 // NewStateDB creates a StateDB backed by the given *database.DB.
@@ -129,7 +129,7 @@ func (s *StateDB) dirty(address string) *accountEntry {
 // Public read methods
 // ----------------------------------------------------------------------------
 
-// GetBalance returns the current balance of address in nSPX.
+// GetBalance returns the current balance of address in nQTX.
 func (s *StateDB) GetBalance(address string) *big.Int {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -143,7 +143,7 @@ func (s *StateDB) GetNonce(address string) uint64 {
 	return s.load(address).nonce
 }
 
-// GetTotalSupply returns the current circulating supply in nSPX.
+// GetTotalSupply returns the current circulating supply in nQTX.
 func (s *StateDB) GetTotalSupply() *big.Int {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -154,7 +154,7 @@ func (s *StateDB) GetTotalSupply() *big.Int {
 // Public write methods (buffered — flushed on Commit)
 // ----------------------------------------------------------------------------
 
-// SetBalance sets the balance of address to amount (nSPX).
+// SetBalance sets the balance of address to amount (nQTX).
 // Used during genesis to credit allocations.
 func (s *StateDB) SetBalance(address string, amount *big.Int) {
 	s.mu.Lock()
@@ -162,7 +162,7 @@ func (s *StateDB) SetBalance(address string, amount *big.Int) {
 	s.dirty(address).balance = new(big.Int).Set(amount)
 }
 
-// AddBalance adds amount (nSPX) to address. No-op for zero/nil amount.
+// AddBalance adds amount (nQTX) to address. No-op for zero/nil amount.
 func (s *StateDB) AddBalance(address string, amount *big.Int) {
 	if amount == nil || amount.Sign() <= 0 {
 		return
@@ -173,7 +173,7 @@ func (s *StateDB) AddBalance(address string, amount *big.Int) {
 	e.balance.Add(e.balance, amount)
 }
 
-// SubBalance subtracts amount (nSPX) from address.
+// SubBalance subtracts amount (nQTX) from address.
 // Returns an error if the resulting balance would be negative.
 func (s *StateDB) SubBalance(address string, amount *big.Int) error {
 	if amount == nil || amount.Sign() <= 0 {
@@ -183,7 +183,7 @@ func (s *StateDB) SubBalance(address string, amount *big.Int) error {
 	defer s.mu.Unlock()
 	e := s.dirty(address)
 	if e.balance.Cmp(amount) < 0 {
-		return fmt.Errorf("insufficient balance: %s has %s nSPX, needs %s nSPX",
+		return fmt.Errorf("insufficient balance: %s has %s nQTX, needs %s nQTX",
 			address, e.balance.String(), amount.String())
 	}
 	e.balance.Sub(e.balance, amount)
@@ -246,7 +246,7 @@ func (s *StateDB) Commit() ([]byte, error) {
 		return nil, err
 	}
 
-	logger.Info("StateDB committed: state_root=%x total_supply=%s nSPX",
+	logger.Info("StateDB committed: state_root=%x total_supply=%s nQTX",
 		stateRoot, s.totalSupply.String())
 	return stateRoot, nil
 }

@@ -51,56 +51,56 @@ func (vs *ValidatorSet) GetMinStakeAmount() *big.Int {
 	return new(big.Int).Set(vs.minStakeAmount)
 }
 
-// GetMinStakeSPX returns the minimum stake in SPX (human-readable).
+// GetMinStakeSPX returns the minimum stake in QTX (human-readable).
 func (vs *ValidatorSet) GetMinStakeSPX() uint64 {
-	minSPX := new(big.Int).Div(vs.minStakeAmount, big.NewInt(1e18))
-	return minSPX.Uint64()
+	minQTX := new(big.Int).Div(vs.minStakeAmount, big.NewInt(1e18))
+	return minQTX.Uint64()
 }
 
-// AddValidator adds or updates a validator's stake (in SPX).
-func (vs *ValidatorSet) AddValidator(id string, stakeSPX uint64) error {
+// AddValidator adds or updates a validator's stake (in QTX).
+func (vs *ValidatorSet) AddValidator(id string, stakeQTX uint64) error {
 	vs.mu.Lock()
 	defer vs.mu.Unlock()
 
-	stakeNSPX := new(big.Int).Mul(
-		big.NewInt(int64(stakeSPX)),
-		big.NewInt(denom.SPX),
+	stakeNQTX := new(big.Int).Mul(
+		big.NewInt(int64(stakeQTX)),
+		big.NewInt(denom.QTX),
 	)
 
-	if stakeNSPX.Cmp(vs.minStakeAmount) < 0 {
+	if stakeNQTX.Cmp(vs.minStakeAmount) < 0 {
 		minStakeSPX := vs.GetMinStakeSPX()
-		return fmt.Errorf("stake %d SPX below minimum %d SPX", stakeSPX, minStakeSPX)
+		return fmt.Errorf("stake %d QTX below minimum %d QTX", stakeQTX, minStakeSPX)
 	}
 
 	if val, exists := vs.validators[id]; exists {
 		vs.totalStake.Sub(vs.totalStake, val.StakeAmount)
-		val.StakeAmount = stakeNSPX
-		vs.totalStake.Add(vs.totalStake, stakeNSPX)
+		val.StakeAmount = stakeNQTX
+		vs.totalStake.Add(vs.totalStake, stakeNQTX)
 	} else {
 		vs.validators[id] = &StakedValidator{
 			ID:          id,
-			StakeAmount: stakeNSPX,
+			StakeAmount: stakeNQTX,
 		}
-		vs.totalStake.Add(vs.totalStake, stakeNSPX)
+		vs.totalStake.Add(vs.totalStake, stakeNQTX)
 	}
 
-	logger.Info("✅ Validator %s added/updated with %d SPX stake", id, stakeSPX)
+	logger.Info("✅ Validator %s added/updated with %d QTX stake", id, stakeQTX)
 	return nil
 }
 
 // IsValidStakeAmount checks if a stake amount meets the minimum requirement.
-func (vs *ValidatorSet) IsValidStakeAmount(stakeNSPX *big.Int) bool {
-	if stakeNSPX == nil {
+func (vs *ValidatorSet) IsValidStakeAmount(stakeNQTX *big.Int) bool {
+	if stakeNQTX == nil {
 		return false
 	}
-	return stakeNSPX.Cmp(vs.minStakeAmount) >= 0
+	return stakeNQTX.Cmp(vs.minStakeAmount) >= 0
 }
 
-// GetMinimumStakeInSPX returns the minimum stake in SPX as float64.
+// GetMinimumStakeInSPX returns the minimum stake in QTX as float64.
 func (vs *ValidatorSet) GetMinimumStakeInSPX() float64 {
 	minStakeSPX := new(big.Float).Quo(
 		new(big.Float).SetInt(vs.minStakeAmount),
-		new(big.Float).SetFloat64(denom.SPX),
+		new(big.Float).SetFloat64(denom.QTX),
 	)
 	result, _ := minStakeSPX.Float64()
 	return result
@@ -146,7 +146,7 @@ func (vs *ValidatorSet) ActiveValidatorIDs(epoch uint64) []string {
 	return ids
 }
 
-// GetTotalStake returns total active stake in nSPX.
+// GetTotalStake returns total active stake in nQTX.
 func (vs *ValidatorSet) GetTotalStake() *big.Int {
 	vs.mu.RLock()
 	defer vs.mu.RUnlock()
@@ -156,13 +156,13 @@ func (vs *ValidatorSet) GetTotalStake() *big.Int {
 	return new(big.Int).Set(vs.totalStake)
 }
 
-// GetStakeInSPX returns a validator's stake in SPX as float64.
+// GetStakeInSPX returns a validator's stake in QTX as float64.
 func (v *StakedValidator) GetStakeInSPX() float64 {
-	stakeSPX := new(big.Float).Quo(
+	stakeQTX := new(big.Float).Quo(
 		new(big.Float).SetInt(v.StakeAmount),
-		new(big.Float).SetFloat64(denom.SPX),
+		new(big.Float).SetFloat64(denom.QTX),
 	)
-	result, _ := stakeSPX.Float64()
+	result, _ := stakeQTX.Float64()
 	return result
 }
 
@@ -197,13 +197,13 @@ func (vs *ValidatorSet) SlashValidator(id, reason string, penaltyBps uint64) {
 
 	if v.StakeAmount.Cmp(vs.minStakeAmount) < 0 {
 		v.IsSlashed = true
-		logger.Warn("🔪 Validator %s SLASHED and ejected — reason: %s (stake now %.2f SPX)",
+		logger.Warn("🔪 Validator %s SLASHED and ejected — reason: %s (stake now %.2f QTX)",
 			id, reason, v.GetStakeInSPX())
 	} else {
-		logger.Warn("🔪 Validator %s slashed %.2f SPX — reason: %s (remaining %.2f SPX)",
+		logger.Warn("🔪 Validator %s slashed %.2f QTX — reason: %s (remaining %.2f QTX)",
 			id, new(big.Float).Quo(
 				new(big.Float).SetInt(penalty),
-				new(big.Float).SetFloat64(denom.SPX),
+				new(big.Float).SetFloat64(denom.QTX),
 			), reason, v.GetStakeInSPX())
 	}
 }
@@ -237,9 +237,9 @@ func (c *Consensus) FinaliseEpochAndSlash(epoch uint64) {
 	}
 }
 
-// UpdateStake updates a validator's stake amount (in SPX)
+// UpdateStake updates a validator's stake amount (in QTX)
 // This is useful for updating stakes after distribution transactions are processed
-func (vs *ValidatorSet) UpdateStake(id string, stakeSPX uint64) error {
+func (vs *ValidatorSet) UpdateStake(id string, stakeQTX uint64) error {
 	vs.mu.Lock()
 	defer vs.mu.Unlock()
 
@@ -249,16 +249,16 @@ func (vs *ValidatorSet) UpdateStake(id string, stakeSPX uint64) error {
 		return fmt.Errorf("validator %s not found", id)
 	}
 
-	// Calculate stake in nSPX
-	stakeNSPX := new(big.Int).Mul(
-		big.NewInt(int64(stakeSPX)),
-		big.NewInt(denom.SPX),
+	// Calculate stake in nQTX
+	stakeNQTX := new(big.Int).Mul(
+		big.NewInt(int64(stakeQTX)),
+		big.NewInt(denom.QTX),
 	)
 
 	// Validate minimum stake
-	if stakeNSPX.Cmp(vs.minStakeAmount) < 0 {
+	if stakeNQTX.Cmp(vs.minStakeAmount) < 0 {
 		minStakeSPX := vs.GetMinStakeSPX()
-		return fmt.Errorf("stake %d SPX below minimum %d SPX", stakeSPX, minStakeSPX)
+		return fmt.Errorf("stake %d QTX below minimum %d QTX", stakeQTX, minStakeSPX)
 	}
 
 	// Update total stake (remove old, add new)
@@ -266,12 +266,12 @@ func (vs *ValidatorSet) UpdateStake(id string, stakeSPX uint64) error {
 	vs.totalStake.Sub(vs.totalStake, oldStake)
 
 	// Update validator's stake
-	v.StakeAmount = stakeNSPX
-	vs.totalStake.Add(vs.totalStake, stakeNSPX)
+	v.StakeAmount = stakeNQTX
+	vs.totalStake.Add(vs.totalStake, stakeNQTX)
 
-	oldSPX := new(big.Int).Div(oldStake, big.NewInt(denom.SPX))
-	logger.Info("✅ Validator %s stake updated from %d SPX to %d SPX",
-		id, oldSPX.Uint64(), stakeSPX)
+	oldQTX := new(big.Int).Div(oldStake, big.NewInt(denom.QTX))
+	logger.Info("✅ Validator %s stake updated from %d QTX to %d QTX",
+		id, oldQTX.Uint64(), stakeQTX)
 
 	return nil
 }

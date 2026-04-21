@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// go/src/spxhash/hash/spxhash.go
-package spxhash
+// go/src/qtxhash/hash/qtxhash.go
+package qtxhash
 
 import (
 	"bytes"
@@ -48,8 +48,8 @@ func generateSalt(data []byte, saltSize int) []byte {
 	return salt
 }
 
-// NewQuantixHash creates a new QuantixHash with a specific bit size for the hash.
-func NewQuantixHash(bitSize int, data []byte) *QuantixHash {
+// NewQtxHash creates a new QuantixHash with a specific bit size for the hash.
+func NewQtxHash(bitSize int, data []byte) *QuantixHash {
 	// Pass saltSize explicitly when calling generateSalt
 	salt := generateSalt(data, saltSize) // Use deterministic salt based on input data
 	return &QuantixHash{
@@ -76,7 +76,7 @@ func (s *QuantixHash) GetHash(data []byte) []byte {
 	}
 
 	// Create a new QuantixHash with the input data to get the deterministic salt
-	sphinx := NewQuantixHash(s.bitSize, data) // Pass data to generate deterministic salt
+	sphinx := NewQtxHash(s.bitSize, data) // Pass data to generate deterministic salt
 	hash := quantix.hashData(data)            // Calculate the hash using the new deterministic salt
 	s.cache.Put(hashKey, hash)               // Store the calculated hash in the cache
 

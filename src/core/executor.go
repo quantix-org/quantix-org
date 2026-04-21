@@ -31,7 +31,7 @@ import (
 	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
-// maxSupplyNSPX is the hard cap: 5 billion SPX expressed in nSPX.
+// maxSupplyNSPX is the hard cap: 5 billion QTX expressed in nQTX.
 var maxSupplyNSPX = new(big.Int).Mul(
 	big.NewInt(5_000_000_000),
 	big.NewInt(1e18),
@@ -66,7 +66,7 @@ func (bc *Blockchain) IsDistributionComplete() bool {
 	return complete
 }
 
-// TotalAllocatedNSPX returns the sum of all genesis allocations in nSPX.
+// TotalAllocatedNSPX returns the sum of all genesis allocations in nQTX.
 // Used to calculate how many more blocks need to run before distribution is done.
 func TotalAllocatedNSPX() *big.Int {
 	allocs := DefaultGenesisAllocations()
@@ -106,7 +106,7 @@ func (bc *Blockchain) applyTransactions(block *types.Block, stateDB *StateDB) er
 
 		bal := stateDB.GetBalance(tx.Sender)
 		if bal.Cmp(totalCost) < 0 {
-			return fmt.Errorf("tx[%d] %s: %s has %s nSPX, needs %s nSPX",
+			return fmt.Errorf("tx[%d] %s: %s has %s nQTX, needs %s nQTX",
 				i, tx.ID, tx.Sender, bal.String(), totalCost.String())
 		}
 
@@ -120,16 +120,16 @@ func (bc *Blockchain) applyTransactions(block *types.Block, stateDB *StateDB) er
 		}
 
 		stateDB.IncrementNonce(tx.Sender)
-		logger.Info("executor: tx[%d] %s → %s %s nSPX (gas %s nSPX) ✓",
+		logger.Info("executor: tx[%d] %s → %s %s nQTX (gas %s nQTX) ✓",
 			i, tx.Sender, tx.Receiver, tx.Amount.String(), gasFee.String())
 	}
 	return nil
 }
 
 // mintBlockReward issues BaseBlockReward to the block proposer, respecting
-// the hard 5 billion SPX supply cap.
+// the hard 5 billion QTX supply cap.
 // mintBlockReward issues BaseBlockReward to the block proposer, respecting
-// the hard 5 billion SPX supply cap.
+// the hard 5 billion QTX supply cap.
 func (bc *Blockchain) mintBlockReward(block *types.Block, stateDB *StateDB) {
 	if bc.chainParams == nil {
 		return
@@ -152,7 +152,7 @@ func (bc *Blockchain) mintBlockReward(block *types.Block, stateDB *StateDB) {
 		}
 		stateDB.AddBalance(proposerID, reward)
 		stateDB.IncrementTotalSupply(reward)
-		logger.Info("mintBlockReward: genesis mint %s nSPX → vault %s",
+		logger.Info("mintBlockReward: genesis mint %s nQTX → vault %s",
 			reward.String(), proposerID)
 		return
 	}
@@ -189,7 +189,7 @@ func (bc *Blockchain) mintBlockReward(block *types.Block, stateDB *StateDB) {
 		new(big.Float).SetInt(reward),
 		new(big.Float).SetInt(big.NewInt(1e18)),
 	)
-	logger.Info("✅ mintBlockReward: %.6f SPX → %s (block %d) [PHASE 2]",
+	logger.Info("✅ mintBlockReward: %.6f QTX → %s (block %d) [PHASE 2]",
 		rewardSPX, proposerID, block.GetHeight())
 }
 
@@ -260,7 +260,7 @@ func (bc *Blockchain) UpdateValidatorStakesFromState(validatorIDs []string, vali
 
 	// Get the UpdateStake method via reflection or interface
 	type stakeUpdater interface {
-		UpdateStake(id string, stakeSPX uint64) error
+		UpdateStake(id string, stakeQTX uint64) error
 	}
 
 	updater, ok := validatorSet.(stakeUpdater)
@@ -279,11 +279,11 @@ func (bc *Blockchain) UpdateValidatorStakesFromState(validatorIDs []string, vali
 			continue
 		}
 
-		stakeSPX := new(big.Int).Div(balanceNSPX, big.NewInt(1e18))
-		if err := updater.UpdateStake(vid, uint64(stakeSPX.Int64())); err != nil {
+		stakeQTX := new(big.Int).Div(balanceNSPX, big.NewInt(1e18))
+		if err := updater.UpdateStake(vid, uint64(stakeQTX.Int64())); err != nil {
 			logger.Warn("Failed to update stake for %s: %v", vid, err)
 		} else {
-			logger.Info("✅ Updated validator %s stake to %d SPX", vid, stakeSPX)
+			logger.Info("✅ Updated validator %s stake to %d QTX", vid, stakeQTX)
 		}
 	}
 

@@ -355,8 +355,8 @@ func (b *Block) GenerateBlockHash() []byte {
 	headerData = append(headerData, b.Header.ExtraData...)          // Extra data (variable)
 	headerData = append(headerData, b.Header.Miner...)              // Miner address (20 bytes)
 
-	// Use common.SpxHash to hash the concatenated data
-	// Create the final hash using the SpxHash algorithm
+	// Use common.QtxHash to hash the concatenated data
+	// Create the final hash using the QtxHash algorithm
 	hashBytes := common.QuantixHash(headerData)
 
 	// ALWAYS return hex-encoded hash to avoid non-printable characters

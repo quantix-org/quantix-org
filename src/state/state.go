@@ -819,7 +819,7 @@ func (s *Storage) SaveCompleteChainState(chainState *ChainState, chainParams *Ch
 			},
 			NetworkInfo: map[string]interface{}{
 				"network_name": chainParams.ChainName,
-				"protocol":     fmt.Sprintf("SPX/%s", chainParams.Version),
+				"protocol":     fmt.Sprintf("QTX/%s", chainParams.Version),
 			},
 		}
 	}

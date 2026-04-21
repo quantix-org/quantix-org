@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// go/src/spxhash/hash/cache.go
-package spxhash
+// go/src/qtxhash/hash/cache.go
+package qtxhash
 
 // SIPS-0001 https://github.com/quantix-org/sips/wiki/SIPS-0001
 

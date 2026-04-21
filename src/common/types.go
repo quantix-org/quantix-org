@@ -23,7 +23,7 @@
 // go/src/common/types.go
 package common
 
-import spxhash "github.com/quantix-org/quantix-org/src/spxhash/hash"
+import qtxhash "github.com/quantix-org/quantix-org/src/qtxhash/hash"
 
 // Params represents the configuration for QuantixHash.
 type Params struct {
@@ -35,13 +35,13 @@ var spxParams = Params{
 	BitSize: 256,
 }
 
-// SpxHash hashes the given data using the QuantixHash algorithm with the predefined parameters.
+// QtxHash hashes the given data using the QuantixHash algorithm with the predefined parameters.
 func QuantixHash(data []byte) []byte {
 	// Use the default params (256-bit configuration)
 	params := spxParams
 
 	// Create a new QuantixHash instance with the configured bit size
-	quantixHash := spxhash.NewQuantixHash(params.BitSize, data)
+	quantixHash := qtxhash.NewQtxHash(params.BitSize, data)
 
 	// Return the final hash for the data
 	return quantixHash.GetHash(data)

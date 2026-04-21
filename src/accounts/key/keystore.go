@@ -232,15 +232,15 @@ func (k *KeystoreConfig) ValidateDerivationPath(path string, walletType Hardware
 
 // Network-specific keystore configurations
 func GetMainnetKeystoreConfig() *KeystoreConfig {
-	return NewKeystoreConfig(7331, "Quantix Mainnet", 7331, "Quantix", "SPX")
+	return NewKeystoreConfig(7331, "Quantix Mainnet", 7331, "Quantix", "QTX")
 }
 
 func GetTestnetKeystoreConfig() *KeystoreConfig {
-	return NewKeystoreConfig(17331, "Quantix Testnet", 1, "Quantix Testnet", "SPX")
+	return NewKeystoreConfig(17331, "Quantix Testnet", 1, "Quantix Testnet", "QTX")
 }
 
 func GetDevnetKeystoreConfig() *KeystoreConfig {
-	return NewKeystoreConfig(7331, "Quantix Devnet", 1, "Quantix Devnet", "SPX")
+	return NewKeystoreConfig(7331, "Quantix Devnet", 1, "Quantix Devnet", "QTX")
 }
 
 // HardwareWalletManager manages multiple hardware wallet configurations

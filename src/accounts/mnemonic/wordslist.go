@@ -187,7 +187,7 @@ func GeneratePassphrase(words []string, wordCount int) (string, string, error) {
 	// Convert the salt string to a byte slice for encoding
 	saltBytes := []byte(salt)
 
-	// Use SpxHash from the common package to generate a hash (256-bit)
+	// Use QtxHash from the common package to generate a hash (256-bit)
 	hash := common.QuantixHash([]byte(passphraseStr))
 
 	// Append the hash to the salt or use it directly in the stretching process

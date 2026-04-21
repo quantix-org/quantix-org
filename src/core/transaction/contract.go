@@ -54,13 +54,13 @@ func CreateContract(note *Note, amountInSPX float64, set *UTXOSet, txID string, 
 		return nil, fmt.Errorf("failed to add UTXO: %v", err)
 	}
 
-	// Use getSPX to retrieve the SPX multiplier
+	// Use getSPX to retrieve the QTX multiplier
 	spxMultiplier := getSPX()
 
 	// Convert amountInSPX to a big.Rat to handle fractional amounts
 	amountRat := new(big.Rat).SetFloat64(amountInSPX)
 
-	// Multiply the amount by the SPX multiplier
+	// Multiply the amount by the QTX multiplier
 	amountRat.Mul(amountRat, new(big.Rat).SetInt(spxMultiplier))
 
 	// Convert the resulting big.Rat into a big.Int by multiplying by 10^18 to handle decimals
@@ -71,7 +71,7 @@ func CreateContract(note *Note, amountInSPX float64, set *UTXOSet, txID string, 
 	amount := new(big.Int)
 	amount.Set(amountRat.Num()) // Use the numerator as the big.Int value
 
-	// Calculate the Fee as a big.Int (assuming the fee is also based on SPX)
+	// Calculate the Fee as a big.Int (assuming the fee is also based on QTX)
 	feeRat := new(big.Rat).SetFloat64(note.Fee) // Fee as a float64, convert to big.Rat
 	feeRat.Mul(feeRat, amountRat)               // Multiply the fee by the amount
 	fee := new(big.Int)

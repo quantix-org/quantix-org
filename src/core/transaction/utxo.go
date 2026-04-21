@@ -32,19 +32,19 @@ import (
 )
 
 const (
-	SPX = 1e18 // 1 SPX equals 1e18 nSPX (10^18), similar to how 1 Ether equals 1e18 wei.
+	SPX = 1e18 // 1 QTX equals 1e18 nQTX (10^18), similar to how 1 Ether equals 1e18 wei.
 )
 
-// getSPX retrieves the SPX multiplier from the params package
+// getSPX retrieves the QTX multiplier from the params package
 func getSPX() *big.Int {
-	return big.NewInt(params.SPX) // 1e18, equivalent to the full SPX token
+	return big.NewInt(params.QTX) // 1e18, equivalent to the full QTX token
 }
 
 // NewUTXOSet creates a new empty UTXOSet.
 func NewUTXOSet() *UTXOSet {
 	return &UTXOSet{
 		utxos:       make(map[Outpoint]*UTXO), // Initialize the map to store UTXOs
-		totalSupply: big.NewInt(0),            // Initialize total supply to 0 (in nSPX)
+		totalSupply: big.NewInt(0),            // Initialize total supply to 0 (in nQTX)
 	}
 }
 
@@ -53,10 +53,10 @@ func (s *UTXOSet) Add(txID string, txOut Output, index int, coinbase bool, heigh
 	s.mu.Lock()         // Lock the UTXO set for exclusive access during modification
 	defer s.mu.Unlock() // Ensure the lock is released when the function returns
 
-	// Convert the maximum supply to big.Int (Multiply params.MaximumSupply by SPX)
+	// Convert the maximum supply to big.Int (Multiply params.MaximumSupply by QTX)
 	maxSupply := new(big.Int)
 	// Correctly handle the two return values from SetString
-	_, ok := maxSupply.SetString(fmt.Sprintf("%.0f", params.MaximumSupply*SPX), 10)
+	_, ok := maxSupply.SetString(fmt.Sprintf("%.0f", params.MaximumSupply*QTX), 10)
 	if !ok {
 		return errors.New("failed to set maximum supply")
 	}
@@ -64,7 +64,7 @@ func (s *UTXOSet) Add(txID string, txOut Output, index int, coinbase bool, heigh
 	// Check if adding this UTXO exceeds the maximum supply
 	amountInSPX := new(big.Int).SetUint64(txOut.Value) // Convert value to big.Int
 	if new(big.Int).Add(s.totalSupply, amountInSPX).Cmp(maxSupply) > 0 {
-		return errors.New("exceeding maximum SPX supply")
+		return errors.New("exceeding maximum QTX supply")
 	}
 
 	// Create an Outpoint for the given transaction ID and output index

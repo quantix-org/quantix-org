@@ -303,7 +303,7 @@ func ExecuteOp(op OpCode, stack *Stack, memory []byte, code []byte, pc *uint64) 
 	// ========== HASHING OPERATIONS (0x10-0x14) ==========
 	// QuantixHash (0x10) - Custom hash function for Quantix protocol
 	// Used for commitment generation and Merkle tree operations
-	// This implementation uses the spxhash package for the custom Sphinx hash
+	// This implementation uses the qtxhash package for the custom Sphinx hash
 	// The hash is computed on the input data from the stack
 	case QuantixHash:
 		return executeQuantixHashOp(stack)
@@ -504,13 +504,13 @@ func ExecuteOp(op OpCode, stack *Stack, memory []byte, code []byte, pc *uint64) 
 }
 
 // ========== SPHINX HASH OPERATION ==========
-// executeQuantixHashOp - Custom Sphinx hash operation using common.SpxHash
-// This implements the QuantixHash opcode (0x10) using the protocol's SpxHash function
+// executeQuantixHashOp - Custom Sphinx hash operation using common.QtxHash
+// This implements the QuantixHash opcode (0x10) using the protocol's QtxHash function
 // QuantixHash is a combination of SHA2-256 and SHAKE256, optimized for large data sizes (>1MB)
 // It is faster than standard hash functions for processing large amounts of data
 //
 // The function pops a size parameter from the stack, creates a zero-filled buffer of that size,
-// computes the Sphinx hash using common.SpxHash, and pushes the first 8 bytes of the result
+// computes the Sphinx hash using common.QtxHash, and pushes the first 8 bytes of the result
 //
 // Performance note: For large data sizes (>1MB), QuantixHash is designed to be efficient
 // and faster than SHA3-256 or SHAKE256 alone due to its internal optimization.
@@ -531,8 +531,8 @@ func executeQuantixHashOp(stack *Stack) error {
 	// For large sizes (>1MB), QuantixHash internally processes this efficiently
 	data := make([]byte, size)
 
-	// Compute the Sphinx hash using common.SpxHash
-	// SpxHash combines SHA2-256 and SHAKE256 for optimal performance
+	// Compute the Sphinx hash using common.QtxHash
+	// QtxHash combines SHA2-256 and SHAKE256 for optimal performance
 	// It is specifically optimized for large data sizes (>1MB)
 	hash := common.QuantixHash(data)
 
@@ -2154,7 +2154,7 @@ const (
 	POP  OpCode = 0x50 // Remove top stack item
 
 	// Hash operations (0x10-0x14) - Cryptographic hash functions
-	QuantixHash    OpCode = 0x10 // Custom Sphinx hash function using spxhash package
+	QuantixHash    OpCode = 0x10 // Custom Sphinx hash function using qtxhash package
 	SHA3_256      OpCode = 0x11 // SHA3-256 hash (32 bytes output)
 	SHA512_224    OpCode = 0x12 // SHA3-512 truncated to 224 bits (28 bytes)
 	SHA512_256    OpCode = 0x13 // SHA3-512 truncated to 256 bits (32 bytes)

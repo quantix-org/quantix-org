@@ -38,7 +38,7 @@ import (
 // ----------------------------------------------------------------------------
 
 // NewGenesisAllocation creates a GenesisAllocation whose balance is already
-// expressed in nSPX. Use this when you have a raw big.Int amount.
+// expressed in nQTX. Use this when you have a raw big.Int amount.
 //
 //	alloc := NewGenesisAllocation("a1b2...e5f6", big.NewInt(1e18), "Treasury")
 func NewGenesisAllocation(address string, balanceNSPX *big.Int, label string) *GenesisAllocation {
@@ -50,17 +50,17 @@ func NewGenesisAllocation(address string, balanceNSPX *big.Int, label string) *G
 }
 
 // NewGenesisAllocationSPX creates a GenesisAllocation where the balance is
-// specified in whole SPX units. The value is converted to nSPX internally.
+// specified in whole QTX units. The value is converted to nQTX internally.
 //
 //	alloc := NewGenesisAllocationSPX("a1b2...e5f6", 1_000_000, "Founders")
-//	// → 1,000,000 × 10^18 nSPX
+//	// → 1,000,000 × 10^18 nQTX
 func NewGenesisAllocationSPX(address string, spx int64, label string) *GenesisAllocation {
 	nspx := new(big.Int).Mul(big.NewInt(spx), big.NewInt(1e18))
 	return NewGenesisAllocation(address, nspx, label)
 }
 
 // NewFounderAlloc is a domain-specific shorthand for the primary founder account.
-// Allocation: 10% — 10,000,000 SPX ($600,000 at $0.06/SPX).
+// Allocation: 10% — 10,000,000 QTX ($600,000 at $0.06/SPX).
 // Distribution: 3-year vesting with quarterly unlocks; includes planned charity allocation.
 // It calls NewGenesisAllocationSPX with the label "Founder".
 func NewFounderAlloc(address string, spx int64) *GenesisAllocation {
@@ -68,7 +68,7 @@ func NewFounderAlloc(address string, spx int64) *GenesisAllocation {
 }
 
 // NewCoFounderAlloc is a domain-specific shorthand for the co-founder account.
-// Allocation: 7% — 7,000,000 SPX ($420,000 at $0.06/SPX).
+// Allocation: 7% — 7,000,000 QTX ($420,000 at $0.06/SPX).
 // Distribution: 3-year vesting with quarterly unlocks; includes planned charity allocation.
 // It calls NewGenesisAllocationSPX with the label "CoFounder".
 func NewCoFounderAlloc(address string, spx int64) *GenesisAllocation {
@@ -76,7 +76,7 @@ func NewCoFounderAlloc(address string, spx int64) *GenesisAllocation {
 }
 
 // NewDevelopmentAlloc is a domain-specific shorthand for the Development Fund.
-// Allocation: 30% — 30,000,000 SPX ($1,800,000 at $0.06/SPX).
+// Allocation: 30% — 30,000,000 QTX ($1,800,000 at $0.06/SPX).
 // Distribution: Paid per completed module; the first 2,000 modules are targeted
 // for completion over approximately 2 years.
 // It calls NewGenesisAllocationSPX with the label "Development".
@@ -86,7 +86,7 @@ func NewDevelopmentAlloc(address string, spx int64) *GenesisAllocation {
 
 // NewContributorAlloc is a domain-specific shorthand for contributor accounts
 // (Legal, Advisors, Chief Security, Partners, Community Managers).
-// Allocation: 20% — 20,000,000 SPX ($1,200,000 at $0.06/SPX).
+// Allocation: 20% — 20,000,000 QTX ($1,200,000 at $0.06/SPX).
 // Distribution: Split based on individual roles; either vesting or
 // milestone-based schedules.
 // It calls NewGenesisAllocationSPX with the label "Contributors".
@@ -95,7 +95,7 @@ func NewContributorAlloc(address string, spx int64) *GenesisAllocation {
 }
 
 // NewFoundationAlloc is a domain-specific shorthand for the SPHINX Foundation.
-// Allocation: 20% — 20,000,000 SPX ($1,200,000 at $0.06/SPX).
+// Allocation: 20% — 20,000,000 QTX ($1,200,000 at $0.06/SPX).
 // Distribution: Supports ecosystem growth, ongoing development, and long-term sustainability.
 // It calls NewGenesisAllocationSPX with the label "Foundation".
 func NewFoundationAlloc(address string, spx int64) *GenesisAllocation {
@@ -103,7 +103,7 @@ func NewFoundationAlloc(address string, spx int64) *GenesisAllocation {
 }
 
 // NewCampaignAlloc is a domain-specific shorthand for campaigns and outreach.
-// Allocation: 8% — 8,000,000 SPX ($480,000 at $0.06/SPX).
+// Allocation: 8% — 8,000,000 QTX ($480,000 at $0.06/SPX).
 // Distribution: Used for outreach, strategic partnerships, and awareness campaigns.
 // It calls NewGenesisAllocationSPX with the label "Campaigns".
 func NewCampaignAlloc(address string, spx int64) *GenesisAllocation {
@@ -111,7 +111,7 @@ func NewCampaignAlloc(address string, spx int64) *GenesisAllocation {
 }
 
 // NewAirdropAlloc is a domain-specific shorthand for community airdrop pools.
-// Allocation: 5% — 5,000,000 SPX ($300,000 at $0.06/SPX).
+// Allocation: 5% — 5,000,000 QTX ($300,000 at $0.06/SPX).
 // Distribution: To incentivize user engagement and adoption.
 // It calls NewGenesisAllocationSPX with the label "Airdrops".
 func NewAirdropAlloc(address string, spx int64) *GenesisAllocation {
@@ -128,12 +128,12 @@ func NewAirdropAlloc(address string, spx int64) *GenesisAllocation {
 // order would produce a different allocation Merkle root and therefore a
 // different genesis hash, forking the network.
 //
-// Total genesis supply  :  100,000,000 SPX  (10^8 SPX = 10^26 nSPX)
+// Total genesis supply  :  100,000,000 QTX  (10^8 QTX = 10^26 nQTX)
 // USD value at $0.06/SPX:  $6,000,000        (fully allocated)
 //
 // Distribution:
 //
-//	Category                              %     SPX           USD
+//	Category                              %     QTX           USD
 //	──────────────────────────────────────────────────────────────────
 //	Founder                              10%   10,000,000    $600,000
 //	Co-founder                            7%    7,000,000    $420,000
@@ -152,38 +152,38 @@ func NewAirdropAlloc(address string, spx int64) *GenesisAllocation {
 func DefaultGenesisAllocations() []*GenesisAllocation {
 	return []*GenesisAllocation{
 		// ── Founder (10%) ─────────────────────────────────────────────────
-		// 10,000,000 SPX · $600,000 at $0.06/SPX.
+		// 10,000,000 QTX · $600,000 at $0.06/SPX.
 		// 3-year vesting, quarterly unlocks. Includes planned charity allocation.
 		NewFounderAlloc("1000000000000000000000000000000000000001", 10_000_000),
 
 		// ── Co-founder (7%) ───────────────────────────────────────────────
-		// 7,000,000 SPX · $420,000 at $0.06/SPX.
+		// 7,000,000 QTX · $420,000 at $0.06/SPX.
 		// 3-year vesting, quarterly unlocks. Includes planned charity allocation.
 		NewCoFounderAlloc("2000000000000000000000000000000000000001", 7_000_000),
 
 		// ── Development Fund (30%) ────────────────────────────────────────
-		// 30,000,000 SPX · $1,800,000 at $0.06/SPX.
+		// 30,000,000 QTX · $1,800,000 at $0.06/SPX.
 		// Paid per completed module. First 2,000 modules targeted over ~2 years.
 		NewDevelopmentAlloc("3000000000000000000000000000000000000001", 30_000_000),
 
 		// ── Contributors (20%) ────────────────────────────────────────────
-		// 20,000,000 SPX · $1,200,000 at $0.06/SPX.
+		// 20,000,000 QTX · $1,200,000 at $0.06/SPX.
 		// Covers Legal, Advisors, Chief Security, Partners, Community Managers.
 		// Split based on roles; individual vesting or milestone-based schedules.
 		NewContributorAlloc("4000000000000000000000000000000000000001", 20_000_000),
 
 		// ── QUANTIX Foundation (20%) ───────────────────────────────────────
-		// 20,000,000 SPX · $1,200,000 at $0.06/SPX.
+		// 20,000,000 QTX · $1,200,000 at $0.06/SPX.
 		// Supports ecosystem growth, development initiatives, and sustainability.
 		NewFoundationAlloc("5000000000000000000000000000000000000001", 20_000_000),
 
 		// ── Campaigns (8%) ────────────────────────────────────────────────
-		// 8,000,000 SPX · $480,000 at $0.06/SPX.
+		// 8,000,000 QTX · $480,000 at $0.06/SPX.
 		// Used for outreach, strategic partnerships, and awareness campaigns.
 		NewCampaignAlloc("6000000000000000000000000000000000000001", 8_000_000),
 
 		// ── Community Airdrops (5%) ───────────────────────────────────────
-		// 5,000,000 SPX · $300,000 at $0.06/SPX.
+		// 5,000,000 QTX · $300,000 at $0.06/SPX.
 		// To incentivize user engagement and adoption.
 		NewAirdropAlloc("7000000000000000000000000000000000000001", 5_000_000),
 	}
@@ -211,7 +211,7 @@ func SummariseAllocations(allocs []*GenesisAllocation) *AllocationSummary {
 		summary.ByLabel[a.Label].Add(summary.ByLabel[a.Label], a.BalanceNSPX)
 	}
 
-	// Convert total to whole SPX (truncating any fractional part).
+	// Convert total to whole QTX (truncating any fractional part).
 	summary.TotalSPX.Div(summary.TotalNSPX, big.NewInt(1e18))
 	return summary
 }
@@ -222,7 +222,7 @@ func LogAllocationSummary(allocs []*GenesisAllocation) {
 	s := SummariseAllocations(allocs)
 	logger.Info("=== GENESIS ALLOCATION SUMMARY ===")
 	logger.Info("Total accounts : %d", s.Count)
-	logger.Info("Total supply   : %s SPX  (%s nSPX)", s.TotalSPX.String(), s.TotalNSPX.String())
+	logger.Info("Total supply   : %s QTX  (%s nQTX)", s.TotalSPX.String(), s.TotalNSPX.String())
 	logger.Info("Distribution by label:")
 	for label, amountNSPX := range s.ByLabel {
 		amountSPX := new(big.Int).Div(amountNSPX, big.NewInt(1e18))
@@ -232,7 +232,7 @@ func LogAllocationSummary(allocs []*GenesisAllocation) {
 		)
 		pct.Mul(pct, big.NewFloat(100))
 		pctF, _ := pct.Float64()
-		logger.Info("  %-20s %15s SPX  (%.2f%%)", label, amountSPX.String(), pctF)
+		logger.Info("  %-20s %15s QTX  (%.2f%%)", label, amountSPX.String(), pctF)
 	}
 	logger.Info("==================================")
 }
@@ -337,12 +337,12 @@ func (s *AllocationSet) Get(address string) (*GenesisAllocation, bool) {
 }
 
 // TotalSupplyNSPX returns the total genesis supply across all allocations,
-// expressed in nSPX.
+// expressed in nQTX.
 func (s *AllocationSet) TotalSupplyNSPX() *big.Int {
 	return new(big.Int).Set(s.total)
 }
 
-// TotalSupplySPX returns the total genesis supply in whole SPX (truncated).
+// TotalSupplySPX returns the total genesis supply in whole QTX (truncated).
 func (s *AllocationSet) TotalSupplySPX() *big.Int {
 	return new(big.Int).Div(s.total, big.NewInt(1e18))
 }

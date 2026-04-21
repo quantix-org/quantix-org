@@ -136,7 +136,7 @@ type Note struct {
 	Timestamp int64   `json:"timestamp"`
 	MAC       string  `json:"mac"`
 	Output    *Output `json:"output"`
-	// AmountNSPX holds the exact nSPX amount when precision beyond float64 is needed.
+	// AmountNSPX holds the exact nQTX amount when precision beyond float64 is needed.
 	// If set, ToTxs uses this instead of converting Fee.
 	AmountNSPX *big.Int `json:"amount_nspx,omitempty"`
 	ReturnData []byte   `json:"return_data,omitempty"` // Add OP_RETURN data field

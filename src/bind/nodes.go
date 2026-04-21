@@ -172,10 +172,10 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 		)
 
 		// Add self as validator
-		stakeSPX := new(big.Int).Div(minStakeAmount, big.NewInt(1e18)).Uint64()
+		stakeQTX := new(big.Int).Div(minStakeAmount, big.NewInt(1e18)).Uint64()
 		validatorSet := consensusEngine.GetValidatorSet()
 		if validatorSet != nil {
-			validatorSet.AddValidator(nodeConfig.Name, stakeSPX)
+			validatorSet.AddValidator(nodeConfig.Name, stakeQTX)
 		}
 
 		// Start consensus

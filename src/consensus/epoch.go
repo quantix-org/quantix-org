@@ -123,13 +123,13 @@ func (c *Consensus) processEpochAttestations(epoch uint64) {
 	for blockHash, votedStake := range blockVotes {
 		// If block has sufficient stake votes, it becomes justified
 		if votedStake.Cmp(required) >= 0 {
-			// Convert to SPX for readable logging
-			votedSPX := new(big.Float).Quo(
+			// Convert to QTX for readable logging
+			votedQTX := new(big.Float).Quo(
 				new(big.Float).SetInt(votedStake),
-				new(big.Float).SetFloat64(denom.SPX))
+				new(big.Float).SetFloat64(denom.QTX))
 
-			logger.Info("🎯 Epoch %d justified for block %s with %v SPX stake",
-				epoch, blockHash, votedSPX)
+			logger.Info("🎯 Epoch %d justified for block %s with %v QTX stake",
+				epoch, blockHash, votedQTX)
 
 			// Check if we can finalize the previous epoch
 			// In Casper FFG, when epoch N is justified and epoch N-1 was justified,
@@ -156,7 +156,7 @@ func (vs *ValidatorSet) ProcessEpochTransition(epoch uint64) {
 	for _, v := range vs.validators {
 		// Check if this validator is scheduled to activate in this epoch
 		if v.ActivationEpoch == epoch {
-			logger.Info("✨ Validator %s activated at epoch %d with %v SPX",
+			logger.Info("✨ Validator %s activated at epoch %d with %v QTX",
 				v.ID, epoch, v.GetStakeInSPX())
 			// Note: Activation status is tracked elsewhere - this just logs
 		}
@@ -180,7 +180,7 @@ func (vs *ValidatorSet) GetEpochStakeDistribution(epoch uint64) map[string]float
 	// Get active validators for this epoch
 	active := vs.GetActiveValidators(epoch)
 
-	// Populate distribution map with each validator's stake in SPX
+	// Populate distribution map with each validator's stake in QTX
 	for _, v := range active {
 		distribution[v.ID] = v.GetStakeInSPX()
 	}

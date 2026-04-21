@@ -20,14 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// go/src/spxhash/test_hash.go
+// go/src/qtxhash/test_hash.go
 package main
 
 import (
 	"fmt"
 	"log"
 
-	spxhash "github.com/quantix-org/quantix-org/src/spxhash/hash"
+	qtxhash "github.com/quantix-org/quantix-org/src/qtxhash/hash"
 )
 
 func main() {
@@ -43,7 +43,7 @@ func main() {
 		fmt.Printf("\nMessage %d: %s\n", i+1, data)
 
 		// Create a new QuantixHash instance for each message
-		quantix := spxhash.NewQuantixHash(256, []byte{})
+		quantix := qtxhash.NewQtxHash(256, []byte{})
 
 		// Write data to the QuantixHash instance
 		n, err := quantix.Write(data)

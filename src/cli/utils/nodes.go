@@ -306,8 +306,8 @@ func StartNode(
 	}
 
 	if vs := cons.GetValidatorSet(); vs != nil {
-		minSPX := new(big.Int).Div(minStakeAmount, big.NewInt(1e18)).Uint64()
-		if err := vs.AddValidator(currentNodeID, minSPX); err != nil {
+		minQTX := new(big.Int).Div(minStakeAmount, big.NewInt(1e18)).Uint64()
+		if err := vs.AddValidator(currentNodeID, minQTX); err != nil {
 			logger.Warn("Failed to add self validator: %v", err)
 		} else {
 			logger.Info("✅ Self validator registered")
@@ -360,7 +360,7 @@ func StartNode(
 		}
 		senderNonces[note.From]++
 		genesisTransactions = append(genesisTransactions, tx)
-		logger.Info("✅ Created genesis distribution: %s -> %s (%s SPX)",
+		logger.Info("✅ Created genesis distribution: %s -> %s (%s QTX)",
 			core.GenesisVaultAddress, alloc.Address, alloc.Label)
 	}
 	logger.Info("Total genesis transactions created: %d", len(genesisTransactions))
@@ -446,15 +446,15 @@ func StartNode(
 	// ========== CRITICAL FIX: Cross-register ALL validators ==========
 	logger.Info("=== CROSS-REGISTERING ALL VALIDATORS ===")
 	if vs := cons.GetValidatorSet(); vs != nil {
-		minSPX := new(big.Int).Div(minStakeAmount, big.NewInt(1e18)).Uint64()
+		minQTX := new(big.Int).Div(minStakeAmount, big.NewInt(1e18)).Uint64()
 		for _, vid := range validatorIDs {
 			if vid == currentNodeID {
 				continue
 			}
-			if err := vs.AddValidator(vid, minSPX); err != nil {
+			if err := vs.AddValidator(vid, minQTX); err != nil {
 				logger.Warn("Failed to add validator %s: %v", vid, err)
 			} else {
-				logger.Info("✅ Registered validator %s with %d SPX stake", vid, minSPX)
+				logger.Info("✅ Registered validator %s with %d QTX stake", vid, minQTX)
 			}
 		}
 	}

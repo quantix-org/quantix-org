@@ -39,12 +39,12 @@ type ValidatorEconomics struct {
 
 // GetDefaultValidatorEconomics returns default validator economics
 func GetDefaultValidatorEconomics() *ValidatorEconomics {
-	// Minimum self delegation: 32 SPX (same as min stake)
+	// Minimum self delegation: 32 QTX (same as min stake)
 	minSelfDelegation := new(big.Int).Mul(big.NewInt(32), new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 
 	return &ValidatorEconomics{
 		CommissionRate:    0.05,                // 5% commission
-		MinSelfDelegation: minSelfDelegation,   // 32 SPX minimum
+		MinSelfDelegation: minSelfDelegation,   // 32 QTX minimum
 		MaxValidators:     100,                 // Maximum 100 validators
 		UnbondingPeriod:   14 * 24 * time.Hour, // 14 days unbonding
 		SlashFraction:     0.01,                // 1% slashing for downtime

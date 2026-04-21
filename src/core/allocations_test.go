@@ -60,7 +60,7 @@ func TestNewGenesisAllocationSPX_Conversion(t *testing.T) {
 	for _, tc := range cases {
 		a := NewGenesisAllocationSPX("1000000000000000000000000000000000000001", tc.spx, "T")
 		if a.BalanceNSPX.String() != tc.wantNSPX {
-			t.Errorf("NewGenesisAllocationSPX(%d): want %s nSPX, got %s",
+			t.Errorf("NewGenesisAllocationSPX(%d): want %s nQTX, got %s",
 				tc.spx, tc.wantNSPX, a.BalanceNSPX.String())
 		}
 	}
@@ -111,10 +111,10 @@ func TestDefaultGenesisAllocations_TotalSupply(t *testing.T) {
 		total.Add(total, a.BalanceNSPX)
 	}
 
-	// 100,000,000 SPX × 10^18 nSPX/SPX
+	// 100,000,000 QTX × 10^18 nQTX/SPX
 	wantNSPX := new(big.Int).Mul(big.NewInt(100_000_000), big.NewInt(1e18))
 	if total.Cmp(wantNSPX) != 0 {
-		t.Errorf("total supply: want %s nSPX, got %s nSPX", wantNSPX.String(), total.String())
+		t.Errorf("total supply: want %s nQTX, got %s nQTX", wantNSPX.String(), total.String())
 	}
 }
 
@@ -150,7 +150,7 @@ func TestDefaultGenesisAllocations_NoDuplicateAddresses(t *testing.T) {
 }
 
 // TestDefaultGenesisAllocations_CategoryTotals verifies each category carries
-// exactly the SPX amount specified in the tokenomics table.
+// exactly the QTX amount specified in the tokenomics table.
 func TestDefaultGenesisAllocations_CategoryTotals(t *testing.T) {
 	allocs := DefaultGenesisAllocations()
 	s := SummariseAllocations(allocs)
@@ -180,7 +180,7 @@ func TestDefaultGenesisAllocations_CategoryTotals(t *testing.T) {
 		}
 		want := nspx(tc.wantSPX)
 		if got.Cmp(want) != 0 {
-			t.Errorf("ByLabel[%q]: want %s nSPX, got %s", tc.label, want.String(), got.String())
+			t.Errorf("ByLabel[%q]: want %s nQTX, got %s", tc.label, want.String(), got.String())
 		}
 	}
 }
@@ -458,7 +458,7 @@ func TestAllocationSet_TotalSupplyMatchesDefaultAllocations(t *testing.T) {
 		t.Fatalf("NewAllocationSet: %v", err)
 	}
 
-	// Total genesis supply: 100,000,000 SPX
+	// Total genesis supply: 100,000,000 QTX
 	want := new(big.Int).Mul(big.NewInt(100_000_000), big.NewInt(1e18))
 	if s.TotalSupplyNSPX().Cmp(want) != 0 {
 		t.Errorf("TotalSupplyNSPX mismatch: want %s, got %s",

@@ -255,17 +255,17 @@ func runBlockProductionLoop(
 						if vs != nil {
 							validators := cons.GetValidators()
 							for _, vid := range validators {
-								stakeNSPX := bc.GetValidatorStake(vid)
-								if stakeNSPX != nil && stakeNSPX.Cmp(big.NewInt(0)) > 0 {
-									stakeSPX := new(big.Int).Div(stakeNSPX, big.NewInt(denom.SPX))
-									if err := vs.UpdateStake(vid, uint64(stakeSPX.Int64())); err != nil {
+								stakeNQTX := bc.GetValidatorStake(vid)
+								if stakeNQTX != nil && stakeNQTX.Cmp(big.NewInt(0)) > 0 {
+									stakeQTX := new(big.Int).Div(stakeNQTX, big.NewInt(denom.QTX))
+									if err := vs.UpdateStake(vid, uint64(stakeQTX.Int64())); err != nil {
 										logger.Warn("[%s] Failed to update validator %s stake: %v", nodeID, vid, err)
 									} else {
-										logger.Info("[%s] ✅ Updated validator %s stake to %d SPX for Phase 2",
-											nodeID, vid, stakeSPX)
+										logger.Info("[%s] ✅ Updated validator %s stake to %d QTX for Phase 2",
+											nodeID, vid, stakeQTX)
 									}
 								} else {
-									logger.Warn("[%s] Validator %s has zero stake, using minimum %d SPX",
+									logger.Warn("[%s] Validator %s has zero stake, using minimum %d QTX",
 										nodeID, vid, vs.GetMinStakeSPX())
 									// Set minimum stake if zero
 									vs.UpdateStake(vid, vs.GetMinStakeSPX())

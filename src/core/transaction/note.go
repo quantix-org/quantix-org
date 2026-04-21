@@ -105,7 +105,7 @@ func (tx *Transaction) GetFormattedTimestamps() (localTime, utcTime string) {
 // ToTxs converts the current Note instance into a Transaction instance.
 func (n *Note) ToTxs(nonce uint64, gasLimit, gasPrice *big.Int) *Transaction {
 	// Use AmountNSPX if provided (exact big.Int), otherwise fall back to Fee (float64).
-	// AmountNSPX must be used for genesis distribution where amounts are ~10^25 nSPX
+	// AmountNSPX must be used for genesis distribution where amounts are ~10^25 nQTX
 	// and cannot be represented precisely as float64.
 	var amount *big.Int
 	if n.AmountNSPX != nil && n.AmountNSPX.Sign() > 0 {

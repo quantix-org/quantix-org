@@ -46,7 +46,7 @@ import (
 //
 // This file implements a hash-based commitment scheme for SPHINCS+ signatures.
 // Below is a comparison with a Pedersen commitment to show where each Pedersen
-// step maps to in this design, and why we use SpxHash instead.
+// step maps to in this design, and why we use QtxHash instead.
 //
 // PEDERSEN COMMITMENT STEPS (formal definition):
 //
@@ -126,7 +126,7 @@ import (
 //      is only valuable if you need ZK range proofs or arithmetic circuits over
 //      the committed value. We do not — Charlie only needs binding verification,
 //      not arithmetic proofs over sigBytes.
-//   4. SpxHash is already present throughout this protocol. Using it for the
+//   4. QtxHash is already present throughout this protocol. Using it for the
 //      commitment is consistent, efficient, and post-quantum secure.
 //
 // WHERE PEDERSEN WOULD BE THE RIGHT CHOICE:
@@ -227,7 +227,7 @@ func NewSTHINCSManager(db *leveldb.DB, keyManager *key.KeyManager, parameters *p
 // =============================================================================
 
 // ComputeSignatureHash computes the hash of signature bytes for content replay detection.
-// This uses SpxHash (SHAKE-256) to create a 32-byte fingerprint of the signature.
+// This uses QtxHash (SHAKE-256) to create a 32-byte fingerprint of the signature.
 // The hash is used as a content-based identifier to detect replay attacks even
 // when timestamp and nonce are modified.
 //
@@ -347,7 +347,7 @@ func (sm *STHINCSManager) StoreSignatureHash(sigBytes []byte) error {
 	defer sm.mu.Unlock()
 
 	// Hash the signature to create a compact, unique identifier (32 bytes)
-	// Using SpxHash (SHAKE-256) gives us post-quantum collision resistance
+	// Using QtxHash (SHAKE-256) gives us post-quantum collision resistance
 	// regardless of the original signature size (7-35 KB → 32 bytes)
 	sigHash := common.QuantixHash(sigBytes)
 
@@ -880,7 +880,7 @@ func (sm *STHINCSManager) VerifySignature(
 	if sm.parameters == nil || sm.parameters.Params == nil {
 		return false
 	}
-	// c must be exactly 32 bytes — our SpxHash output size.
+	// c must be exactly 32 bytes — our QtxHash output size.
 	// Pedersen: c is a curve point of fixed encoded size; same principle.
 	if len(commitment) != 32 {
 		return false

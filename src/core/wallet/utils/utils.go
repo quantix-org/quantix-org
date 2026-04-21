@@ -63,7 +63,7 @@ func GenerateMacKey(combinedParts []byte, hashedPasskey []byte) ([]byte, []byte,
 	// Combine the provided parts and the hashed passkey to form the key material
 	KeyMaterial := append(combinedParts, hashedPasskey...)
 
-	// Generate the MacKey (root hash) from the key material using the SpxHash function
+	// Generate the MacKey (root hash) from the key material using the QtxHash function
 	macKey := common.QuantixHash(KeyMaterial)
 
 	// Ensure that the MacKey is 256 bits (32 bytes)

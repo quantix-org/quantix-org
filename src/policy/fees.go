@@ -27,7 +27,7 @@ import (
 	"math/big"
 )
 
-// CalculateTxFee calculates transaction fee in nSPX
+// CalculateTxFee calculates transaction fee in nQTX
 // Formula: TxFee_nSPX = B_w * (S_tx * R) + B_cmp * Ops_tx + K_tx
 // Where:
 //
@@ -52,13 +52,13 @@ func (p *PolicyParameters) CalculateTxFee(txSizeBytes uint64, ops uint64) *big.I
 	return totalFee
 }
 
-// CalculateTxFeeInSPX calculates transaction fee in SPX
+// CalculateTxFeeInSPX calculates transaction fee in QTX
 func (p *PolicyParameters) CalculateTxFeeInSPX(txSizeBytes uint64, ops uint64) float64 {
 	feeNSPX := p.CalculateTxFee(txSizeBytes, ops)
 	return p.ConvertNSPXToSPX(feeNSPX)
 }
 
-// CalculateSigFee calculates metadata anchoring fee (signature fee) in nSPX
+// CalculateSigFee calculates metadata anchoring fee (signature fee) in nQTX
 // Formula: SigFee_nSPX = B_st * (M * R) + α * H + β
 // Where:
 //
@@ -84,13 +84,13 @@ func (p *PolicyParameters) CalculateSigFee(metadataSizeBytes uint64, numHashes u
 	return totalFee
 }
 
-// CalculateSigFeeInSPX calculates metadata anchoring fee in SPX
+// CalculateSigFeeInSPX calculates metadata anchoring fee in QTX
 func (p *PolicyParameters) CalculateSigFeeInSPX(metadataSizeBytes uint64, numHashes uint64) float64 {
 	feeNSPX := p.CalculateSigFee(metadataSizeBytes, numHashes)
 	return p.ConvertNSPXToSPX(feeNSPX)
 }
 
-// CalculateContractFee calculates smart contract deployment/execution fee in nSPX
+// CalculateContractFee calculates smart contract deployment/execution fee in nQTX
 // Formula: ContractFee_nSPX = B_cmp * C + B_st * S_contract
 // Where:
 //
@@ -111,31 +111,31 @@ func (p *PolicyParameters) CalculateContractFee(operationCount uint64, contractS
 	return totalFee
 }
 
-// CalculateContractFeeInSPX calculates smart contract fee in SPX
+// CalculateContractFeeInSPX calculates smart contract fee in QTX
 func (p *PolicyParameters) CalculateContractFeeInSPX(operationCount uint64, contractStorageBytes uint64) float64 {
 	feeNSPX := p.CalculateContractFee(operationCount, contractStorageBytes)
 	return p.ConvertNSPXToSPX(feeNSPX)
 }
 
-// CalculateIPFSFee calculates off-chain IPFS pinning fee in SPX
+// CalculateIPFSFee calculates off-chain IPFS pinning fee in QTX
 // Formula: IPFSFee_SPX = PinRate * (F / 1024^3) * d
 // Where:
 //
 //	F = raw data size in bytes
 //	d = months to pin
-//	PinRate = SPX/GB/month (0.01 SPX)
+//	PinRate = QTX/GB/month (0.01 QTX)
 func (p *PolicyParameters) CalculateIPFSFee(dataSizeBytes uint64, months uint64) float64 {
 	// Convert bytes to GB (1 GB = 1024^3 bytes)
 	gb := float64(dataSizeBytes) / math.Pow(1024, 3)
 
 	// IPFSFee_SPX = PinRate * GB * months
-	pinRateSPX := 0.01 // 0.01 SPX/GB/month
+	pinRateSPX := 0.01 // 0.01 QTX/GB/month
 	feeSPX := pinRateSPX * gb * float64(months)
 
 	return feeSPX
 }
 
-// CalculateIPFSFeeInNSPX calculates off-chain IPFS pinning fee in nSPX
+// CalculateIPFSFeeInNSPX calculates off-chain IPFS pinning fee in nQTX
 func (p *PolicyParameters) CalculateIPFSFeeInNSPX(dataSizeBytes uint64, months uint64) *big.Int {
 	feeSPX := p.CalculateIPFSFee(dataSizeBytes, months)
 	return p.ConvertSPXToNSPX(feeSPX)
@@ -151,17 +151,17 @@ func (p *PolicyParameters) CalculateTotalFee(onChainFeeNSPX *big.Int, ipfsFeeNSP
 	return totalFee
 }
 
-// CalculateTotalFeeInSPX calculates total fee in SPX
+// CalculateTotalFeeInSPX calculates total fee in QTX
 func (p *PolicyParameters) CalculateTotalFeeInSPX(onChainFeeNSPX *big.Int, ipfsFeeNSPX *big.Int) float64 {
 	totalFeeNSPX := p.CalculateTotalFee(onChainFeeNSPX, ipfsFeeNSPX)
 	return p.ConvertNSPXToSPX(totalFeeNSPX)
 }
 
-// ConvertNSPXToSPX converts nSPX to SPX
-// SPX = nSPX / 10^18
-// ConvertNSPXToSPX converts nSPX to SPX with high precision
+// ConvertNSPXToSPX converts nQTX to QTX
+// QTX = nQTX / 10^18
+// ConvertNSPXToSPX converts nQTX to QTX with high precision
 func (p *PolicyParameters) ConvertNSPXToSPX(nspx *big.Int) float64 {
-	// Create a new big.Float with the nSPX value
+	// Create a new big.Float with the nQTX value
 	nspxFloat := new(big.Float).SetPrec(200) // Use higher precision
 	nspxFloat.SetInt(nspx)
 
@@ -178,8 +178,8 @@ func (p *PolicyParameters) ConvertNSPXToSPX(nspx *big.Int) float64 {
 	return spx
 }
 
-// ConvertSPXToNSPX converts SPX to nSPX
-// nSPX = SPX * 10^18
+// ConvertSPXToNSPX converts QTX to nQTX
+// nQTX = QTX * 10^18
 func (p *PolicyParameters) ConvertSPXToNSPX(spx float64) *big.Int {
 	nspx := new(big.Float).SetFloat64(spx * 1e18)
 	result, _ := nspx.Int(nil)

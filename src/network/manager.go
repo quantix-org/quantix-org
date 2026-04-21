@@ -45,7 +45,7 @@ func (nm *NodeManager) GetChainInfo() map[string]interface{} {
 	return map[string]interface{}{
 		"chain_id":         7331,         // Unique chain identifier
 		"chain_name":       "Quantix",     // Human-readable chain name
-		"symbol":           "SPX",        // Currency symbol
+		"symbol":           "QTX",        // Currency symbol
 		"protocol_version": "1.0.0",      // Protocol version
 		"network_magic":    "0x53504858", // Network magic bytes ("SPHX" in hex)
 		"default_port":     32307,        // Default P2P port

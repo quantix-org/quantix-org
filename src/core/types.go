@@ -164,7 +164,7 @@ type GenesisState struct {
 	// ChainName is the human-readable network label shown in logs and wallets.
 	ChainName string `json:"chain_name"`
 
-	// Symbol is the native token ticker (e.g. "SPX").
+	// Symbol is the native token ticker (e.g. "QTX").
 	Symbol string `json:"symbol"`
 
 	// Timestamp is the Unix epoch second at which the genesis block was anchored.
@@ -195,7 +195,7 @@ type GenesisState struct {
 	Allocations []*GenesisAllocation `json:"allocations"`
 
 	// InitialValidators is the set of validators that are active from block 0.
-	// Each entry carries the validator ID, its stake (in nSPX), and a public key.
+	// Each entry carries the validator ID, its stake (in nQTX), and a public key.
 	InitialValidators []*GenesisValidator `json:"initial_validators"`
 }
 
@@ -212,8 +212,8 @@ type GenesisValidator struct {
 	// block rewards earned by this validator.
 	Address string `json:"address"`
 
-	// StakeNSPX is the initial stake expressed in nSPX (the smallest unit).
-	// Use NewGenesisValidatorStake() to create this value from whole SPX.
+	// StakeNSPX is the initial stake expressed in nQTX (the smallest unit).
+	// Use NewGenesisValidatorStake() to create this value from whole QTX.
 	StakeNSPX *big.Int `json:"stake_nspx"`
 
 	// PublicKey is the hex-encoded SPHINCS+ public key associated with this
@@ -229,10 +229,10 @@ type genesisAllocationEntry struct {
 	// Address is the hex-encoded 20-byte account address without a "0x" prefix.
 	Address string `json:"address"`
 
-	// BalanceNSPX is the initial balance expressed in nSPX (smallest unit).
+	// BalanceNSPX is the initial balance expressed in nQTX (smallest unit).
 	BalanceNSPX string `json:"balance_nspx"`
 
-	// BalanceSPX is the initial balance expressed in whole SPX (truncated).
+	// BalanceSPX is the initial balance expressed in whole QTX (truncated).
 	BalanceSPX string `json:"balance_spx"`
 
 	// Label is a human-readable tag (e.g. "Founders", "Reserve").
@@ -248,10 +248,10 @@ type genesisValidatorEntry struct {
 	// Address is the hex-encoded 20-byte reward address for this validator.
 	Address string `json:"address"`
 
-	// StakeNSPX is the initial stake expressed in nSPX.
+	// StakeNSPX is the initial stake expressed in nQTX.
 	StakeNSPX string `json:"stake_nspx"`
 
-	// StakeSPX is the initial stake expressed in whole SPX (truncated).
+	// StakeSPX is the initial stake expressed in whole QTX (truncated).
 	StakeSPX string `json:"stake_spx"`
 
 	// PublicKey is the hex-encoded SPHINCS+ public key (may be empty at genesis).
@@ -275,7 +275,7 @@ type genesisStateSnapshot struct {
 	Nonce              string `json:"nonce"`
 	TotalAllocations   int    `json:"total_allocations"`
 	TotalAllocatedNSPX string `json:"total_allocated_nspx"`
-	// TotalAllocatedSPX is the same total expressed in whole SPX for readability.
+	// TotalAllocatedSPX is the same total expressed in whole QTX for readability.
 	TotalAllocatedSPX string `json:"total_allocated_spx"`
 	TotalValidators   int    `json:"total_validators"`
 	// Allocations is the full ordered list of pre-funded accounts.
@@ -288,7 +288,7 @@ type genesisStateSnapshot struct {
 
 // GenesisAllocation represents a single account that is funded at genesis.
 // Each entry maps a hex-encoded 20-byte address to an initial balance expressed
-// in nSPX (the smallest SPX denomination: 1 SPX = 10^18 nSPX).
+// in nQTX (the smallest QTX denomination: 1 QTX = 10^18 nQTX).
 //
 // Allocations are stored in an ordered slice on GenesisState.Allocations.
 // The ordering is significant because it determines the allocation Merkle root
@@ -302,8 +302,8 @@ type GenesisAllocation struct {
 	// Example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
 	Address string `json:"address"`
 
-	// BalanceNSPX is the initial balance in nSPX (1 SPX = 10^18 nSPX).
-	// Use NewGenesisAllocationSPX() to specify the balance in whole SPX.
+	// BalanceNSPX is the initial balance in nQTX (1 QTX = 10^18 nQTX).
+	// Use NewGenesisAllocationSPX() to specify the balance in whole QTX.
 	BalanceNSPX *big.Int `json:"balance_nspx"`
 
 	// Label is a human-readable tag (e.g. "Founders", "Reserve") used only
@@ -315,16 +315,16 @@ type GenesisAllocation struct {
 // AllocationSummary provides a breakdown of the genesis token distribution
 // grouped by label. It is used for logging and the genesis_state.json audit file.
 type AllocationSummary struct {
-	// TotalNSPX is the sum of all allocation balances in nSPX.
+	// TotalNSPX is the sum of all allocation balances in nQTX.
 	TotalNSPX *big.Int `json:"total_nspx"`
 
-	// TotalSPX is TotalNSPX divided by 10^18 (whole SPX, truncated).
+	// TotalSPX is TotalNSPX divided by 10^18 (whole QTX, truncated).
 	TotalSPX *big.Int `json:"total_spx"`
 
 	// Count is the total number of allocation entries.
 	Count int `json:"count"`
 
-	// ByLabel maps each label to the aggregate balance (in nSPX) across all
+	// ByLabel maps each label to the aggregate balance (in nQTX) across all
 	// allocations sharing that label.
 	ByLabel map[string]*big.Int `json:"by_label"`
 }
@@ -334,7 +334,7 @@ type AllocationSummary struct {
 // for O(1) balance queries during state initialisation.
 type AllocationSet struct {
 	index map[string]*GenesisAllocation
-	total *big.Int // cached total supply in nSPX
+	total *big.Int // cached total supply in nQTX
 }
 
 // ChainPhase identifies which operational phase a network is in.
@@ -349,7 +349,7 @@ type ChainCheckpoint struct {
 	TipHeight       uint64     `json:"tip_height"`        // last devnet block height
 	TipHash         string     `json:"tip_hash"`          // last devnet block hash
 	VaultBalance    string     `json:"vault_balance"`     // should be "0"
-	TotalSupply     string     `json:"total_supply"`      // circulating supply in nSPX
+	TotalSupply     string     `json:"total_supply"`      // circulating supply in nQTX
 	Timestamp       string     `json:"timestamp"`         // RFC3339 when checkpoint was taken
-	DistributedNSPX string     `json:"distributed_n_spx"` // total nSPX distributed
+	DistributedNSPX string     `json:"distributed_n_spx"` // total nQTX distributed
 }

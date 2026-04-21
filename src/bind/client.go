@@ -181,7 +181,7 @@ func (l *noopLogger) Errorf(format string, args ...interface{}) {}
 // SendTransaction sends a transaction via HTTP JSON-RPC
 func SendTransaction(opts SendTxOptions) error {
 	logger := getLogger()
-	logger.Infof("Sending transaction from %s to %s amount %s SPX", opts.From, opts.To, opts.Amount)
+	logger.Infof("Sending transaction from %s to %s amount %s QTX", opts.From, opts.To, opts.Amount)
 
 	amountBig, ok := new(big.Int).SetString(opts.Amount, 10)
 	if !ok {
@@ -251,7 +251,7 @@ func GetBalance(opts GetBalanceOptions) error {
 		new(big.Float).SetFloat64(1e18),
 	)
 
-	logger.Infof("Balance for %s: %.6f SPX", opts.Address, spxBalance)
+	logger.Infof("Balance for %s: %.6f QTX", opts.Address, spxBalance)
 	return nil
 }
 

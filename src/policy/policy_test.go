@@ -18,17 +18,17 @@ func TestCalculateTxFee(t *testing.T) {
 		t.Errorf("Expected %v, got %v", expected, fee)
 	}
 
-	// Test conversion to SPX
-	// 5,061,441,000 nSPX = 5.061441e-9 SPX
+	// Test conversion to QTX
+	// 5,061,441,000 nQTX = 5.061441e-9 QTX
 	feeSPX := p.CalculateTxFeeInSPX(txSize, ops)
-	expectedSPX := 5.061441e-9 // 0.000000005061441 SPX
+	expectedSPX := 5.061441e-9 // 0.000000005061441 QTX
 
-	t.Logf("Fee in SPX: %.15f", feeSPX)
-	t.Logf("Expected SPX: %.15f", expectedSPX)
+	t.Logf("Fee in QTX: %.15f", feeSPX)
+	t.Logf("Expected QTX: %.15f", expectedSPX)
 
 	// Allow small floating point error
 	if feeSPX < expectedSPX-1e-15 || feeSPX > expectedSPX+1e-15 {
-		t.Errorf("Expected SPX %e, got %e", expectedSPX, feeSPX)
+		t.Errorf("Expected QTX %e, got %e", expectedSPX, feeSPX)
 	}
 }
 
@@ -43,7 +43,7 @@ func TestCalculateSigFee(t *testing.T) {
 	// Expected: B_st * (M * R) + α * H + β
 	// = 200000 * (512 * 3) + 10000 * 10 + 200000
 	// = 200000 * 1536 + 100000 + 200000
-	// = 307,200,000 + 300,000 = 307,500,000 nSPX
+	// = 307,200,000 + 300,000 = 307,500,000 nQTX
 	expected := big.NewInt(307500000)
 
 	if fee.Cmp(expected) != 0 {
@@ -61,7 +61,7 @@ func TestCalculateContractFee(t *testing.T) {
 
 	// Expected: B_cmp * C + B_st * S_contract
 	// = 5,000,000 * 5000 + 200,000 * 1024
-	// = 25,000,000,000 + 204,800,000 = 25,204,800,000 nSPX
+	// = 25,000,000,000 + 204,800,000 = 25,204,800,000 nQTX
 	expected := big.NewInt(25204800000)
 
 	if fee.Cmp(expected) != 0 {
@@ -77,17 +77,17 @@ func TestCalculateIPFSFee(t *testing.T) {
 	months := uint64(1)
 
 	feeSPX := p.CalculateIPFSFee(dataSize, months)
-	expectedSPX := 0.01 // 0.01 SPX
+	expectedSPX := 0.01 // 0.01 QTX
 
 	if feeSPX != expectedSPX {
-		t.Errorf("Expected SPX %f, got %f", expectedSPX, feeSPX)
+		t.Errorf("Expected QTX %f, got %f", expectedSPX, feeSPX)
 	}
 
 	feeNSPX := p.CalculateIPFSFeeInNSPX(dataSize, months)
 	expectedNSPX := big.NewInt(10000000000000000) // 0.01 * 1e18 = 1e16
 
 	if feeNSPX.Cmp(expectedNSPX) != 0 {
-		t.Errorf("Expected nSPX %v, got %v", expectedNSPX, feeNSPX)
+		t.Errorf("Expected nQTX %v, got %v", expectedNSPX, feeNSPX)
 	}
 }
 
@@ -119,29 +119,29 @@ func TestCalculateAnnualInflation(t *testing.T) {
 func TestDistributeFees(t *testing.T) {
 	p := NewPolicyParameters()
 
-	totalFees := big.NewInt(1000000000000000000) // 1 SPX in nSPX
+	totalFees := big.NewInt(1000000000000000000) // 1 QTX in nQTX
 
 	distribution := p.DistributeFees(totalFees)
 
-	// Validators: 60% = 0.6 SPX = 6e17 nSPX
+	// Validators: 60% = 0.6 QTX = 6e17 nQTX
 	expectedValidators := big.NewInt(600000000000000000)
 	if distribution.Validators.Cmp(expectedValidators) != 0 {
 		t.Errorf("Validators expected %v, got %v", expectedValidators, distribution.Validators)
 	}
 
-	// Stakers: 25% = 0.25 SPX = 2.5e17 nSPX
+	// Stakers: 25% = 0.25 QTX = 2.5e17 nQTX
 	expectedStakers := big.NewInt(250000000000000000)
 	if distribution.Stakers.Cmp(expectedStakers) != 0 {
 		t.Errorf("Stakers expected %v, got %v", expectedStakers, distribution.Stakers)
 	}
 
-	// Treasury: 10% = 0.1 SPX = 1e17 nSPX
+	// Treasury: 10% = 0.1 QTX = 1e17 nQTX
 	expectedTreasury := big.NewInt(100000000000000000)
 	if distribution.Treasury.Cmp(expectedTreasury) != 0 {
 		t.Errorf("Treasury expected %v, got %v", expectedTreasury, distribution.Treasury)
 	}
 
-	// Burned: 5% = 0.05 SPX = 5e16 nSPX
+	// Burned: 5% = 0.05 QTX = 5e16 nQTX
 	expectedBurned := big.NewInt(50000000000000000)
 	if distribution.Burned.Cmp(expectedBurned) != 0 {
 		t.Errorf("Burned expected %v, got %v", expectedBurned, distribution.Burned)
@@ -183,14 +183,14 @@ func TestDynamicBaseRate(t *testing.T) {
 func TestConversion(t *testing.T) {
 	p := NewPolicyParameters()
 
-	// Test nSPX to SPX
-	nspx := big.NewInt(1000000000000000000) // 1 SPX
+	// Test nQTX to QTX
+	nspx := big.NewInt(1000000000000000000) // 1 QTX
 	spx := p.ConvertNSPXToSPX(nspx)
 	if spx != 1.0 {
-		t.Errorf("Expected 1.0 SPX, got %f", spx)
+		t.Errorf("Expected 1.0 QTX, got %f", spx)
 	}
 
-	// Test SPX to nSPX
+	// Test QTX to nQTX
 	spxValue := 1.0
 	nspxValue := p.ConvertSPXToNSPX(spxValue)
 	expectedNSPX := big.NewInt(1000000000000000000)
@@ -199,10 +199,10 @@ func TestConversion(t *testing.T) {
 	}
 
 	// Test small value
-	smallNSPX := big.NewInt(1000000000000000) // 0.001 SPX
+	smallNSPX := big.NewInt(1000000000000000) // 0.001 QTX
 	smallSPX := p.ConvertNSPXToSPX(smallNSPX)
 	if smallSPX != 0.001 {
-		t.Errorf("Expected 0.001 SPX, got %f", smallSPX)
+		t.Errorf("Expected 0.001 QTX, got %f", smallSPX)
 	}
 }
 
@@ -232,16 +232,16 @@ func TestCalculateAPY(t *testing.T) {
 	p := NewPolicyParameters()
 
 	totalStake := new(big.Int)
-	totalStake.SetString("700000000000000000000", 10) // 700 SPX (70% of 1000 SPX)
+	totalStake.SetString("700000000000000000000", 10) // 700 QTX (70% of 1000 QTX)
 	totalSupply := new(big.Int)
-	totalSupply.SetString("1000000000000000000000", 10) // 1000 SPX
+	totalSupply.SetString("1000000000000000000000", 10) // 1000 QTX
 	year := uint64(1)
 	currentStakeRatio := 0.7
 
 	apy := p.CalculateAPY(totalStake, totalSupply, year, currentStakeRatio)
 
-	// Annual minting: 1000 * 0.05 = 50 SPX
-	// Staking rewards: 50 * 0.8 = 40 SPX
+	// Annual minting: 1000 * 0.05 = 50 QTX
+	// Staking rewards: 50 * 0.8 = 40 QTX
 	// APY: 40 / 700 = 0.05714 (5.714%)
 	expectedAPY := 0.05714285714285714
 

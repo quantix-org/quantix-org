@@ -102,7 +102,7 @@ func RunGUI() {
 
 	// Create toolbar using component utilities
 	toolbar := func() fyne.CanvasObject {
-		title := CreateLargeHeader("🪶 Quantix Wallet", "Secure SPX Wallet")
+		title := CreateLargeHeader("🪶 Quantix Wallet", "Secure QTX Wallet")
 
 		networkStatus := container.NewHBox(
 			widget.NewLabel("🌐"),
@@ -115,7 +115,7 @@ func RunGUI() {
 
 		balanceLabel := container.NewHBox(
 			widget.NewLabel("💰"),
-			CreateStyledLabel("0 SPX", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			CreateStyledLabel("0 QTX", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		)
 		balanceBox := container.NewVBox(
 			CreateSubHeading("Balance"),
@@ -178,9 +178,9 @@ func RunGUI() {
 				time    string
 				status  string
 			}{
-				{"📥", "+10.5 SPX", "spx1abc...def", "2 hours ago", "Confirmed"},
-				{"📤", "-5.2 SPX", "spx1xyz...uvw", "1 day ago", "Confirmed"},
-				{"📥", "+3.7 SPX", "spx1mno...pqr", "3 days ago", "Confirmed"},
+				{"📥", "+10.5 QTX", "qtx1abc...def", "2 hours ago", "Confirmed"},
+				{"📤", "-5.2 QTX", "qtx1xyz...uvw", "1 day ago", "Confirmed"},
+				{"📥", "+3.7 QTX", "qtx1mno...pqr", "3 days ago", "Confirmed"},
 			}
 
 			transactionList := container.NewVBox()
@@ -203,12 +203,12 @@ func RunGUI() {
 			transactionsCard := CreateCard("📋 Recent Transactions", container.NewScroll(transactionList))
 
 			// Quick Actions Card using component utilities
-			sendBtn := CreateHoverButton("📤 Send SPX", func() {
+			sendBtn := CreateHoverButton("📤 Send QTX", func() {
 				log.Println("Switching to Send tab")
 			})
 			sendBtn.Importance = widget.HighImportance
 
-			receiveBtn := CreateHoverButton("📥 Receive SPX", func() {
+			receiveBtn := CreateHoverButton("📥 Receive QTX", func() {
 				log.Println("Switching to Receive tab")
 			})
 			receiveBtn.Importance = widget.HighImportance
@@ -240,7 +240,7 @@ func RunGUI() {
 		// Send Tab using component utilities
 		sendTab := func() fyne.CanvasObject {
 			addressEntry := widget.NewEntry()
-			addressEntry.SetPlaceHolder("Enter recipient address (spx1...)")
+			addressEntry.SetPlaceHolder("Enter recipient address (qtx1...)")
 
 			amountEntry := widget.NewEntry()
 			amountEntry.SetPlaceHolder("0.0")
@@ -256,24 +256,24 @@ func RunGUI() {
 					dialog.ShowInformation("❌ Error", "Please fill all required fields", window)
 					return
 				}
-				confirmMsg := fmt.Sprintf("Send %s SPX to:\n%s", amountEntry.Text, addressEntry.Text)
+				confirmMsg := fmt.Sprintf("Send %s QTX to:\n%s", amountEntry.Text, addressEntry.Text)
 				if memoEntry.Text != "" {
 					confirmMsg += fmt.Sprintf("\nMemo: %s", memoEntry.Text)
 				}
 				dialog.ShowConfirm("🔍 Confirm Transaction", confirmMsg, func(confirmed bool) {
 					if confirmed {
-						log.Printf("Sending %s SPX to %s", amountEntry.Text, addressEntry.Text)
+						log.Printf("Sending %s QTX to %s", amountEntry.Text, addressEntry.Text)
 						dialog.ShowInformation("✅ Success", "Transaction sent successfully!", window)
 					}
 				}, window)
 			})
 			sendBtn.Importance = widget.HighImportance
 
-			form := CreateFormSection("📤 Send SPX",
+			form := CreateFormSection("📤 Send QTX",
 				&widget.Form{
 					Items: []*widget.FormItem{
 						{Text: "📧 Recipient Address", Widget: addressEntry},
-						{Text: "💰 Amount (SPX)", Widget: amountEntry},
+						{Text: "💰 Amount (QTX)", Widget: amountEntry},
 						{Text: "📝 Memo", Widget: memoEntry},
 						{Text: "⛽ Transaction Fee", Widget: feeSelect},
 					},
@@ -293,7 +293,7 @@ func RunGUI() {
 			addressLabel.Alignment = fyne.TextAlignCenter
 
 			newAddrBtn := CreateActionButton("🆕 Generate New Address", func() {
-				newAddress := "spx1newaddressgeneratedhere1234567890abc"
+				newAddress := "qtx1newaddressgeneratedhere1234567890abc"
 				dialog.ShowInformation("🆕 New Address",
 					fmt.Sprintf("New address generated:\n\n%s", newAddress), window)
 			})
@@ -315,7 +315,7 @@ func RunGUI() {
 				container.NewCenter(copyBtn),
 			)
 
-			return CreateCard("📥 Receive SPX", content)
+			return CreateCard("📥 Receive QTX", content)
 		}
 
 		// Keys Tab using component utilities

@@ -30,22 +30,22 @@ import (
 
 // PolicyParameters defines all governance-controlled parameters
 type PolicyParameters struct {
-	// Fee parameters (in nSPX)
-	BaseFeePerByte    *big.Int `json:"base_fee_per_byte"`    // B_w = 20,000 nSPX/byte
-	StorageFeePerByte *big.Int `json:"storage_fee_per_byte"` // B_st = 200,000 nSPX/byte
-	ComputeFeePerOp   *big.Int `json:"compute_fee_per_op"`   // B_cmp = 5,000,000 nSPX/op
+	// Fee parameters (in nQTX)
+	BaseFeePerByte    *big.Int `json:"base_fee_per_byte"`    // B_w = 20,000 nQTX/byte
+	StorageFeePerByte *big.Int `json:"storage_fee_per_byte"` // B_st = 200,000 nQTX/byte
+	ComputeFeePerOp   *big.Int `json:"compute_fee_per_op"`   // B_cmp = 5,000,000 nQTX/op
 
 	// Consensus parameters
 	BlocksPerEpoch uint64        `json:"blocks_per_epoch"` // R = 3 blocks per epoch
 	BlockTime      time.Duration `json:"block_time"`       // BlockTime ≈ 12 seconds
 
 	// Storage parameters
-	HashFee        *big.Int `json:"hash_fee"`         // α = 10,000 nSPX/hash
-	BaseStorageFee *big.Int `json:"base_storage_fee"` // β = 200,000 nSPX
-	TransactionFee *big.Int `json:"transaction_fee"`  // K_tx = 1,000 nSPX
+	HashFee        *big.Int `json:"hash_fee"`         // α = 10,000 nQTX/hash
+	BaseStorageFee *big.Int `json:"base_storage_fee"` // β = 200,000 nQTX
+	TransactionFee *big.Int `json:"transaction_fee"`  // K_tx = 1,000 nQTX
 
 	// Storage pricing
-	PinRatePerGBMonth *big.Int `json:"pin_rate_per_gb_month"` // PinRate = 0.01 SPX/GB/month
+	PinRatePerGBMonth *big.Int `json:"pin_rate_per_gb_month"` // PinRate = 0.01 QTX/GB/month
 
 	// Inflation parameters
 	InitialInflationRate float64 `json:"initial_inflation_rate"` // Infl₀ = 0.05 (5% annual)

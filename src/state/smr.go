@@ -1082,11 +1082,11 @@ func (sm *StateMachine) applyStateTransitionOperation(op *Operation) error {
 	case "validator_add":
 		// Call the consensus validator set's AddValidator method
 		if sm.consensus != nil && sm.consensus.GetValidatorSet() != nil {
-			// Convert stake from nSPX to SPX for the AddValidator method
-			stakeSPX := new(big.Int).Div(op.StateTransition.StakeAmount, big.NewInt(denom.SPX))
+			// Convert stake from nQTX to QTX for the AddValidator method
+			stakeQTX := new(big.Int).Div(op.StateTransition.StakeAmount, big.NewInt(denom.QTX))
 			err := sm.consensus.GetValidatorSet().AddValidator(
 				op.StateTransition.ValidatorID,
-				stakeSPX.Uint64(),
+				stakeQTX.Uint64(),
 			)
 			if err != nil {
 				return fmt.Errorf("failed to add validator: %w", err)
