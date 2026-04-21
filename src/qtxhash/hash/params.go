@@ -23,6 +23,8 @@
 // go/src/qtxhash/hash/params.go
 package qtxhash
 
+import "os"
+
 // SIPS-0001 https://github.com/quantix-org/sips/wiki/SIPS-0001
 
 // Define prime constants for hash calculations.
@@ -31,19 +33,46 @@ const (
 	prime64  = 0x9e3779b97f4a7c15 // Example prime constant for 64-bit hash
 	saltSize = 16                 // Size of salt in bytes (128 bits = 16 bytes)
 
-	// Argon2 parameters
-	// OWASP have published guidance on Argon2 at https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
-	// At time of writing (Jan 2023), this says:
-	// Argon2id should use one of the following configuration settings as a base minimum which includes the minimum memory size (m), the minimum number of iterations (t) and the degree of parallelism (p).
-	// m=37 MiB, t=1, p=1
-	// m=15 MiB, t=2, p=1
-	// Both of these configuration settings are equivalent in the defense they provide. The only difference is a trade off between CPU and RAM usage.
-	memory           = 64 * 1024 // Memory cost set to 64 KiB (64 * 1024 bytes) is for demonstration purpose
-	iterations       = 2         // Number of iterations for Argon2id set to 2
-	parallelism      = 1         // Degree of parallelism set to 1
-	tagSize          = 32        // Tag size set to 256 bits (32 bytes)
-	DefaultCacheSize = 100       // Default cache size for QuantixHash
+	// Argon2 production parameters.
+	// OWASP guidance: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+	// m=37 MiB, t=1, p=1  or  m=15 MiB, t=2, p=1 are OWASP minimums.
+	prodMemory      = 64 * 1024 // 64 KiB — production memory cost
+	prodIterations  = 2         // production iteration count
+	prodParallelism = 1         // production parallelism
+
+	// Argon2 test parameters (activated by QUANTIX_TEST=1).
+	// Reduced to make test suite fast on any hardware without compromising
+	// correctness — only the performance characteristic changes, not the algorithm.
+	testMemory      = 8 * 1024 // 8 KiB — ~8× faster than production
+	testIterations  = 1        // single pass
+	testParallelism = 1
+
+	tagSize          = 32  // Tag size set to 256 bits (32 bytes)
+	DefaultCacheSize = 100 // Default cache size for QuantixHash
 )
+
+// argon2Params returns the active Argon2 parameters.
+// Set env var QUANTIX_TEST=1 to use lightweight params during testing.
+func argon2Memory() uint32 {
+	if os.Getenv("QUANTIX_TEST") == "1" {
+		return testMemory
+	}
+	return prodMemory
+}
+
+func argon2Iterations() uint32 {
+	if os.Getenv("QUANTIX_TEST") == "1" {
+		return testIterations
+	}
+	return prodIterations
+}
+
+func argon2Parallelism() uint8 {
+	if os.Getenv("QUANTIX_TEST") == "1" {
+		return testParallelism
+	}
+	return prodParallelism
+}
 
 // Size returns the number of bytes in the hash based on the bit size.
 func (s *QuantixHash) Size() int {

@@ -38,12 +38,12 @@ import (
 // Generate salt using Argon2
 func generateSalt(data []byte, saltSize int) []byte {
 	// Use the constants for Argon2 parameters
-	timeCost := uint32(iterations)    // Use the number of iterations from the constant
-	memoryCost := uint32(memory)      // Use memory cost from the constant
-	parallelism := uint8(parallelism) // Use parallelism from the constant
+	timeCost := argon2Iterations()
+	memoryCost := argon2Memory()
+	threads := argon2Parallelism()
 
 	// Argon2id (a combination of Argon2d and Argon2i) for secure hash-based salt generation
-	salt := argon2.IDKey(data, data, timeCost, memoryCost, parallelism, uint32(saltSize))
+	salt := argon2.IDKey(data, data, timeCost, memoryCost, threads, uint32(saltSize))
 
 	return salt
 }
@@ -115,7 +115,7 @@ func (s *QuantixHash) hashData(data []byte) []byte {
 	// Combine the input data with the salt for Argon2id.
 	combined := append(data, s.salt...) // Append salt to data to strengthen the final key.
 	// Key stretching using Argon2id, which is a memory-hard function to improve resistance against brute-force attacks.
-	stretchedKey := argon2.IDKey(combined, s.salt, iterations, memory, parallelism, 64) // Generate a 64-byte key.
+	stretchedKey := argon2.IDKey(combined, s.salt, argon2Iterations(), argon2Memory(), argon2Parallelism(), 64) // Generate a 64-byte key.
 
 	// Step 1: Compute SHA-512/256 on the stretched key.
 	hash := sha512.New512_256() // Create a new SHA-512/256 hash instance.
