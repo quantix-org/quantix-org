@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	SPX = 1e18 // 1 QTX equals 1e18 nQTX (10^18), similar to how 1 Ether equals 1e18 wei.
+	QTX = 1e18 // 1 QTX equals 1e18 nQTX (10^18), similar to how 1 Ether equals 1e18 wei.
 )
 
 // getSPX retrieves the QTX multiplier from the params package

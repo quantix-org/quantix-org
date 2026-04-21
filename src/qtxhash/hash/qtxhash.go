@@ -76,8 +76,8 @@ func (s *QuantixHash) GetHash(data []byte) []byte {
 	}
 
 	// Create a new QuantixHash with the input data to get the deterministic salt
-	sphinx := NewQtxHash(s.bitSize, data) // Pass data to generate deterministic salt
-	hash := quantix.hashData(data)            // Calculate the hash using the new deterministic salt
+	qtx := NewQtxHash(s.bitSize, data) // Pass data to generate deterministic salt
+	hash := qtx.hashData(data)            // Calculate the hash using the new deterministic salt
 	s.cache.Put(hashKey, hash)               // Store the calculated hash in the cache
 
 	return hash // Return the calculated hash
