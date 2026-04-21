@@ -49,6 +49,14 @@ func Execute() error {
 			return runGetBalanceCmd(os.Args[2:])
 		case "watch-tx":
 			return runWatchTxCmd(os.Args[2:])
+		case "stake":
+			return runStakeCmd(os.Args[2:])
+		case "unstake":
+			return runUnstakeCmd(os.Args[2:])
+		case "validators":
+			return runValidatorsCmd(os.Args[2:])
+		case "balance":
+			return runBalanceCmd(os.Args[2:])
 		case "help", "--help", "-h":
 			printHelp()
 			return nil
@@ -397,4 +405,66 @@ func legacyExecute() error {
 	}
 
 	return StartNode(cfg.dataDir, nodeConfig, cfg.numNodes, cfg.nodeIndex, nil, "devnet")
+}
+
+// runStakeCmd handles the "stake" subcommand.
+func runStakeCmd(args []string) error {
+	fs := flag.NewFlagSet("stake", flag.ExitOnError)
+	from := fs.String("from", "", "Sender address (required)")
+	amount := fs.String("amount", "0", "Amount in nQTX to stake")
+	node := fs.String("node", "", "Validator node ID")
+	httpAddr := fs.String("http", "http://127.0.0.1:8545", "HTTP endpoint")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if *from == "" {
+		return fmt.Errorf("--from is required")
+	}
+	return postJSON(*httpAddr+"/stake", map[string]string{
+		"sender":  *from,
+		"amount":  *amount,
+		"node_id": *node,
+	})
+}
+
+// runUnstakeCmd handles the "unstake" subcommand.
+func runUnstakeCmd(args []string) error {
+	fs := flag.NewFlagSet("unstake", flag.ExitOnError)
+	from := fs.String("from", "", "Sender address (required)")
+	node := fs.String("node", "", "Validator node ID")
+	httpAddr := fs.String("http", "http://127.0.0.1:8545", "HTTP endpoint")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if *from == "" {
+		return fmt.Errorf("--from is required")
+	}
+	return postJSON(*httpAddr+"/unstake", map[string]string{
+		"sender":  *from,
+		"node_id": *node,
+	})
+}
+
+// runValidatorsCmd handles the "validators" subcommand.
+func runValidatorsCmd(args []string) error {
+	fs := flag.NewFlagSet("validators", flag.ExitOnError)
+	httpAddr := fs.String("http", "http://127.0.0.1:8545", "HTTP endpoint")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	return getAndPrint(*httpAddr + "/validators")
+}
+
+// runBalanceCmd handles the "balance" subcommand.
+func runBalanceCmd(args []string) error {
+	fs := flag.NewFlagSet("balance", flag.ExitOnError)
+	address := fs.String("address", "", "Address to query (required)")
+	httpAddr := fs.String("http", "http://127.0.0.1:8545", "HTTP endpoint")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if *address == "" {
+		return fmt.Errorf("--address is required")
+	}
+	return getAndPrint(*httpAddr + "/balance/" + *address)
 }

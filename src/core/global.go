@@ -30,7 +30,6 @@ import (
 
 	types "github.com/quantix-org/quantix-org/src/core/transaction"
 	logger "github.com/quantix-org/quantix-org/src/log"
-	denom "github.com/quantix-org/quantix-org/src/params/denom"
 )
 
 // Constants for blockchain status, sync modes, etc.
@@ -87,37 +86,16 @@ func (bc *Blockchain) GetGenesisTime() time.Time {
 	return time.Unix(genesis.GetTimestamp(), 0)
 }
 
-// GetValidatorStake returns the stake amount for a validator in nQTX
+// GetValidatorStake returns the stake amount for a validator in nQTX.
+// Uses the LevelDB-backed stake store.
 func (bc *Blockchain) GetValidatorStake(validatorID string) *big.Int {
-	bc.lock.RLock()
-	defer bc.lock.RUnlock()
-
-	// This is a placeholder - you need to implement actual stake storage
-	// For now, return a default stake for testing
-	if bc.chainParams != nil && bc.chainParams.ConsensusConfig != nil {
-		// Return minimum stake as default for testing
-		return bc.chainParams.ConsensusConfig.MinStakeAmount
-	}
-
-	// Default fallback: 32 QTX in nQTX
-	return new(big.Int).Mul(
-		big.NewInt(32),
-		big.NewInt(denom.QTX),
-	)
+	return bc.GetValidatorStakeFromDB(validatorID)
 }
 
-// GetTotalStaked returns the total amount staked across all validators
+// GetTotalStaked returns the total amount staked across all validators.
+// Uses the LevelDB-backed stake store.
 func (bc *Blockchain) GetTotalStaked() *big.Int {
-	bc.lock.RLock()
-	defer bc.lock.RUnlock()
-
-	// Placeholder - you need to implement actual total stake calculation
-	// For testing, return a reasonable value
-	totalStake := new(big.Int).Mul(
-		big.NewInt(1000), // Assume 1000 QTX total staked
-		big.NewInt(denom.QTX),
-	)
-	return totalStake
+	return bc.GetTotalStakedFromDB()
 }
 
 // UpdateValidatorStake updates a validator's stake (for rewards/slashing)

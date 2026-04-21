@@ -120,6 +120,20 @@ func (s *Server) setupRoutes() {
 		}
 		c.JSON(http.StatusOK, s.lastTransaction)
 	})
+
+	// Staking endpoints
+	s.router.POST("/stake", s.handleStake)
+	s.router.POST("/unstake", s.handleUnstake)
+	s.router.POST("/register-validator", s.handleRegisterValidator)
+	s.router.GET("/validators", s.handleGetValidators)
+	s.router.GET("/balance/:address", s.handleGetBalance)
+	s.router.GET("/mempool", s.handleGetMempool)
+
+	// Extended API
+	s.router.GET("/transaction/:txid", s.handleGetTransaction)
+	s.router.GET("/block/height/:n", s.handleGetBlockByHeight)
+	s.router.GET("/accounts/:address/txs", s.handleGetAccountTxs)
+	s.router.GET("/chain/info", s.handleGetChainInfo)
 }
 
 func (s *Server) handleTransaction(c *gin.Context) {

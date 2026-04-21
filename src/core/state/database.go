@@ -272,3 +272,12 @@ func (d *DB) Has(key string) (bool, error) {
 	// Key exists in database
 	return true, nil
 }
+
+// GetRawDB returns the underlying *leveldb.DB for advanced operations like iteration.
+// Returns nil if the underlying implementation is not a *leveldb.DB.
+func (d *DB) GetRawDB() *leveldb.DB {
+	if ldb, ok := d.db.(*leveldb.DB); ok {
+		return ldb
+	}
+	return nil
+}

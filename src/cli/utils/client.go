@@ -316,3 +316,31 @@ func parseIntOrDefault(s string, defaultValue int64) int64 {
 	}
 	return val
 }
+
+// postJSON posts a JSON payload to url and prints the response.
+func postJSON(url string, payload interface{}) error {
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	resp, err := http.Post(url, "application/json", bytes.NewReader(data)) //nolint:noctx
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(body))
+	return nil
+}
+
+// getAndPrint performs a GET request and prints the response body.
+func getAndPrint(url string) error {
+	resp, err := http.Get(url) //nolint:noctx
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(body))
+	return nil
+}

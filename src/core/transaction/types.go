@@ -80,6 +80,43 @@ type Block struct {
 	Body   BlockBody    `json:"body"`
 }
 
+// TxType identifies the purpose of a transaction.
+type TxType uint8
+
+const (
+	TxTypeTransfer          TxType = 0
+	TxTypeStake             TxType = 1
+	TxTypeUnstake           TxType = 2
+	TxTypeRegisterValidator TxType = 3
+	TxTypeContractDeploy    TxType = 4
+	TxTypeContractCall      TxType = 5
+	TxTypeGovernancePropose TxType = 6
+	TxTypeGovernanceVote    TxType = 7
+)
+
+func (t TxType) String() string {
+	switch t {
+	case TxTypeTransfer:
+		return "Transfer"
+	case TxTypeStake:
+		return "Stake"
+	case TxTypeUnstake:
+		return "Unstake"
+	case TxTypeRegisterValidator:
+		return "RegisterValidator"
+	case TxTypeContractDeploy:
+		return "ContractDeploy"
+	case TxTypeContractCall:
+		return "ContractCall"
+	case TxTypeGovernancePropose:
+		return "GovernancePropose"
+	case TxTypeGovernanceVote:
+		return "GovernanceVote"
+	default:
+		return "Unknown"
+	}
+}
+
 // Transaction represents a blockchain transaction
 type Transaction struct {
 	ID         string   `json:"id"`
@@ -96,6 +133,7 @@ type Transaction struct {
 	Data          []byte `json:"data,omitempty"`
 	SignatureHash []byte `json:"signature_hash"` // ADD THIS - 32-byte hash of signature for replay detection
 	PublicKey     []byte `json:"public_key"`     // Serialized SPHINCS+ public key (NOT sender address string)
+	Type          TxType `json:"type,omitempty"` // Transaction type
 }
 
 // Outpoint represents a specific transaction output.

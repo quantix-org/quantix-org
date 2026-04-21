@@ -101,27 +101,51 @@ func (bc *Blockchain) applyTransactions(block *types.Block, stateDB *StateDB) er
 				i, tx.ID, tx.Nonce, expected)
 		}
 
-		gasFee := tx.GetGasFee()
-		totalCost := new(big.Int).Add(tx.Amount, gasFee)
+		switch tx.Type {
+		case types.TxTypeTransfer:
+			gasFee := tx.GetGasFee()
+			totalCost := new(big.Int).Add(tx.Amount, gasFee)
 
-		bal := stateDB.GetBalance(tx.Sender)
-		if bal.Cmp(totalCost) < 0 {
-			return fmt.Errorf("tx[%d] %s: %s has %s nQTX, needs %s nQTX",
-				i, tx.ID, tx.Sender, bal.String(), totalCost.String())
+			bal := stateDB.GetBalance(tx.Sender)
+			if bal.Cmp(totalCost) < 0 {
+				return fmt.Errorf("tx[%d] %s: %s has %s nQTX, needs %s nQTX",
+					i, tx.ID, tx.Sender, bal.String(), totalCost.String())
+			}
+
+			if err := stateDB.SubBalance(tx.Sender, totalCost); err != nil {
+				return fmt.Errorf("tx[%d] SubBalance: %w", i, err)
+			}
+			stateDB.AddBalance(tx.Receiver, tx.Amount)
+
+			if proposerID != "" && gasFee.Sign() > 0 {
+				stateDB.AddBalance(proposerID, gasFee)
+			}
+
+			stateDB.IncrementNonce(tx.Sender)
+			logger.Info("executor: tx[%d] %s → %s %s nQTX (gas %s nQTX) ✓",
+				i, tx.Sender, tx.Receiver, tx.Amount.String(), gasFee.String())
+
+		case types.TxTypeStake:
+			if err := bc.applyStakeTx(tx, stateDB); err != nil {
+				return fmt.Errorf("tx[%d] stake: %w", i, err)
+			}
+			stateDB.IncrementNonce(tx.Sender)
+
+		case types.TxTypeUnstake:
+			if err := bc.applyUnstakeTx(tx, stateDB); err != nil {
+				return fmt.Errorf("tx[%d] unstake: %w", i, err)
+			}
+			stateDB.IncrementNonce(tx.Sender)
+
+		case types.TxTypeRegisterValidator:
+			if err := bc.applyRegisterValidatorTx(tx, stateDB); err != nil {
+				return fmt.Errorf("tx[%d] register-validator: %w", i, err)
+			}
+			stateDB.IncrementNonce(tx.Sender)
+
+		default:
+			logger.Warn("executor: tx[%d] unknown type %s (%d), skipping", i, tx.Type, tx.Type)
 		}
-
-		if err := stateDB.SubBalance(tx.Sender, totalCost); err != nil {
-			return fmt.Errorf("tx[%d] SubBalance: %w", i, err)
-		}
-		stateDB.AddBalance(tx.Receiver, tx.Amount)
-
-		if proposerID != "" && gasFee.Sign() > 0 {
-			stateDB.AddBalance(proposerID, gasFee)
-		}
-
-		stateDB.IncrementNonce(tx.Sender)
-		logger.Info("executor: tx[%d] %s → %s %s nQTX (gas %s nQTX) ✓",
-			i, tx.Sender, tx.Receiver, tx.Amount.String(), gasFee.String())
 	}
 	return nil
 }
@@ -214,7 +238,57 @@ func (bc *Blockchain) ExecuteBlock(block *types.Block) ([]byte, error) {
 	return stateRoot, nil
 }
 
-// ExecuteGenesisBlock runs ExecuteBlock on block 0 so mintBlockReward fires
+// applyStakeTx handles staking transactions.
+func (bc *Blockchain) applyStakeTx(tx *types.Transaction, stateDB *StateDB) error {
+	gasFee := tx.GetGasFee()
+	totalCost := new(big.Int).Add(tx.Amount, gasFee)
+
+	bal := stateDB.GetBalance(tx.Sender)
+	if bal.Cmp(totalCost) < 0 {
+		return fmt.Errorf("stake: %s has %s nQTX, needs %s", tx.Sender, bal.String(), totalCost.String())
+	}
+	if err := stateDB.SubBalance(tx.Sender, totalCost); err != nil {
+		return err
+	}
+	// Record stake in DB - node_id comes from tx.Data field
+	nodeID := tx.Sender
+	if len(tx.Data) > 0 {
+		nodeID = string(tx.Data)
+	}
+	current := bc.GetValidatorStakeFromDB(nodeID)
+	newStake := new(big.Int).Add(current, tx.Amount)
+	return bc.SetValidatorStake(nodeID, newStake, tx.Sender)
+}
+
+// applyUnstakeTx handles unstaking transactions.
+func (bc *Blockchain) applyUnstakeTx(tx *types.Transaction, stateDB *StateDB) error {
+	nodeID := tx.Sender
+	if len(tx.Data) > 0 {
+		nodeID = string(tx.Data)
+	}
+	current := bc.GetValidatorStakeFromDB(nodeID)
+	amount := tx.Amount
+	if amount.Cmp(current) > 0 {
+		amount = current
+	}
+	newStake := new(big.Int).Sub(current, amount)
+	if err := bc.SetValidatorStake(nodeID, newStake, tx.Sender); err != nil {
+		return err
+	}
+	stateDB.AddBalance(tx.Sender, amount)
+	return nil
+}
+
+// applyRegisterValidatorTx handles validator registration transactions.
+func (bc *Blockchain) applyRegisterValidatorTx(tx *types.Transaction, stateDB *StateDB) error {
+	nodeID := tx.Sender
+	if len(tx.Data) > 0 {
+		nodeID = string(tx.Data)
+	}
+	return bc.SetValidatorStake(nodeID, big.NewInt(0), tx.Sender)
+}
+
+// ExecuteGenesisBlock runs ExecuteBlock on block 0
 // and credits GenesisVaultAddress with the full allocation supply.
 // Must be called AFTER SetStorageDB — it needs a live DB handle.
 // It is idempotent: if the vault already has a non-zero balance it returns nil.
