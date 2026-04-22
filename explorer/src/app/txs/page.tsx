@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/Skeleton';
 
 const PAGE_SIZE = 25;
 
-export default function TransactionsPage() {
+function TransactionsContent() {
   const searchParams = useSearchParams();
   const blockFilter = searchParams.get('block');
   const [page, setPage] = useState(0);
@@ -23,7 +23,7 @@ export default function TransactionsPage() {
   });
 
   return (
-    <div className="container-page py-8">
+    <>
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <div className="p-3 bg-primary-500/10 rounded-xl">
@@ -121,6 +121,21 @@ export default function TransactionsPage() {
           </button>
         </div>
       </div>
+    </>
+  );
+}
+
+export default function TransactionsPage() {
+  return (
+    <div className="container-page py-8">
+      <Suspense fallback={
+        <div className="space-y-4">
+          <Skeleton className="h-16 w-64" />
+          <Skeleton className="h-96" />
+        </div>
+      }>
+        <TransactionsContent />
+      </Suspense>
     </div>
   );
 }
