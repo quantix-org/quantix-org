@@ -1,0 +1,182 @@
+# Quantix Docker Compose
+# Start a local devnet with multiple nodes
+
+version: "3.8"
+
+services:
+  # ============================================
+  # Devnet Node 1 (Validator + RPC)
+  # ============================================
+  node1:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: quantix-node1
+    hostname: node1
+    environment:
+      - QUANTIX_NETWORK=devnet
+      - QUANTIX_VALIDATOR=true
+      - QUANTIX_LOG_LEVEL=debug
+    ports:
+      - "73310:73310"    # P2P
+      - "8545:8545"      # RPC HTTP
+      - "8546:8546"      # RPC WebSocket
+      - "9090:9090"      # Metrics
+    volumes:
+      - node1-data:/data
+      - ./devnet-config.toml:/config/config.toml:ro
+    networks:
+      - quantix-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8545/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ============================================
+  # Devnet Node 2 (Validator)
+  # ============================================
+  node2:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: quantix-node2
+    hostname: node2
+    environment:
+      - QUANTIX_NETWORK=devnet
+      - QUANTIX_VALIDATOR=true
+      - QUANTIX_BOOTSTRAP=node1:73310
+    ports:
+      - "73311:73310"
+      - "8547:8545"
+    volumes:
+      - node2-data:/data
+      - ./devnet-config.toml:/config/config.toml:ro
+    networks:
+      - quantix-net
+    depends_on:
+      node1:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ============================================
+  # Devnet Node 3 (Validator)
+  # ============================================
+  node3:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: quantix-node3
+    hostname: node3
+    environment:
+      - QUANTIX_NETWORK=devnet
+      - QUANTIX_VALIDATOR=true
+      - QUANTIX_BOOTSTRAP=node1:73310
+    ports:
+      - "73312:73310"
+      - "8548:8545"
+    volumes:
+      - node3-data:/data
+      - ./devnet-config.toml:/config/config.toml:ro
+    networks:
+      - quantix-net
+    depends_on:
+      node1:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ============================================
+  # Devnet Node 4 (Validator)
+  # ============================================
+  node4:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: quantix-node4
+    hostname: node4
+    environment:
+      - QUANTIX_NETWORK=devnet
+      - QUANTIX_VALIDATOR=true
+      - QUANTIX_BOOTSTRAP=node1:73310
+    ports:
+      - "73313:73310"
+      - "8549:8545"
+    volumes:
+      - node4-data:/data
+      - ./devnet-config.toml:/config/config.toml:ro
+    networks:
+      - quantix-net
+    depends_on:
+      node1:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ============================================
+  # Block Explorer (placeholder)
+  # ============================================
+  # explorer:
+  #   image: quantix/explorer:latest
+  #   container_name: quantix-explorer
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - RPC_URL=http://node1:8545
+  #   networks:
+  #     - quantix-net
+  #   depends_on:
+  #     - node1
+
+  # ============================================
+  # Prometheus Monitoring
+  # ============================================
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: quantix-prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - quantix-net
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+
+  # ============================================
+  # Grafana Dashboard
+  # ============================================
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: quantix-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=quantix
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - quantix-net
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+networks:
+  quantix-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  node1-data:
+  node2-data:
+  node3-data:
+  node4-data:
+  prometheus-data:
+  grafana-data:

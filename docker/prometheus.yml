@@ -1,0 +1,31 @@
+# Prometheus Configuration for Quantix Monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers: []
+
+rule_files: []
+
+scrape_configs:
+  # Quantix nodes
+  - job_name: 'quantix-nodes'
+    static_configs:
+      - targets:
+          - 'node1:9090'
+          - 'node2:9090'
+          - 'node3:9090'
+          - 'node4:9090'
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+):\d+'
+        replacement: '${1}'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

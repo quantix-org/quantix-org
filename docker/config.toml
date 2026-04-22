@@ -1,0 +1,106 @@
+# Quantix Node Configuration
+# Default configuration for Docker deployments
+
+[node]
+# Network: "mainnet", "testnet", or "devnet"
+network = "mainnet"
+
+# Data directory (override with --datadir)
+datadir = "/data"
+
+# Logging level: "debug", "info", "warn", "error"
+log_level = "info"
+
+# Log format: "json" or "text"
+log_format = "json"
+
+[network]
+# P2P listen address
+listen = "0.0.0.0:7331"
+
+# Maximum peers
+max_peers = 50
+
+# Bootstrap nodes (mainnet)
+bootstrap_nodes = [
+    # Add mainnet bootstrap nodes here
+    # "enode://...@seed1.qpqb.org:7331",
+    # "enode://...@seed2.qpqb.org:7331",
+]
+
+# NAT traversal: "none", "upnp", "pmp", "extip:<IP>"
+nat = "none"
+
+[rpc]
+# Enable JSON-RPC server
+enabled = true
+
+# HTTP server
+http_enabled = true
+http_addr = "0.0.0.0"
+http_port = 8545
+http_cors = ["*"]
+http_vhosts = ["*"]
+
+# WebSocket server
+ws_enabled = true
+ws_addr = "0.0.0.0"
+ws_port = 8546
+ws_origins = ["*"]
+
+# Enabled APIs
+apis = ["qtx", "net", "web3", "txpool"]
+
+# Rate limiting (requests per second, 0 = unlimited)
+rate_limit = 100
+
+[consensus]
+# Validator mode (requires staking)
+validator = false
+
+# Validator key file (encrypted)
+# validator_key = "/config/validator.key"
+
+# Validator address for rewards
+# validator_address = "qtx1..."
+
+[mempool]
+# Maximum transactions in mempool
+max_txs = 10000
+
+# Maximum transaction size (bytes)
+max_tx_size = 131072  # 128 KB
+
+# Minimum gas price (nQTX)
+min_gas_price = 1000000000  # 1 gQTX
+
+# Transaction timeout
+tx_timeout = "1h"
+
+[metrics]
+# Enable Prometheus metrics
+enabled = true
+
+# Metrics server address
+addr = "0.0.0.0"
+port = 9090
+
+[sync]
+# Sync mode: "full", "fast", "light"
+mode = "full"
+
+# Maximum blocks to download in parallel
+parallel_blocks = 64
+
+# Checkpoint for fast sync (block hash)
+# checkpoint = "0x..."
+
+[db]
+# Database engine: "leveldb", "pebble"
+engine = "pebble"
+
+# Cache size (MB)
+cache_size = 512
+
+# Write buffer size (MB)
+write_buffer = 64

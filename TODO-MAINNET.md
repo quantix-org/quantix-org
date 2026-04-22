@@ -37,7 +37,7 @@
 
 ---
 
-## Phase 2: Security (Est. 2-4 months)
+## Phase 2: Security ⏸️ SKIPPED (per user request)
 
 ### 🛡️ Audits
 - [ ] **Cryptography audit** (SPHINCS+/STHINCS implementation)
@@ -60,21 +60,21 @@
 
 ---
 
-## Phase 3: Infrastructure (Est. 2-3 months)
+## Phase 3: Infrastructure ← IN PROGRESS
 
 ### 🌐 Network Infrastructure
-- [ ] Deploy persistent **devnet** (internal testing)
-- [ ] Deploy public **testnet** with faucet
+- [x] Deploy persistent **devnet** (internal testing) ✅ 2026-04-22 `docker/docker-compose.yml`
+- [x] Deploy public **testnet** with faucet ✅ 2026-04-22 `src/faucet/faucet.go`
 - [ ] Set up seed nodes (geographically distributed)
-- [ ] Implement node monitoring/alerting (Prometheus + Grafana)
+- [x] Implement node monitoring/alerting (Prometheus + Grafana) ✅ 2026-04-22 `docker/prometheus.yml`
 - [ ] Create network status dashboard
 
 ### 📦 Distribution
-- [ ] Docker images for node software
+- [x] Docker images for node software ✅ 2026-04-22 `Dockerfile`
 - [ ] Linux packages (deb, rpm)
 - [ ] macOS installer
 - [ ] Windows installer
-- [ ] One-line install script
+- [x] One-line install script ✅ 2026-04-22 `scripts/install.sh`
 
 ### 🔍 Explorer & APIs
 - [ ] Build block explorer (or adapt existing)
@@ -184,7 +184,8 @@
 
 ```
 Month 1-3:   Phase 1 (Core Completion) ✅ COMPLETE
-Month 3-6:   Phase 2 (Security) ← YOU ARE HERE
+Month 3-6:   Phase 2 (Security) ⏸️ SKIPPED
+Month 5-8:   Phase 3 (Infrastructure) ← YOU ARE HERE
 Month 5-8:   Phase 3 (Infrastructure)
 Month 7-12:  Phase 4 (Ecosystem)
 Month 10-12: Phase 5 (Community & Governance)

@@ -1,0 +1,76 @@
+# Quantix Devnet Configuration
+# Fast block times and relaxed parameters for development
+
+[node]
+network = "devnet"
+datadir = "/data"
+log_level = "debug"
+log_format = "text"
+
+[network]
+listen = "0.0.0.0:73310"
+max_peers = 25
+
+# Devnet bootstrap nodes (Docker internal)
+bootstrap_nodes = []
+
+nat = "none"
+
+[rpc]
+enabled = true
+http_enabled = true
+http_addr = "0.0.0.0"
+http_port = 8545
+http_cors = ["*"]
+http_vhosts = ["*"]
+
+ws_enabled = true
+ws_addr = "0.0.0.0"
+ws_port = 8546
+ws_origins = ["*"]
+
+# Enable all APIs for development
+apis = ["qtx", "net", "web3", "txpool", "debug", "admin", "personal"]
+
+rate_limit = 0  # Unlimited for devnet
+
+[consensus]
+validator = true
+
+# Devnet block time (faster for testing)
+block_time = "2s"
+
+# Instant finality for devnet
+instant_finality = true
+
+[mempool]
+max_txs = 5000
+max_tx_size = 262144  # 256 KB for devnet
+min_gas_price = 1000000  # 0.001 gQTX (lower for devnet)
+tx_timeout = "30m"
+
+[metrics]
+enabled = true
+addr = "0.0.0.0"
+port = 9090
+
+[sync]
+mode = "full"
+parallel_blocks = 16
+
+[db]
+engine = "pebble"
+cache_size = 256
+write_buffer = 32
+
+[devnet]
+# Auto-mine empty blocks
+auto_mine = true
+
+# Pre-funded accounts (for testing)
+funded_accounts = [
+    "qtx1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq9e75rs",  # Faucet
+]
+
+# Genesis allocation (QTX)
+faucet_balance = "1000000000000000000000000"  # 1M QTX
