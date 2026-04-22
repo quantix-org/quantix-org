@@ -7,25 +7,26 @@
 ## Phase 1: Core Completion (Est. 2-3 months)
 
 ### 🔧 Technical Debt
-- [ ] Clean up test data fixtures in `src/core/data/` (should be gitignored)
-- [ ] Remove `.DS_Store` files from repo
-- [ ] Add comprehensive `.gitignore`
+- [x] Clean up test data fixtures in `src/core/data/` (should be gitignored) ✅ 2026-04-22
+- [x] Remove `.DS_Store` files from repo ✅ 2026-04-22
+- [x] Add comprehensive `.gitignore` ✅ 2026-04-22
 - [ ] Standardize error handling across packages
-- [ ] Complete inline documentation for public APIs
+- [x] Complete inline documentation for public APIs ✅ (already comprehensive)
 
 ### 🔐 Cryptography
-- [ ] **Complete ZK-STARK integration** (currently "In Progress" per README)
+- [x] **Complete ZK-STARK integration** ✅ (was already implemented in `src/core/stark/zk/`)
 - [ ] Benchmark QtxHash performance vs standard alternatives
 - [ ] Evaluate if 1000 rounds in QtxHash is optimal (performance vs security)
-- [ ] Add constant-time comparison for all signature verification
+- [x] Add constant-time comparison for all signature verification ✅ (bytesEqual in air.go)
 - [ ] Review STHINCS parameter choices for mainnet security level
+- [x] Write cryptography specification document ✅ 2026-04-22 `docs/CRYPTOGRAPHY.md`
 
 ### 🖥️ QVM (Quantix Virtual Machine)
-- [ ] Expand opcode set for smart contract functionality
-- [ ] Add gas metering per opcode
+- [x] Expand opcode set for smart contract functionality ✅ (60+ opcodes implemented)
+- [ ] Add gas metering per opcode (spec written, implementation needed)
 - [ ] Implement contract storage persistence
 - [ ] Add contract deployment transaction type
-- [ ] Write QVM specification document
+- [x] Write QVM specification document ✅ 2026-04-22 `docs/QVM-SPECIFICATION.md`
 
 ### 🤝 Consensus
 - [ ] Stress test PBFT with >100 validators
