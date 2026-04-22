@@ -17,6 +17,7 @@ require (
 	github.com/lni/goutils v1.4.0
 	github.com/minio/highwayhash v1.0.3
 	github.com/prometheus/client_golang v1.22.0
+	github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang v0.0.0-00010101000000-000000000000
 	github.com/syndtr/goleveldb v1.0.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.46.0
