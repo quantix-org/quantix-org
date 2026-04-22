@@ -7,14 +7,27 @@ import { Providers } from '@/components/Providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://testnet.qpqb.org';
+const network = process.env.NEXT_PUBLIC_NETWORK || 'testnet';
+const isTestnet = network === 'testnet';
+
 export const metadata: Metadata = {
-  title: 'Quantix Explorer | Post-Quantum Blockchain Explorer',
-  description: 'Explore the Quantix blockchain - blocks, transactions, addresses, and validators on the post-quantum secure network.',
-  keywords: ['Quantix', 'blockchain', 'explorer', 'post-quantum', 'SPHINCS+', 'cryptocurrency'],
+  title: isTestnet 
+    ? 'Quantix Testnet Explorer | Post-Quantum Blockchain' 
+    : 'Quantix Explorer | Post-Quantum Blockchain',
+  description: `Explore the Quantix ${network} - blocks, transactions, addresses, and validators on the post-quantum secure network.`,
+  keywords: ['Quantix', 'blockchain', 'explorer', 'post-quantum', 'SPHINCS+', 'cryptocurrency', network],
+  metadataBase: new URL(siteUrl),
   openGraph: {
-    title: 'Quantix Explorer',
-    description: 'Explore the Quantix post-quantum blockchain',
-    siteName: 'Quantix Explorer',
+    title: isTestnet ? 'Quantix Testnet Explorer' : 'Quantix Explorer',
+    description: `Explore the Quantix ${network} post-quantum blockchain`,
+    siteName: isTestnet ? 'Quantix Testnet Explorer' : 'Quantix Explorer',
+    url: siteUrl,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: isTestnet ? 'Quantix Testnet Explorer' : 'Quantix Explorer',
+    description: `Explore the Quantix ${network} post-quantum blockchain`,
   },
 };
 

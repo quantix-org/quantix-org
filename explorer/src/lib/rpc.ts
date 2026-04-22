@@ -3,6 +3,8 @@
  * Connects to the Quantix node at NEXT_PUBLIC_RPC_URL
  */
 
+// RPC endpoint for the Quantix node
+// Default: https://rpc.qpqb.org (testnet)
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc.qpqb.org';
 
 interface RPCRequest {

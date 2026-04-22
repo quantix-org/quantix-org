@@ -5,25 +5,14 @@ const nextConfig = {
   // Environment variables with defaults
   env: {
     NEXT_PUBLIC_RPC_URL: process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc.qpqb.org',
-    NEXT_PUBLIC_NETWORK: process.env.NEXT_PUBLIC_NETWORK || 'mainnet',
-    NEXT_PUBLIC_SITE_NAME: 'Quantix Explorer',
+    NEXT_PUBLIC_NETWORK: process.env.NEXT_PUBLIC_NETWORK || 'testnet',
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://testnet.qpqb.org',
+    NEXT_PUBLIC_SITE_NAME: 'Quantix Testnet Explorer',
   },
 
   // Enable experimental features
   experimental: {
-    // Optimize for serverless
     serverMinification: true,
-  },
-
-  // API rewrites for CORS issues (if needed)
-  async rewrites() {
-    return [
-      // Proxy RPC requests to avoid CORS (optional, for client-side calls)
-      {
-        source: '/rpc',
-        destination: process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc.qpqb.org',
-      },
-    ];
   },
 
   // Headers for security and caching
@@ -51,7 +40,7 @@ const nextConfig = {
 
   // Image optimization
   images: {
-    domains: ['qpqb.org'],
+    domains: ['qpqb.org', 'testnet.qpqb.org'],
   },
 };
 
