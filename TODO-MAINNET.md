@@ -77,7 +77,7 @@
 - [x] One-line install script ✅ 2026-04-22 `scripts/install.sh`
 
 ### 🔍 Explorer & APIs
-- [ ] Build block explorer (or adapt existing)
+- [x] Build block explorer ✅ 2026-04-22 `explorer/` (Go + embedded SPA)
 - [ ] Public JSON-RPC endpoints
 - [ ] WebSocket subscription API
 - [ ] REST API documentation (OpenAPI/Swagger)

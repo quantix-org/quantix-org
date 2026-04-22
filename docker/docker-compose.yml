@@ -113,19 +113,30 @@ services:
     restart: unless-stopped
 
   # ============================================
-  # Block Explorer (placeholder)
+  # Block Explorer
   # ============================================
-  # explorer:
-  #   image: quantix/explorer:latest
-  #   container_name: quantix-explorer
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - RPC_URL=http://node1:8545
-  #   networks:
-  #     - quantix-net
-  #   depends_on:
-  #     - node1
+  explorer:
+    build:
+      context: ..
+      dockerfile: explorer/Dockerfile
+    container_name: quantix-explorer
+    ports:
+      - "3000:3000"
+    environment:
+      - RPC_URL=http://node1:8545
+      - NETWORK=devnet
+    command: ["--addr", ":3000", "--rpc", "http://node1:8545", "--network", "devnet"]
+    networks:
+      - quantix-net
+    depends_on:
+      node1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
 
   # ============================================
   # Prometheus Monitoring
