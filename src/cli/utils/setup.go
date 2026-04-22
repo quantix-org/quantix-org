@@ -52,20 +52,45 @@ func runBlockProductionLoop(
 	)
 
 	if totalNodes == 1 {
+		logger.Info("[%s] ⛏ SOLO MINING LOOP STARTED (interval=%v)", nodeID, singleNodeInterval)
 		ticker := time.NewTicker(singleNodeInterval)
 		defer ticker.Stop()
 		for {
 			select {
 			case <-ctx.Done():
+				logger.Info("[%s] Solo mining loop stopped (context cancelled)", nodeID)
 				return
 			case <-ticker.C:
-				blk, err := bc.CreateBlock()
-				if err != nil {
-					logger.Error("[%s] solo mine error: %v", nodeID, err)
+				logger.Info("[%s] Solo mining tick...", nodeID)
+				// Check if there are pending transactions
+				pending := bc.GetMempool().GetPendingTransactions()
+				if len(pending) == 0 {
+					logger.Info("[%s] No pending transactions, skipping block", nodeID)
 					continue
 				}
-				pending := bc.GetMempool().GetPendingTransactions()
-				logger.Info("[%s] ⛏ Solo-mined block height=%d txs=%d", nodeID, blk.GetHeight(), len(pending))
+				logger.Info("[%s] Found %d pending transactions", nodeID, len(pending))
+
+				// Create new block
+				blk, err := bc.CreateBlock()
+				if err != nil {
+					logger.Error("[%s] solo mine create error: %v", nodeID, err)
+					continue
+				}
+
+				// Commit the block to the chain
+				if err := bc.CommitBlock(blk); err != nil {
+					logger.Error("[%s] solo mine commit error: %v", nodeID, err)
+					continue
+				}
+
+				// Remove committed transactions from mempool
+				var txIDs []string
+				for _, tx := range blk.Body.TxsList {
+					txIDs = append(txIDs, tx.ID)
+				}
+				bc.GetMempool().RemoveTransactions(txIDs)
+
+				logger.Info("[%s] ⛏ Solo-mined block height=%d txs=%d", nodeID, blk.GetHeight(), len(blk.Body.TxsList))
 			}
 		}
 	}
