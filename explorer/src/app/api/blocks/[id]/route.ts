@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getBlock, formatBlock } from '@/lib/rpc';
 
 function generateMockBlock(number: number) {
   const timestamp = new Date(Date.now() - (1000000 - number) * 10000);
@@ -22,13 +23,24 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   const id = params.id;
-  let number: number;
 
-  // Check if it's a number or hash
+  try {
+    // Determine if it's a number or hash
+    const blockId = /^\d+$/.test(id) ? parseInt(id) : id;
+    
+    const block = await getBlock(blockId, true);
+    if (block) {
+      return NextResponse.json(formatBlock(block));
+    }
+  } catch (error) {
+    console.error('Block API error:', error);
+  }
+
+  // Fallback to mock data
+  let number: number;
   if (/^\d+$/.test(id)) {
     number = parseInt(id);
   } else if (id.startsWith('0x')) {
-    // Parse hash back to number (mock behavior)
     number = parseInt(id.slice(2), 16) || 1000000;
   } else {
     return NextResponse.json({ error: 'Invalid block ID' }, { status: 400 });

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getTransaction, getTransactionReceipt, getBlock, formatTransaction, hexToNumber } from '@/lib/rpc';
 
 export async function GET(
   request: NextRequest,
@@ -10,6 +11,30 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid transaction hash' }, { status: 400 });
   }
 
+  try {
+    const [tx, receipt] = await Promise.all([
+      getTransaction(hash),
+      getTransactionReceipt(hash),
+    ]);
+
+    if (tx) {
+      const formatted = formatTransaction(tx, receipt || undefined);
+      
+      // Get timestamp from block
+      if (tx.blockNumber) {
+        const block = await getBlock(hexToNumber(tx.blockNumber), false);
+        if (block) {
+          formatted.timestamp = new Date(hexToNumber(block.timestamp) * 1000).toISOString();
+        }
+      }
+      
+      return NextResponse.json(formatted);
+    }
+  } catch (error) {
+    console.error('Transaction API error:', error);
+  }
+
+  // Fallback to mock data
   const timestamp = new Date(Date.now() - Math.floor(Math.random() * 86400000));
   
   const tx = {
