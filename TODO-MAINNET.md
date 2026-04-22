@@ -23,9 +23,9 @@
 
 ### 🖥️ QVM (Quantix Virtual Machine)
 - [x] Expand opcode set for smart contract functionality ✅ (60+ opcodes implemented)
-- [ ] Add gas metering per opcode (spec written, implementation needed)
-- [ ] Implement contract storage persistence
-- [ ] Add contract deployment transaction type
+- [x] Add gas metering per opcode ✅ 2026-04-22 `src/core/svm/opcodes/gas.go`
+- [x] Implement contract storage persistence ✅ 2026-04-22 `src/core/svm/vm/storage.go`
+- [x] Add contract deployment transaction type ✅ 2026-04-22 `src/core/transaction/contract.go`
 - [x] Write QVM specification document ✅ 2026-04-22 `docs/QVM-SPECIFICATION.md`
 
 ### 🤝 Consensus
