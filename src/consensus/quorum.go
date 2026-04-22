@@ -51,7 +51,9 @@ func (qv *QuorumVerifier) VerifySafety() bool {
 	meetsQuorumRequirement := qv.quorumFraction >= 2.0/3.0
 
 	// Check if faulty nodes are within BFT tolerance limit (less than 1/3)
-	meetsFaultTolerance := qv.faultyNodes < qv.totalNodes/3
+	// FIX: use float comparison to avoid integer division truncation.
+	// e.g. N=4,f=1: int 1 < 4/3=1 → false (wrong); float 1*3 < 4 → true (correct)
+	meetsFaultTolerance := float64(qv.faultyNodes)*3 < float64(qv.totalNodes)
 
 	// Both conditions must be true for safety guarantee
 	return meetsQuorumRequirement && meetsFaultTolerance
