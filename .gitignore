@@ -1,0 +1,69 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+
+# Build
+/bin/
+/build/
+/dist/
+/vendor/
+
+# Test artifacts
+/src/core/data/
+/coverage.out
+/coverage.html
+*.cover
+*.prof
+
+# Node data
+/data/
+/blockchain/
+/.quantix/
+/node_data/
+
+# Logs
+*.log
+/logs/
+
+# Keys and secrets (NEVER commit these)
+*.pem
+*.key
+*.p12
+*.keystore
+/keys/
+/secrets/
+.env
+.env.*
+
+# GUI build artifacts
+/src/gui/fyne-cross/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# OS generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
