@@ -166,4 +166,4 @@ Protocol improvements are tracked in [quantix-org/QIPS](https://github.com/quant
 
 MIT License — see [LICENSE](LICENSE)
 
-© 2024 Quantix Team
+© 2024 Quantix Developer Team
