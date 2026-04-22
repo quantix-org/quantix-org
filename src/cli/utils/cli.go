@@ -252,7 +252,7 @@ func runNodeCmd(args []string) error {
 		return StartNode(*dataDir, nodeConfig, *numNodes, *nodeIndex, vdfParams, *networkFlag)
 	}
 
-	// Single node mode
+	// Single node mode - still needs VDF params for development
 	logger.Info("=== STARTING SINGLE NODE MODE (NO PBFT) ===")
 	logger.Info("This mode is for development/testing only")
 	logger.Info("To participate in hybrid consensus and mine blocks:")
@@ -260,7 +260,25 @@ func runNodeCmd(args []string) error {
 	logger.Info("  2. Total 3+ nodes will enable PBFT consensus")
 	logger.Info("Node will continue running - press Ctrl+C to stop")
 
-	return StartNode(*dataDir, nodeConfig, *numNodes, *nodeIndex, nil, *networkFlag)
+	// Derive VDF parameters even for single-node mode
+	expectedGenesisHash := core.GetGenesisHash()
+	rawGenesisHash := expectedGenesisHash
+	if len(rawGenesisHash) > 8 && rawGenesisHash[:8] == "GENESIS_" {
+		rawGenesisHash = rawGenesisHash[8:]
+	}
+
+	consensus.InitVDFFromGenesis(func() (string, error) {
+		return rawGenesisHash, nil
+	})
+
+	vdfParamsTemp, err := consensus.LoadCanonicalVDFParams()
+	if err != nil {
+		return fmt.Errorf("failed to load VDF parameters: %w", err)
+	}
+	vdfParams = &vdfParamsTemp
+	logger.Info("✅ VDF parameters derived for single-node mode")
+
+	return StartNode(*dataDir, nodeConfig, *numNodes, *nodeIndex, vdfParams, *networkFlag)
 }
 
 // runSendTxCmd handles the "send-tx" subcommand

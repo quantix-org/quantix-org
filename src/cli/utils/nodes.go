@@ -159,6 +159,17 @@ func StartNode(
 		logger.Info("✅ Genesis vault funded")
 	}
 
+	// For devnet: Apply genesis allocations directly to state DB
+	// This funds all devnet test wallets immediately at genesis
+	if networkType == "devnet" {
+		gs := core.GenesisStateForDevnet()
+		if err := core.ApplyGenesisState(bc, gs); err != nil {
+			logger.Warn("ApplyGenesisState (devnet): %v", err)
+		} else {
+			logger.Info("✅ Devnet genesis allocations applied directly to state")
+		}
+	}
+
 	// ========== ADD THIS: Save initial checkpoint after genesis ==========
 	if cpErr := bc.WriteChainCheckpoint(); cpErr != nil {
 		logger.Warn("Failed to write initial checkpoint: %v", cpErr)
@@ -337,7 +348,15 @@ func StartNode(
 	logger.Info("✅ VM SPHINCS+ verifier registered")
 
 	// ========== CRITICAL FIX: Add genesis transactions to ALL nodes ==========
-	allocs := core.DefaultGenesisAllocations()
+	// Use devnet allocations for devnet network, otherwise default mainnet allocations
+	var allocs []*core.GenesisAllocation
+	if networkType == "devnet" {
+		allocs = core.GetDevnetGenesisAllocations()
+		logger.Info("Using DEVNET genesis allocations (%d accounts)", len(allocs))
+	} else {
+		allocs = core.DefaultGenesisAllocations()
+		logger.Info("Using DEFAULT genesis allocations (%d accounts)", len(allocs))
+	}
 	genesisTransactions := make([]*types.Transaction, 0, len(allocs))
 	senderNonces := make(map[string]uint64)
 
