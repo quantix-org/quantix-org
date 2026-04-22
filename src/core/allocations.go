@@ -247,15 +247,29 @@ func (a *GenesisAllocation) validate() error {
 	if a == nil {
 		return fmt.Errorf("allocation is nil")
 	}
-	if len(a.Address) != 40 {
-		return fmt.Errorf("address must be 40 hex characters, got %d", len(a.Address))
+	// Support both formats:
+	// 1. 40-char hex addresses (legacy mainnet format)
+	// 2. x-prefixed Base58Check addresses (modern format)
+	if len(a.Address) == 0 {
+		return fmt.Errorf("address cannot be empty")
 	}
-	addrBytes, err := hex.DecodeString(a.Address)
-	if err != nil {
-		return fmt.Errorf("address is not valid hex: %w", err)
-	}
-	if len(addrBytes) != 20 {
-		return fmt.Errorf("address decodes to %d bytes, want 20", len(addrBytes))
+	if a.Address[0] == 'x' {
+		// x-prefixed Base58Check address (modern format)
+		// Basic length check: x + base58 encoded data (typically 30-50 chars)
+		if len(a.Address) < 20 || len(a.Address) > 60 {
+			return fmt.Errorf("x-prefixed address has invalid length: %d", len(a.Address))
+		}
+	} else if len(a.Address) == 40 {
+		// 40-char hex address (legacy format)
+		addrBytes, err := hex.DecodeString(a.Address)
+		if err != nil {
+			return fmt.Errorf("address is not valid hex: %w", err)
+		}
+		if len(addrBytes) != 20 {
+			return fmt.Errorf("address decodes to %d bytes, want 20", len(addrBytes))
+		}
+	} else {
+		return fmt.Errorf("address must be 40 hex chars or x-prefixed Base58, got %d chars", len(a.Address))
 	}
 	if a.BalanceNSPX == nil {
 		return fmt.Errorf("balance_nspx is nil")
@@ -278,11 +292,20 @@ func (a *GenesisAllocation) validate() error {
 // This fixed-width encoding avoids ambiguity: a variable-length encoding could
 // allow two different (address, balance) pairs to produce the same byte string.
 func (a *GenesisAllocation) deterministicBytes() []byte {
-	addrBytes, err := hex.DecodeString(a.Address)
-	if err != nil || len(addrBytes) != 20 {
-		// Fall back to hashing the address string if it cannot be decoded.
-		// This should never happen in a validated GenesisState.
+	var addrBytes []byte
+	
+	if len(a.Address) > 0 && a.Address[0] == 'x' {
+		// x-prefixed Base58Check address: hash the full address string
+		// to get a deterministic 20-byte representation
 		addrBytes = common.QuantixHash([]byte(a.Address))[:20]
+	} else {
+		// Try to decode as hex
+		var err error
+		addrBytes, err = hex.DecodeString(a.Address)
+		if err != nil || len(addrBytes) != 20 {
+			// Fall back to hashing the address string if it cannot be decoded.
+			addrBytes = common.QuantixHash([]byte(a.Address))[:20]
+		}
 	}
 
 	// Encode balance as a 32-byte big-endian integer (same as EVM convention).

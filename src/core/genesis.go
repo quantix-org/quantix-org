@@ -145,6 +145,33 @@ func GenesisStateFromChainParams(p *QuantixChainParameters) *GenesisState {
 	}
 }
 
+// GenesisStateForDevnet builds a GenesisState specifically for devnet with test wallets funded.
+// This uses GetDevnetGenesisAllocations() which includes the 5 test wallets.
+func GenesisStateForDevnet() *GenesisState {
+	p := GetDevnetChainParams()
+
+	const (
+		canonicalTimestamp  = int64(1732070400)
+		canonicalDifficulty = int64(17179869184)
+		canonicalGasLimit   = int64(5000)
+	)
+	canonicalExtraData := []byte("The Times 20/Nov/2024 Quantix Genesis. Privacy, sovereignty, human dignity. No surveillance.")
+	canonicalNonce := common.FormatNonce(1)
+
+	return &GenesisState{
+		ChainID:           p.ChainID,
+		ChainName:         p.ChainName,
+		Symbol:            p.Symbol,
+		Timestamp:         canonicalTimestamp,
+		ExtraData:         canonicalExtraData,
+		InitialDifficulty: big.NewInt(canonicalDifficulty),
+		InitialGasLimit:   big.NewInt(canonicalGasLimit),
+		Nonce:             canonicalNonce,
+		Allocations:       GetDevnetGenesisAllocations(), // Use devnet allocations with test wallets
+		InitialValidators: []*GenesisValidator{},
+	}
+}
+
 // AddValidator appends a validator entry to gs.InitialValidators.
 // It is a fluent convenience wrapper for building genesis state in tests:
 //
