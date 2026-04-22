@@ -103,8 +103,8 @@
 - [ ] Local devnet one-click setup
 
 ### 📚 Documentation
-- [ ] Whitepaper (formal)
-- [ ] Technical specification document
+- [x] Whitepaper (formal) ✅ 2026-04-22 `docs/WHITEPAPER.md`
+- [x] Technical specification document ✅ 2026-04-22 `docs/QVM-SPECIFICATION.md`, `docs/CRYPTOGRAPHY.md`
 - [ ] Node operator guide
 - [ ] Validator setup guide
 - [ ] Developer tutorials
