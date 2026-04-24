@@ -47,3 +47,6 @@ Thumbs.db
 
 # Go
 vendor/
+
+#Guide
+RUN_GUIDE.md
