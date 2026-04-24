@@ -20,8 +20,12 @@ Before running a node, you need to compile the source code into an executable bi
 Open your terminal and run:
 
 ```bash
+# Clone
+
+git clone -b experimental https://github.com/quantix-org/quantix-org.git
+
 # Navigate to the project directory
-cd /Users/[username]/Developer/quantix
+cd quantix-org
 
 # Build the binary
 go build -o bin/quantix ./src/cli/main.go
