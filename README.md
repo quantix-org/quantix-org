@@ -1,168 +1,169 @@
 # Quantix Protocol
 
-> We want to be transparent with our community about a change in our GitHub organization.
->
-> * Our original repository was located at: https://github.com/quantix
-> * Our new home is now at: https://github.com/ramseyauron
-
-> **Why the Change?**
->
-> The original https://github.com/quantix account was unfortunately lost due to Access to that account has been permanently lost and github has no solution for our case. To ensure continuity and maintain an active, accessible home for the Quantix blockchain project, we've created a new organization: https://github.com/ramseyauron.
-
-> **What This Means for Contributors**
->
-> * All development continues - We're actively building at the new location
-> * All contribution opportunities remain - Bug fixes, documentation, features, and proposals are still welcome
-> * QIPS (QUANTIX Implementation Proposals) - Still available via our GitHub Wiki
-> * MIT License remains - The project continues as open source
-
-
-# Introduction
-
-Quantix is a blockchain layer 1 protocol built by community for humanity—an infrastructure for personal sovereignty that extends beyond economic participation, where privacy is mathematically enforced rather than merely promised. We implemented post-quantum cryptographic algorithms, we ensure blockchain security remains robust against the emerging and convergent threats posed by quantum computing and artificial intelligence.
-
-In an era where AI systems grow increasingly powerful and quantum computers threaten to dismantle classical cryptography, the need for blockchain infrastructure that protects human interests has never been more critical. Quantix stands as a bulwark for human autonomy, founded on three core beliefs:
-
-- **Privacy** is a fundamental human right, not a luxury—enforced by mathematics, not trust
-- **Sovereignty** means individuals should have complete control over their digital assets, identity, and destiny
-- **Humanity** must be preserved through technology that serves people, elevating human dignity above surveillance and control
-
-We are building this foundation not just for economic participants, but for every human being who deserves digital self-determination. We encourage developers, researchers, and blockchain enthusiasts to contribute to our project and participate in discussions to enhance the protocol.
-
-## What is Quantix?
-
-Quantix is an open-source, post-quantum secure blockchain layer 1 protocol written in Go. We believe that every person brings a unique perspective and set of skills, which is why everyone is invited to contribute to this project. Whether you're a developer, researcher, or enthusiast, your input can help us build a resilient, **sovereign-grade blockchain infrastructure for the next digital era**. The project is under active development, and we welcome contributions from all walks of life!
-
-## Getting Started
-
-To contribute to the project, you need to have Go installed on your system. Follow the steps below to set up your environment.
-
-### 1. Install Go
-You can install Go by following the official instructions on the **[Go Installation page](https://go.dev/doc/install)**.
-
-**For Linux/macOS:**
-
-```bash 
-wget https://go.dev/dl/go1.XX.X.linux-amd64.tar.gz
-```
-
-```bash
-sudo tar -C /usr/local -xzf go1.XX.X.linux-amd64.tar.gz
-```
-
-```bash
-export PATH=$PATH:/usr/local/go/bin
-```
-
-
-For Windows, download the installer from here **[Go Installation page](https://go.dev/doc/install)**.
-
-**Verify your Go installation:**
-
-```bash
-go version
-```
-
-### 2. Clone the Repository
-Once Go is set up, clone the repository to your local machine.
-
-```bash
-git clone https://github.com/ramseyauron/quantix.git
-```
-
-```bash
-cd protocol
-```
-
-### 3. Fork the Repository
-If you intend to contribute, it is recommended to fork the repository. You can do this by clicking the "Fork" button in the upper-right corner of the repository page.
-
-### 4. Set Up Your Fork
-Add your fork as a remote:
-
-```bash
-git remote add fork https://github.com/<your-username>/protocol.git
-```
-
-## Contribution Guidelines
-
-We encourage the community to help improve Quantix. You can contribute in many ways: 
-1. fixing bugs
-2. writing documentation
-3. implementing new features
-4. or suggesting new ideas.
-
-###  Clone and Fork the Repository
-Make sure your local repository is up to date:
-
-```bash
-git pull origin main
-```
-
-### Making Changes
-1. Create a new branch for your feature or bug fix:
-
-```bash
-git checkout -b feature-name
-```
-
-2. Make the necessary changes in the code. Ensure your code is clean and well-documented.
-3. Test your code locally.
-
-
-### Submitting a Pull Request
-1. Push your branch to your forked repository:
-
-```bash
-git push fork feature-name
-```
-
-2. Create a pull request (PR) to the main repository from your branch on GitHub. Make sure your PR description clearly explains your changes.
-3. Wait for the review process. Be prepared to receive feedback or requests for changes.
-
-Proposals and Discussions
-
-All major proposals for features, upgrades, and changes are documented in the **https://github.com/ramseyauron/SIPS** section of the repository. You can find detailed descriptions of proposed features and their technical implementations here:
-
-## GitHub Wiki Pages
-
-GitHub Wiki Pages is contains of **QIPS (QUANTIX IMPLEMENTATION PROPOSALS)** you can join to review, discussions, or suggest improvements to existing proposals ideas. To contribute just visit to the **https://github.com/ramseyauron/SIPS**
-
-## Improvement Ideas
-
-Here are some areas where contributions are most welcome:
-
-1. Documentation: Help improve existing documentation or write tutorials and guides.
-2. Testing: Write unit tests, integration tests, or perform manual testing to identify bugs.
-3. Security: Contribute to making Quantix more secure by reviewing code or proposing post-quantum cryptographic methods.
-4. Performance Optimization: Improve performance and scalability of the Quantix protocol.
-5. Feature Requests: If you have ideas for new features, open an issue or create a proposal in the **https://github.com/ramseyauron/SIPS**
-##  License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## By following this guide
-
-you will be able to contribute to the Quantix project and help us build a quantum-resistant blockchain ecosystem.
-
-## Public Devnet RPC
-
-HTTP: http://164.68.118.17:8560
-Chain ID: 73310
+**Quantix** is a post-quantum blockchain protocol written in Go, secured by SPHINCS+/STHINCS cryptography and powered by PBFT consensus with stake-weighted RANDAO leader election.
 
 ---
 
-## Fix Log
+## ✨ Features
 
-### FIX-COMMIT-01 · 2026-04-03 · J.A.R.V.I.S. · commit `4745e1a`
+- 🔐 **Post-Quantum Cryptography** — SPHINCS+ & STHINCS signatures, resistant to quantum computing attacks
+- ⚡ **PBFT Consensus** — Byzantine fault-tolerant finality with stake-weighted voting
+- 🎲 **RANDAO + VDF** — Verifiable delay function for unpredictable, unbiasable leader election
+- 🖥️ **Quantix Virtual Machine (QVM)** — Stack-based smart contract execution with OP_RETURN support
+- 🔗 **ZK-STARK Proofs** — Zero-knowledge computation verification via libSTARK
+- 🌐 **DHT P2P Networking** — Kademlia-style peer discovery with encrypted handshakes
+- 💰 **QTX Token** — Native token with geometric-decay inflation and on-chain validator economics
 
-**Issue 1 — Nonce mismatch blocks CommitBlock**
-- Symptom: `CommitBlock` failed with `"bad nonce: got 301 want 0"` on fresh accounts in testnet
-- Fix: `src/core/executor.go` — bad-nonce txs are now gracefully **dropped** (logged as WARN) instead of returning a block-fatal error. Valid txs in the same block are unaffected.
-- Also updated `src/consensus/types.go`: added `DevnetMineBlock(nodeID string) (uint64, error)` to the `BlockChain` interface.
+---
 
-**Issue 2 — PBFT view-change storm / deadlock**
-- Symptom: PBFT spun through hundreds of views with no committed block, burning CPU
-- Fix: `src/consensus/consensus.go` — added PBFT deadlock fallback: if no block has been committed for **60 seconds** in PBFT mode, the node temporarily mines one block via `DevnetMineBlock` to break the deadlock, then resumes PBFT. Existing exponential backoff (2 s → 30 s cap) verified still active.
+## 🪙 Token: QTX
 
-Tests updated: `TestExecuteBlock_RejectBadNonce`, `TestAtomicity_FailedBlockLeavesNoPartialState` — both now reflect graceful-drop semantics and pass.
+| Unit   | Value     | Description          |
+| ------ | --------- | -------------------- |
+| `nQTX` | 1         | Base unit (nano-QTX) |
+| `gQTX` | 10⁹ nQTX  | Giga-QTX             |
+| `QTX`  | 10¹⁸ nQTX | 1 full token         |
+
+- **Max Supply**: 5,000,000,000 QTX (5 billion)
+- **Block Reward**: 5 QTX per block
+- **Annual Inflation**: 5% year 1, decays by 0.8× per year
+- **Min Validator Stake**: 32 QTX (mainnet)
+- **Address prefix**: `qtx1...`
+
+---
+
+## ⚙️ System Requirements
+
+### Minimum — Running a Node
+
+| Component   | Minimum                              | Recommended       |
+| ----------- | ------------------------------------ | ----------------- |
+| **CPU**     | 4 cores, 2.0 GHz                     | 8 cores, 3.0 GHz+ |
+| **RAM**     | 4 GB                                 | 8 GB+             |
+| **Disk**    | 20 GB SSD                            | 100 GB NVMe SSD   |
+| **OS**      | Ubuntu 22.04 / Debian 12 / macOS 13+ | Ubuntu 24.04 LTS  |
+| **Go**      | 1.22+                                | 1.24+             |
+| **Network** | 10 Mbps stable                       | 100 Mbps+         |
+
+> ⚠️ **HDD not recommended** — LevelDB state storage requires low-latency random I/O. SSD is strongly preferred.
+
+### Minimum — Development & Building
+
+| Component | Minimum          | Notes                                |
+| --------- | ---------------- | ------------------------------------ |
+| **CPU**   | 2 cores, 2.5 GHz | Argon2 in QtxHash is CPU-intensive   |
+| **RAM**   | 2 GB             | 4 GB recommended for full test suite |
+| **Disk**  | 5 GB             | Go module cache + build artifacts    |
+| **Go**    | 1.22+            | Required; 1.24+ recommended          |
+
+### Minimum — Running Tests
+
+| Component | Minimum           | Notes                                     |
+| --------- | ----------------- | ----------------------------------------- |
+| **CPU**   | 4 cores, 2.5 GHz+ | `src/core` tests are Argon2-heavy         |
+| **RAM**   | 4 GB              | Consensus tests spawn multiple goroutines |
+| **Go**    | 1.22+             |                                           |
+
+> 💡 **Tip for test environments**: Set `QUANTIX_TEST=1` to activate lightweight Argon2 parameters (8 KB memory, 1 iteration instead of 64 KB / 2 iterations). This reduces test runtime by ~8× without affecting algorithm correctness.
+>
+> ```bash
+> QUANTIX_TEST=1 go test ./...
+> ```
+
+### Per-Environment Chain Parameters
+
+| Parameter       | Devnet | Testnet | Mainnet |
+| --------------- | ------ | ------- | ------- |
+| Chain ID        | 73310  | 17331   | 7331    |
+| Block time      | 2s     | 5s      | 10s     |
+| Min stake       | 1 QTX  | 32 QTX  | 32 QTX  |
+| Block gas limit | 50M    | 20M     | 10M     |
+| Max block size  | 8 MB   | 4 MB    | 2 MB    |
+
+---
+
+## 🚀 Getting Started
+
+### Build
+
+```bash
+git clone https://github.com/quantix-org/quantix-org.git
+cd quantix-org
+go mod tidy
+go build ./...
+```
+
+### Run Tests
+
+```bash
+# Fast (recommended for CI / low-resource machines)
+QUANTIX_TEST=1 go test $(go list ./... | grep -v '/gui') -timeout 120s
+
+# Full (production-equivalent Argon2 params, needs 4+ core 2.5GHz+)
+go test $(go list ./... | grep -v '/gui') -timeout 600s
+```
+
+### Run a Devnet Node
+
+```bash
+go run src/cli/main.go --network devnet --port 32309
+```
+
+---
+
+## 🏗️ Architecture
+
+```
+quantix-org/
+├── src/
+│   ├── core/           # Blockchain engine, genesis, block execution
+│   ├── consensus/      # PBFT + PoS + RANDAO/VDF
+│   ├── crypto/         # SPHINCS+, STHINCS, WOTS, ZK-STARK
+│   ├── qtxhash/        # QtxHash — Argon2id + SHA-512/256 + SHAKE-256
+│   ├── policy/         # Tokenomics, inflation, validator economics
+│   ├── state/          # State machine replication (SMR)
+│   ├── p2p/            # Peer discovery, DHT routing
+│   ├── dht/            # Kademlia DHT
+│   ├── pool/           # Mempool
+│   ├── rpc/            # JSON-RPC server
+│   ├── bind/           # HTTP + WebSocket API
+│   ├── accounts/       # Wallet, keystore, BIP44 (coin type: 7331)
+│   ├── core/svm/       # Quantix Virtual Machine
+│   └── core/stark/     # ZK-STARK proof system
+```
+
+---
+
+## 🔐 Cryptography
+
+| Primitive  | Algorithm                                    | Purpose                         |
+| ---------- | -------------------------------------------- | ------------------------------- |
+| Signature  | STHINCS (SPHINCS+ variant)                   | Transaction & consensus signing |
+| Hash       | QtxHash (Argon2id + SHA-512/256 + SHAKE-256) | Block hash, tx ID, address      |
+| KDF        | Argon2id                                     | Key derivation, salt generation |
+| ZKP        | ZK-STARK (libSTARK)                          | Computation proofs              |
+| OTS        | WOTS (Winternitz)                            | SPHINCS+ hypertree component    |
+| Randomness | RANDAO + VDF (Wesolowski)                    | Leader election                 |
+
+---
+
+## 📋 QIPS — Quantix Implementation Proposals
+
+Protocol improvements are tracked in [quantix-org/QIPS](https://github.com/quantix-org/QIPS).
+
+| QIPS      | Title                                     | Status         |
+| --------- | ----------------------------------------- | -------------- |
+| QIPS-0007 | QTX Denomination Standard (nQTX/gQTX/QTX) | ✅ Implemented |
+| QIPS-0011 | Consensus — PBFT + RANDAO                 | ✅ Implemented |
+| QIPS-0012 | Staking & Validator Economics             | ✅ Implemented |
+| QIPS-0013 | ZK-STARK Integration                      | 🔄 In Progress |
+| QIPS-0014 | Cross-Chain Interoperability              | 📋 Draft       |
+| QIPS-0015 | On-Chain Governance                       | 📋 Draft       |
+
+---
+
+## 📄 License
+
+MIT License — see [LICENSE](LICENSE)
+
+© 2024 Quantix Developer Team

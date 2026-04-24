@@ -4,10 +4,10 @@
 
 This project is currently under active development and is considered experimental. As such, there are no officially supported versions at this time. We encourage contributors and users to work with the latest development branch to ensure they have access to the most up-to-date features and fixes.
 
-| Version      | Supported          |
-| ------------ | ------------------ |
-| Experimental | :construction:     |
-| Stable       | :x:                |
+| Version      | Supported      |
+| ------------ | -------------- |
+| Experimental | :construction: |
+| Stable       | :x:            |
 
 Please note that as the project matures, we will provide a list of stable versions with defined support policies.
 
@@ -15,7 +15,7 @@ Please note that as the project matures, we will provide a list of stable versio
 
 We take the security of our project seriously. If you discover a vulnerability, please report it as follows:
 
-1. **Contact Information**: Send an email to our dedicated security team at [quantixlabs@gmail.com](mailto:quantixlabs@gmail.com). Ensure the subject line includes "Security Vulnerability Report."
+1. **Contact Information**: Send an email to our dedicated security team at [developer@qpqb.org](mailto:developer@qpqb.org). Ensure the subject line includes "Security Vulnerability Report."
 
 2. **Provide Detailed Information**: Include the following details in your report:
    - A description of the vulnerability.
@@ -44,4 +44,3 @@ We encourage the community to help strengthen the security of this post-quantum 
 5. **Bug Bounties**: Participate in our bug bounty program (details available on our website) to earn rewards for reporting valid security issues.
 
 We value your contributions and look forward to collaborating with you to build a secure, innovative, and resilient post-quantum blockchain ecosystem.
-
