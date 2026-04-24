@@ -50,3 +50,7 @@ vendor/
 
 #Guide
 RUN_GUIDE.md
+TWITTER_JOURNEY.md
+
+#Data
+data/
