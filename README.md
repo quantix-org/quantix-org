@@ -87,7 +87,7 @@
 ### Build
 
 ```bash
-git clone https://github.com/quantix-org/quantix-org.git
+git clone -b experimental https://github.com/quantix-org/quantix-org.git
 cd quantix-org
 go mod tidy
 go build ./...
