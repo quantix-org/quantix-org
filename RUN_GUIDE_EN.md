@@ -21,7 +21,7 @@ Open your terminal and run:
 
 ```bash
 # Navigate to the project directory
-cd /Users/prasdabudiarta/Developer/quantix
+cd /Users/[username]/Developer/quantix
 
 # Build the binary
 go build -o bin/quantix ./src/cli/main.go
