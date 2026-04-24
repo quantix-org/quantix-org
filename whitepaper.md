@@ -365,31 +365,31 @@ Storage supports:
 
 ### 5.3 Supply Distribution
 
-| Category            | Allocation | Amount            | Vesting                  |
-| ------------------- | ---------- | ----------------- | ------------------------ |
-| **Public Sale**     | 85%        | 4,250,000,000 QTX | Immediate                |
-| **Ecosystem Fund**  | 5%         | 250,000,000 QTX   | 4-year linear            |
-| **Team & Advisors** | 5%         | 250,000,000 QTX   | 4-year with 1-year cliff |
-| **Reserve**         | 5%         | 250,000,000 QTX   | Governance-controlled    |
+The total hard-capped maximum supply of the network is **5,000,000,000 QTX**. At Genesis, **4,211,081,600 QTX** is minted, leaving **788,918,400 QTX** strictly reserved for 50 years of block rewards.
 
-### 5.4 Inflation & Block Rewards
+| Category                 | Amount            | Vesting                  |
+| ------------------------ | ----------------- | ------------------------ |
+| **Public Distribution**  | 3,461,081,600 QTX | Immediate                |
+| **Ecosystem Fund**       | 500,000,000 QTX   | 4-year linear            |
+| **Team & Advisors**      | 250,000,000 QTX   | 4-year with 1-year cliff |
+| **Future Block Rewards** | 788,918,400 QTX   | Emitted over 50 years    |
 
-| Parameter         | Value          |
-| ----------------- | -------------- |
-| Block Reward      | 5 QTX          |
-| Initial Inflation | 5% annually    |
-| Decay Factor      | 0.8× per year  |
-| Long-term Target  | ~0.5% annually |
+_(Total = 5,000,000,000 QTX)_
 
-**Inflation Schedule:**
+### 5.4 Emission & Block Rewards
 
-| Year | Inflation Rate | Cumulative Supply |
-| ---- | -------------- | ----------------- |
-| 1    | 5.00%          | 5.25B             |
-| 2    | 4.00%          | 5.46B             |
-| 3    | 3.20%          | 5.63B             |
-| 5    | 2.05%          | 5.89B             |
-| 10   | 0.67%          | 6.21B             |
+Instead of decaying inflation, Quantix tokenomics utilizes a flat emission schedule against a hard-capped max supply.
+
+| Parameter         | Value           |
+| ----------------- | --------------- |
+| Block Reward      | 5 QTX           |
+| Target Block Time | 10 seconds      |
+| Blocks per Year   | ~3,153,600      |
+| Annual Emission   | ~15,768,000 QTX |
+| Emission Duration | 50 Years        |
+
+**Emission Schedule:**
+Block rewards will mint linearly at 5 QTX per block for exactly 50 years (approx. 157.78 million blocks). After 50 years, the remaining unminted supply of 788,918,400 QTX will be completely exhausted, and validators will be compensated entirely by transaction fees.
 
 ### 5.5 Fee Distribution
 

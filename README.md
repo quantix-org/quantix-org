@@ -12,7 +12,7 @@
 - 🖥️ **Quantix Virtual Machine (QVM)** — Stack-based smart contract execution with OP_RETURN support
 - 🔗 **ZK-STARK Proofs** — Zero-knowledge computation verification via libSTARK
 - 🌐 **DHT P2P Networking** — Kademlia-style peer discovery with encrypted handshakes
-- 💰 **QTX Token** — Native token with geometric-decay inflation and on-chain validator economics
+- 💰 **QTX Token** — Native token with fixed maximum supply and 50-year block emission schedule
 
 ---
 
@@ -24,9 +24,9 @@
 | `gQTX` | 10⁹ nQTX  | Giga-QTX             |
 | `QTX`  | 10¹⁸ nQTX | 1 full token         |
 
-- **Max Supply**: 5,000,000,000 QTX (5 billion)
-- **Block Reward**: 5 QTX per block
-- **Annual Inflation**: 5% year 1, decays by 0.8× per year
+- **Max Supply**: 5,000,000,000 QTX (5 billion total cap)
+- **Genesis Mint**: 4,211,081,600 QTX
+- **Block Reward**: 5 QTX per block (Flat emission over 50 years to reach max supply)
 - **Min Validator Stake**: 32 QTX (mainnet)
 - **Address prefix**: `qtx1...`
 
