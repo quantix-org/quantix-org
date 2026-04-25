@@ -1,5 +1,3 @@
-version: "3.9"
-
 # 4-validator testnet
 # validator-0: RPC=8560, P2P=32307, WS=8700
 # validator-1: RPC=8561, P2P=32308, WS=8701
@@ -45,6 +43,7 @@ services:
       - "32307"
       - -tcp-addr
       - "0.0.0.0:32307"
+      - -dev-mode
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8560/blockcount"]
       interval: 15s
@@ -90,6 +89,7 @@ services:
       - "validator-0:32307"
       - -seed-http-port
       - "8560"
+      - -dev-mode
     depends_on:
       validator-0:
         condition: service_healthy
@@ -132,6 +132,7 @@ services:
       - "validator-0:32307"
       - -seed-http-port
       - "8560"
+      - -dev-mode
     depends_on:
       validator-0:
         condition: service_healthy
@@ -174,6 +175,7 @@ services:
       - "validator-0:32307"
       - -seed-http-port
       - "8560"
+      - -dev-mode
     depends_on:
       validator-0:
         condition: service_healthy

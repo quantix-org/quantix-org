@@ -3,15 +3,16 @@
 # ─────────────────────────────────────────────
 # Stage 1: Builder
 # ─────────────────────────────────────────────
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24-bookworm AS builder
 
-RUN apk add --no-cache git gcc musl-dev
+RUN apt-get update && apt-get install -y --no-install-recommends git gcc libc-dev
 
 WORKDIR /app
 COPY go.mod go.sum ./
+COPY src/crypto/SPHINCSPLUS-golang ./src/crypto/SPHINCSPLUS-golang
 RUN go mod download
-
 COPY . .
+
 RUN go build -o bin/quantix ./src/cli/main.go
 
 # ─────────────────────────────────────────────
@@ -25,15 +26,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Non-root user
-RUN useradd -r -u 1000 -m -d /home/quantix quantix
+# RUN useradd -r -u 1000 -m -d /home/quantix quantix
 
 WORKDIR /app
 COPY --from=builder /app/bin/quantix .
 
-RUN mkdir -p /app/data && chown -R quantix:quantix /app
+RUN mkdir -p /app/data
 VOLUME ["/app/data"]
 
-USER quantix
+# USER quantix
 
 # Port legend:
 #   8560  — HTTP RPC API

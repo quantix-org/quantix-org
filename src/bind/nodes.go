@@ -283,7 +283,7 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 	if nodeConfig.ExplicitSeeds && len(nodeConfig.SeedNodes) > 0 {
 		seedHTTPPort := nodeConfig.SeedHTTPPort
 		if seedHTTPPort == "" {
-			seedHTTPPort = "8590"
+			seedHTTPPort = "8560"
 		}
 		seedHTTPs := make([]string, 0, len(nodeConfig.SeedNodes))
 		for _, seed := range nodeConfig.SeedNodes {
@@ -587,12 +587,7 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 					defer ticker2.Stop()
 					bc2 := resources[0].Blockchain
 					for range ticker2.C {
-						// Validator-count-aware pause: slow down if peers haven't synced yet
-						if vv, err2 := bc2.GetValidators(); err2 == nil && len(vv) < 4 && bc2.GetBlockCount() > 5 {
-							log.Printf("⏳ Devnet miner pausing — only %d/4 validators registered, the blockchain works.", len(vv))
-							time.Sleep(8 * time.Second)
-							continue
-						}
+						// Continue mining to keep network alive during validator registration
 						if height, err := bc2.DevnetMineBlock(nodeConfig.Name); err != nil {
 							if !strings.Contains(err.Error(), "no pending transactions") {
 								log.Printf("⚠️  Devnet miner: %v", err)
@@ -620,12 +615,7 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 							log.Printf("⚠️  Devnet miner tick panic: %v", r)
 						}
 					}()
-					// Validator-count-aware pause: slow down if peers haven't synced yet
-					if vv, err2 := bc.GetValidators(); err2 == nil && len(vv) < 4 && bc.GetBlockCount() > 5 {
-						log.Printf("⏳ Devnet miner pausing — only %d/4 validators registered, the blockchain works.", len(vv))
-						time.Sleep(8 * time.Second)
-						return
-					}
+					// Continue mining to keep network alive during validator registration
 					pendingCount := bc.GetPendingTransactionCount()
 					log.Printf("DevnetMineBlock attempt: pending=%d", pendingCount)
 					height, err := bc.DevnetMineBlock(nodeConfig.Name)
