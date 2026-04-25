@@ -26,10 +26,10 @@ package bind
 import (
 	"sync"
 
-	security "github.com/ramseyauron/quantix/src/handshake"
-	logger "github.com/ramseyauron/quantix/src/log"
-	"github.com/ramseyauron/quantix/src/rpc"
-	"github.com/ramseyauron/quantix/src/transport"
+	security "github.com/quantix-org/quantix-org/src/handshake"
+	logger "github.com/quantix-org/quantix-org/src/log"
+	"github.com/quantix-org/quantix-org/src/rpc"
+	"github.com/quantix-org/quantix-org/src/transport"
 )
 
 // startWebSocketServer starts a WebSocket server for the given node.

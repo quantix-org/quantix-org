@@ -28,10 +28,10 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ramseyauron/quantix/src/core"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	security "github.com/ramseyauron/quantix/src/handshake"
-	sign "github.com/ramseyauron/quantix/src/core/sphincs/sign/backend"
+	"github.com/quantix-org/quantix-org/src/core"
+	sign "github.com/quantix-org/quantix-org/src/core/sphincs/sign/backend"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	security "github.com/quantix-org/quantix-org/src/handshake"
 )
 
 // Server represents an HTTP server.
@@ -42,17 +42,17 @@ type ValidatorRegistrar interface {
 }
 
 type Server struct {
-	address              string
-	router               *gin.Engine
-	messageCh            chan *security.Message
-	blockchain           *core.Blockchain
-	httpServer           *http.Server
-	lastTxMutex          sync.RWMutex
-	lastTransaction      *types.Transaction
-	readyCh              chan struct{}
-	consensusValidatorSet ValidatorRegistrar // P2-6: optional consensus validator set
-	faucetLimiter        sync.Map           // P2-FAUCET: map[address]time.Time last request
-	sphincsMgr           *sign.SphincsManager // P3-5: optional SPHINCS+ manager for sig verification
+	address               string
+	router                *gin.Engine
+	messageCh             chan *security.Message
+	blockchain            *core.Blockchain
+	httpServer            *http.Server
+	lastTxMutex           sync.RWMutex
+	lastTransaction       *types.Transaction
+	readyCh               chan struct{}
+	consensusValidatorSet ValidatorRegistrar   // P2-6: optional consensus validator set
+	faucetLimiter         sync.Map             // P2-FAUCET: map[address]time.Time last request
+	sphincsMgr            *sign.SphincsManager // P3-5: optional SPHINCS+ manager for sig verification
 }
 
 // SetConsensusValidatorSet wires the consensus validator set to the HTTP server (P2-6).

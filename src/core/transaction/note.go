@@ -30,7 +30,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/common"
+	"github.com/quantix-org/quantix-org/src/common"
 )
 
 // NewNote creates a new Note instance using centralized time service

@@ -12,7 +12,7 @@ import (
 	"os"
 	"path/filepath"
 
-	keybackend "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
+	keybackend "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
 )
 
 const keyFileName = "validator-key.json"

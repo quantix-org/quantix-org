@@ -6,7 +6,7 @@ import (
 	"bytes"
 	"testing"
 
-	sigproof "github.com/ramseyauron/quantix/src/core/proof"
+	sigproof "github.com/quantix-org/quantix-org/src/core/proof"
 )
 
 var (

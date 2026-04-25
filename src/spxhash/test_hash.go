@@ -27,7 +27,7 @@ import (
 	"fmt"
 	"log"
 
-	spxhash "github.com/ramseyauron/quantix/src/spxhash/hash"
+	spxhash "github.com/quantix-org/quantix-org/src/spxhash/hash"
 )
 
 func main() {

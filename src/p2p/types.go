@@ -28,32 +28,32 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/consensus"
-	"github.com/ramseyauron/quantix/src/core"
-	sign "github.com/ramseyauron/quantix/src/core/sphincs/sign/backend"
-	security "github.com/ramseyauron/quantix/src/handshake"
-	"github.com/ramseyauron/quantix/src/network"
+	"github.com/quantix-org/quantix-org/src/consensus"
+	"github.com/quantix-org/quantix-org/src/core"
+	sign "github.com/quantix-org/quantix-org/src/core/sphincs/sign/backend"
+	security "github.com/quantix-org/quantix-org/src/handshake"
+	"github.com/quantix-org/quantix-org/src/network"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
 type Server struct {
-	localNode   *network.Node
-	nodeManager *network.NodeManager
-	seedNodes   []string
-	udpConn     *net.UDPConn
-	messageCh   chan *security.Message
-	verackCh    chan *security.Message // FIX-P2P-GOSSIP2: dedicated channel for verack routing
-	devDiscoverOnce sync.Once          // FIX-P2P-GOSSIP2: prevent duplicate discoverPeersDevMode calls
-	blockchain  *core.Blockchain
-	peerManager *PeerManager
-	mu          sync.RWMutex
-	db          *leveldb.DB
-	sphincsMgr  *sign.SphincsManager
-	stopCh      chan struct{} // Channel to signal stop
-	udpReadyCh  chan struct{} // Channel to signal UDP readiness
-	dht         network.DHT   // Add DHT field
-	consensus   *consensus.Consensus
-	devMode     bool // FIX-P2P-03: skip DHT, use direct TCP peering
+	localNode       *network.Node
+	nodeManager     *network.NodeManager
+	seedNodes       []string
+	udpConn         *net.UDPConn
+	messageCh       chan *security.Message
+	verackCh        chan *security.Message // FIX-P2P-GOSSIP2: dedicated channel for verack routing
+	devDiscoverOnce sync.Once              // FIX-P2P-GOSSIP2: prevent duplicate discoverPeersDevMode calls
+	blockchain      *core.Blockchain
+	peerManager     *PeerManager
+	mu              sync.RWMutex
+	db              *leveldb.DB
+	sphincsMgr      *sign.SphincsManager
+	stopCh          chan struct{} // Channel to signal stop
+	udpReadyCh      chan struct{} // Channel to signal UDP readiness
+	dht             network.DHT   // Add DHT field
+	consensus       *consensus.Consensus
+	devMode         bool // FIX-P2P-03: skip DHT, use direct TCP peering
 
 	neighborsCache     map[network.NodeID][]network.PeerInfo
 	neighborsCacheTime time.Time
@@ -63,8 +63,8 @@ type Server struct {
 	// Prevents broadcast amplification when the same block arrives from
 	// multiple peers simultaneously. Entries older than seenBlocksTTL are
 	// pruned lazily on each insertion.
-	seenBlocks    map[string]time.Time
-	seenBlocksMu  sync.Mutex
+	seenBlocks   map[string]time.Time
+	seenBlocksMu sync.Mutex
 
 	// FIX-PBFT-DEADLOCK / SEC-P2P01: dedup map for consensus message relay.
 	// Prevents broadcast storms when relaying consensus_msg in star topology.

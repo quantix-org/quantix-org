@@ -13,7 +13,7 @@ import (
 	"sync"
 	"testing"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
 )
 
 // ---------------------------------------------------------------------------

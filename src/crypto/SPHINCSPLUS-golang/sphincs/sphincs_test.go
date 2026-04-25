@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/hypertree"
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/parameters"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/hypertree"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/parameters"
 )
 
 // Runs the testSignFixed and testSignAndVerify subtests for all 24 implemented variants.

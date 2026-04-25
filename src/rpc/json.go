@@ -30,9 +30,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/core"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	security "github.com/ramseyauron/quantix/src/handshake"
+	"github.com/quantix-org/quantix-org/src/core"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	security "github.com/quantix-org/quantix-org/src/handshake"
 )
 
 // NewJSONRPCHandler creates a new JSON-RPC handler with registered methods.

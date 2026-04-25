@@ -28,8 +28,8 @@ import (
 	"fmt"
 	"math/big"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	logger "github.com/ramseyauron/quantix/src/log"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // sha256Bytes returns the SHA-256 digest of b as a byte slice.
@@ -150,17 +150,17 @@ func (bc *Blockchain) applyTransactions(block *types.Block, stateDB *StateDB) er
 					return fmt.Errorf("tx[%d] %s: SEC-E03: sender public key not available for signature verification", i, tx.ID)
 				}
 			} else {
-			// Build canonical message: SHA-256("sender:receiver:amount:nonce")
-			canonicalPreimage := tx.Sender + ":" + tx.Receiver + ":" + tx.Amount.String() + ":" + fmt.Sprintf("%d", tx.Nonce)
-			canonicalMsg := sha256Bytes([]byte(canonicalPreimage))
-			if !bc.sigVerifier.VerifyTxSignature(canonicalMsg, tx.SigTimestamp, tx.SigNonce, tx.Signature, pubKey) {
-				return fmt.Errorf("tx[%d] %s: SEC-E03: invalid SPHINCS+ signature", i, tx.ID)
-			}
-			// Register the public key on first appearance (fingerprint-bound).
-			if len(tx.SenderPublicKey) > 0 {
-				stateDB.RegisterPublicKey(tx.Sender, tx.SenderPublicKey)
-			}
-		} // end else (pubKey available)
+				// Build canonical message: SHA-256("sender:receiver:amount:nonce")
+				canonicalPreimage := tx.Sender + ":" + tx.Receiver + ":" + tx.Amount.String() + ":" + fmt.Sprintf("%d", tx.Nonce)
+				canonicalMsg := sha256Bytes([]byte(canonicalPreimage))
+				if !bc.sigVerifier.VerifyTxSignature(canonicalMsg, tx.SigTimestamp, tx.SigNonce, tx.Signature, pubKey) {
+					return fmt.Errorf("tx[%d] %s: SEC-E03: invalid SPHINCS+ signature", i, tx.ID)
+				}
+				// Register the public key on first appearance (fingerprint-bound).
+				if len(tx.SenderPublicKey) > 0 {
+					stateDB.RegisterPublicKey(tx.Sender, tx.SenderPublicKey)
+				}
+			} // end else (pubKey available)
 		}
 
 		expected := stateDB.GetNonce(tx.Sender)

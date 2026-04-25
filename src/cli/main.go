@@ -27,7 +27,7 @@ import (
 	"log"
 	"os"
 
-	cli "github.com/ramseyauron/quantix/src/cli/utils"
+	cli "github.com/quantix-org/quantix-org/src/cli/utils"
 )
 
 func main() {

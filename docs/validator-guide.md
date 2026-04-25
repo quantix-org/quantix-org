@@ -7,11 +7,11 @@
 
 ## Table of Contents
 
-1. [System Requirements](#1-system-requirements)  
-2. [Install from Source](#2-install-from-source)  
-3. [Configure Your Node](#3-configure-your-node)  
-4. [Join devnet / testnet](#4-join-devnet--testnet)  
-5. [Monitor with Grafana](#5-monitor-with-grafana)  
+1. [System Requirements](#1-system-requirements)
+2. [Install from Source](#2-install-from-source)
+3. [Configure Your Node](#3-configure-your-node)
+4. [Join devnet / testnet](#4-join-devnet--testnet)
+5. [Monitor with Grafana](#5-monitor-with-grafana)
 6. [FAQ](#6-faq)
 
 ---
@@ -20,33 +20,33 @@
 
 ### Minimum (devnet / solo validator)
 
-| Resource | Minimum | Recommended |
-|---|---|---|
-| CPU | 2 cores | 4 cores |
-| RAM | 2 GB | 8 GB |
-| Disk | 20 GB SSD | 100 GB NVMe |
-| OS | Linux (Ubuntu 22.04+) | Ubuntu 22.04 LTS |
-| Network | 10 Mbps | 100 Mbps |
-| Go | 1.24+ | latest |
-| Docker | 24+ (optional) | latest |
+| Resource | Minimum               | Recommended      |
+| -------- | --------------------- | ---------------- |
+| CPU      | 2 cores               | 4 cores          |
+| RAM      | 2 GB                  | 8 GB             |
+| Disk     | 20 GB SSD             | 100 GB NVMe      |
+| OS       | Linux (Ubuntu 22.04+) | Ubuntu 22.04 LTS |
+| Network  | 10 Mbps               | 100 Mbps         |
+| Go       | 1.24+                 | latest           |
+| Docker   | 24+ (optional)        | latest           |
 
 ### Recommended (testnet / production)
 
-| Resource | Value |
-|---|---|
-| CPU | 8 cores |
-| RAM | 16 GB |
-| Disk | 500 GB NVMe |
-| Network | 1 Gbps with static IP |
-| Uptime | 99.9% SLA |
+| Resource | Value                 |
+| -------- | --------------------- |
+| CPU      | 8 cores               |
+| RAM      | 16 GB                 |
+| Disk     | 500 GB NVMe           |
+| Network  | 1 Gbps with static IP |
+| Uptime   | 99.9% SLA             |
 
 ### Open Ports
 
-| Port | Protocol | Purpose | Exposure |
-|---|---|---|---|
-| 8560 | TCP | HTTP RPC API | 🔒 Restrict to trusted IPs in production |
-| 8700 | TCP | WebSocket | 🔒 Restrict to trusted IPs in production |
-| 32307 | TCP/UDP | P2P networking | 🌐 Public (required for peer discovery) |
+| Port  | Protocol | Purpose        | Exposure                                 |
+| ----- | -------- | -------------- | ---------------------------------------- |
+| 8560  | TCP      | HTTP RPC API   | 🔒 Restrict to trusted IPs in production |
+| 8700  | TCP      | WebSocket      | 🔒 Restrict to trusted IPs in production |
+| 32307 | TCP/UDP  | P2P networking | 🌐 Public (required for peer discovery)  |
 
 > ⚠️ **SEC-D01 — Production Firewall Required**: The HTTP RPC port (8560) and WebSocket
 > port (8700) must **not** be publicly exposed in production. Use `ufw` or `iptables` to
@@ -82,7 +82,7 @@ sudo apt update && sudo apt install -y git curl make build-essential
 ### 2.2 Clone and Build
 
 ```bash
-git clone https://github.com/ramseyauron/quantix.git
+git clone https://github.com/quantix-org/quantix-org.git
 cd quantix
 make build
 # or manually:
@@ -109,24 +109,24 @@ mkdir -p ~/.quantix/data
 
 ### 3.2 Key Flags
 
-| Flag | Default | Description |
-|---|---|---|
-| `-datadir` | `./data` | Path to chain data |
-| `-http-port` | `0.0.0.0:8560` | HTTP RPC listen address |
-| `-udp-port` | `32307` | P2P UDP port |
-| `-tcp-addr` | `0.0.0.0:32307` | P2P TCP listen address |
-| `-nodes` | `1` | Total validators in network |
-| `-node-index` | `0` | This validator's index (0-based) |
-| `-roles` | `validator` | Comma-separated role list |
-| `-seeds` | _(none)_ | Seed peer addresses |
-| `-seed-http-port` | _(none)_ | HTTP port of seed node |
+| Flag              | Default         | Description                      |
+| ----------------- | --------------- | -------------------------------- |
+| `-datadir`        | `./data`        | Path to chain data               |
+| `-http-port`      | `0.0.0.0:8560`  | HTTP RPC listen address          |
+| `-udp-port`       | `32307`         | P2P UDP port                     |
+| `-tcp-addr`       | `0.0.0.0:32307` | P2P TCP listen address           |
+| `-nodes`          | `1`             | Total validators in network      |
+| `-node-index`     | `0`             | This validator's index (0-based) |
+| `-roles`          | `validator`     | Comma-separated role list        |
+| `-seeds`          | _(none)_        | Seed peer addresses              |
+| `-seed-http-port` | _(none)_        | HTTP port of seed node           |
 
 ### 3.3 Environment Variables
 
-| Variable | Values | Description |
-|---|---|---|
-| `QUANTIX_NETWORK` | `devnet`, `testnet`, `mainnet` | Network identifier |
-| `QUANTIX_ENV` | `devnet`, `testnet`, `mainnet` | Deployment environment |
+| Variable          | Values                         | Description            |
+| ----------------- | ------------------------------ | ---------------------- |
+| `QUANTIX_NETWORK` | `devnet`, `testnet`, `mainnet` | Network identifier     |
+| `QUANTIX_ENV`     | `devnet`, `testnet`, `mainnet` | Deployment environment |
 
 ---
 
@@ -135,7 +135,7 @@ mkdir -p ~/.quantix/data
 ### 4.1 Quick Start — Single Node devnet (Docker)
 
 ```bash
-git clone https://github.com/ramseyauron/quantix.git
+git clone https://github.com/quantix-org/quantix-org.git
 cd quantix
 docker compose up --build -d
 # Check health
@@ -205,7 +205,8 @@ docker compose -f docker-compose-monitoring.yml up -d
 ```
 
 This starts:
-- **Prometheus** → `http://localhost:9090`  
+
+- **Prometheus** → `http://localhost:9090`
 - **Grafana** → `http://localhost:3000` (default: `admin` / `admin`) — ⚠️ **Change the default password immediately** (`admin` → strong password) before exposing Grafana to any network
 
 ### 5.2 Import the Dashboard
@@ -218,24 +219,24 @@ This starts:
 
 ### 5.3 Dashboard Panels
 
-| Panel | Type | Metric |
-|---|---|---|
-| Block Height | Line chart | `quantix_block_height` |
-| Transactions Per Second | Gauge | `rate(quantix_transactions_total[1m])` |
-| Mempool Size | Gauge | `quantix_mempool_size` |
-| Peer Count | Stat | `quantix_peers_connected` |
-| Block Time Distribution | Histogram (p50/p95/p99) | `quantix_block_time_seconds` |
-| Validator Count | Stat | `quantix_validators_active` |
+| Panel                   | Type                    | Metric                                 |
+| ----------------------- | ----------------------- | -------------------------------------- |
+| Block Height            | Line chart              | `quantix_block_height`                 |
+| Transactions Per Second | Gauge                   | `rate(quantix_transactions_total[1m])` |
+| Mempool Size            | Gauge                   | `quantix_mempool_size`                 |
+| Peer Count              | Stat                    | `quantix_peers_connected`              |
+| Block Time Distribution | Histogram (p50/p95/p99) | `quantix_block_time_seconds`           |
+| Validator Count         | Stat                    | `quantix_validators_active`            |
 
 ### 5.4 Alerting Recommendations
 
-| Alert | Condition | Severity |
-|---|---|---|
-| Low TPS | `tx/s < 100` for 5m | Warning |
-| No blocks | Block height unchanged 60s | Critical |
-| Peer loss | Peers < 2 | Warning |
-| Mempool full | Mempool > 9000 | Warning |
-| Node down | HTTP `/blockcount` fails | Critical |
+| Alert        | Condition                  | Severity |
+| ------------ | -------------------------- | -------- |
+| Low TPS      | `tx/s < 100` for 5m        | Warning  |
+| No blocks    | Block height unchanged 60s | Critical |
+| Peer loss    | Peers < 2                  | Warning  |
+| Mempool full | Mempool > 9000             | Warning  |
+| Node down    | HTTP `/blockcount` fails   | Critical |
 
 ---
 
@@ -260,7 +261,8 @@ A: Yes, using different ports and data directories. Use `docker-compose-testnet.
 A: SPHINCS+ (stateless hash-based signatures) via the bundled `SPHINCSPLUS-golang` module. See `src/crypto/` for details.
 
 **Q: How do I upgrade my node?**  
-A: 
+A:
+
 ```bash
 git pull
 go build -o bin/quantix .
@@ -276,4 +278,4 @@ A: Compare your block height with a known peer: `curl http://<peer-ip>:8560/bloc
 
 ---
 
-*Built with 🔬 by the Quantix team · F.R.I.D.A.Y. DevOps v3*
+_Built with 🔬 by the Quantix team · F.R.I.D.A.Y. DevOps v3_

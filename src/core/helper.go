@@ -29,14 +29,14 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/ramseyauron/quantix/src/common"
-	"github.com/ramseyauron/quantix/src/consensus"
-	database "github.com/ramseyauron/quantix/src/core/state"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	logger "github.com/ramseyauron/quantix/src/log"
-	"github.com/ramseyauron/quantix/src/policy"
-	"github.com/ramseyauron/quantix/src/pool"
-	storage "github.com/ramseyauron/quantix/src/state"
+	"github.com/quantix-org/quantix-org/src/common"
+	"github.com/quantix-org/quantix-org/src/consensus"
+	database "github.com/quantix-org/quantix-org/src/core/state"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	logger "github.com/quantix-org/quantix-org/src/log"
+	"github.com/quantix-org/quantix-org/src/policy"
+	"github.com/quantix-org/quantix-org/src/pool"
+	storage "github.com/quantix-org/quantix-org/src/state"
 )
 
 // NewBlockHelper creates a new adapter for types.Block

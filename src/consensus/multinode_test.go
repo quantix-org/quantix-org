@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	denom "github.com/ramseyauron/quantix/src/params/denom"
+	denom "github.com/quantix-org/quantix-org/src/params/denom"
 )
 
 // ---------------------------------------------------------------------------

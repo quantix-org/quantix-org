@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	security "github.com/ramseyauron/quantix/src/handshake"
+	security "github.com/quantix-org/quantix-org/src/handshake"
 )
 
 // txBody returns a minimal transaction JSON body with the current timestamp.

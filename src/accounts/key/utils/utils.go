@@ -29,9 +29,9 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/ramseyauron/quantix/src/accounts/key"
-	disk "github.com/ramseyauron/quantix/src/accounts/key/disk"
-	usb "github.com/ramseyauron/quantix/src/accounts/key/external"
+	"github.com/quantix-org/quantix-org/src/accounts/key"
+	disk "github.com/quantix-org/quantix-org/src/accounts/key/disk"
+	usb "github.com/quantix-org/quantix-org/src/accounts/key/external"
 )
 
 // NewStorageManager creates a new storage manager

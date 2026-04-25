@@ -26,8 +26,8 @@ import (
 	"fmt"
 	"log"
 
-	multisig "github.com/ramseyauron/quantix/src/core/multisig/mps"
-	"github.com/ramseyauron/quantix/src/core/wallet/utils"
+	multisig "github.com/quantix-org/quantix-org/src/core/multisig/mps"
+	"github.com/quantix-org/quantix-org/src/core/wallet/utils"
 )
 
 func main() {

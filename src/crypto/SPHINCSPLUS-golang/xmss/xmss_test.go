@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/address"
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/parameters"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/address"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/parameters"
 )
 
 // Runs XMSS subtests for all 24 variants.

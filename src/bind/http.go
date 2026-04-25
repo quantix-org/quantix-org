@@ -27,10 +27,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/core"
-	security "github.com/ramseyauron/quantix/src/handshake"
-	"github.com/ramseyauron/quantix/src/http"
-	logger "github.com/ramseyauron/quantix/src/log"
+	"github.com/quantix-org/quantix-org/src/core"
+	security "github.com/quantix-org/quantix-org/src/handshake"
+	"github.com/quantix-org/quantix-org/src/http"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // startHTTPServerFromInstance starts a pre-built HTTP server (with sphincsMgr already wired).

@@ -5,7 +5,7 @@ package params_test
 import (
 	"testing"
 
-	params "github.com/ramseyauron/quantix/src/core/sphincs/config"
+	params "github.com/quantix-org/quantix-org/src/core/sphincs/config"
 )
 
 func TestNewSPHINCSParameters_NotNil(t *testing.T) {

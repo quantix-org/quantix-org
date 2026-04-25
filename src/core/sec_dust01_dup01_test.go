@@ -11,7 +11,7 @@ import (
 	"math/big"
 	"testing"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
 )
 
 const (
@@ -174,9 +174,9 @@ func TestSECDUP01_GasFee_EmptyValidatorIDSkipped(t *testing.T) {
 
 	gasFee := big.NewInt(1000)
 	attestors := []*types.Attestation{
-		{ValidatorID: ""},           // empty — should be skipped
+		{ValidatorID: ""}, // empty — should be skipped
 		{ValidatorID: dustAttestor1},
-		{ValidatorID: ""},           // another empty
+		{ValidatorID: ""}, // another empty
 	}
 	bc.distributeGasFee(gasFee, dustProposer, attestors, st)
 

@@ -29,7 +29,7 @@ import (
 	"os"
 	"sync"
 
-	logger "github.com/ramseyauron/quantix/src/log"
+	logger "github.com/quantix-org/quantix-org/src/log"
 	"golang.org/x/crypto/sha3"
 )
 

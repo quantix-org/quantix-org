@@ -24,9 +24,9 @@
 package utils
 
 import (
-	"github.com/ramseyauron/quantix/src/consensus"
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/sphincs"
-	logger "github.com/ramseyauron/quantix/src/log"
+	"github.com/quantix-org/quantix-org/src/consensus"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/sphincs"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // Add this function to exchange public keys between nodes

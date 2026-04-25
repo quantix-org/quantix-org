@@ -13,7 +13,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ramseyauron/quantix/src/consensus"
+	"github.com/quantix-org/quantix-org/src/consensus"
 )
 
 func init() {
@@ -76,18 +76,6 @@ func TestDecodeConsensusEnvelope_EmptyPayload(t *testing.T) {
 // ---------------------------------------------------------------------------
 // RouteConsensusMessage
 // ---------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
 
 // ---------------------------------------------------------------------------
 // NewP2PNodeManager / GetPeers / GetNode

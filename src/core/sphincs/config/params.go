@@ -27,7 +27,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/parameters"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/parameters"
 )
 
 // SPHINCSParameters wraps the Parameters struct for additional configuration.

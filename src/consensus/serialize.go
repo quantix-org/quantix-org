@@ -28,7 +28,7 @@ import (
 	"encoding/binary"
 	"errors"
 
-	"github.com/ramseyauron/quantix/src/core/hashtree"
+	"github.com/quantix-org/quantix-org/src/core/hashtree"
 )
 
 // Serialize the signed message to bytes

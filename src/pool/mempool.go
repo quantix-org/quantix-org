@@ -31,9 +31,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/common"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	logger "github.com/ramseyauron/quantix/src/log"
+	"github.com/quantix-org/quantix-org/src/common"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // NewMempool creates a new comprehensive mempool instance
@@ -696,7 +696,13 @@ func (mp *Mempool) GetMemoryUsage() map[string]interface{} {
 		"available_bytes":     mp.config.MaxBytes - mp.currentBytes,
 		"utilization_percent": float64(mp.currentBytes) / float64(mp.config.MaxBytes) * 100,
 		"average_tx_size":     mp.calculateAverageTxSize(),
-		"estimated_max_txs":   func() uint64 { avg := mp.calculateAverageTxSize(); if avg == 0 { return 0 }; return mp.config.MaxBytes / avg }(),
+		"estimated_max_txs": func() uint64 {
+			avg := mp.calculateAverageTxSize()
+			if avg == 0 {
+				return 0
+			}
+			return mp.config.MaxBytes / avg
+		}(),
 	}
 }
 

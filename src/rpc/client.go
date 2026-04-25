@@ -28,7 +28,7 @@ import (
 	"net"
 	"time"
 
-	security "github.com/ramseyauron/quantix/src/handshake"
+	security "github.com/quantix-org/quantix-org/src/handshake"
 )
 
 // CallRPC sends an RPC request to a peer, supporting both JSON and binary formats.

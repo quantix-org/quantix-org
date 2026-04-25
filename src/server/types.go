@@ -24,10 +24,10 @@
 package server
 
 import (
-	"github.com/ramseyauron/quantix/src/http"
-	"github.com/ramseyauron/quantix/src/network"
-	"github.com/ramseyauron/quantix/src/p2p"
-	"github.com/ramseyauron/quantix/src/transport"
+	"github.com/quantix-org/quantix-org/src/http"
+	"github.com/quantix-org/quantix-org/src/network"
+	"github.com/quantix-org/quantix-org/src/p2p"
+	"github.com/quantix-org/quantix-org/src/transport"
 )
 
 // Server encapsulates TCP, WebSocket, HTTP, and P2P servers.

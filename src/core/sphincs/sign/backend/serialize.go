@@ -26,7 +26,7 @@ package sign
 import (
 	"errors"
 
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/sphincs"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/sphincs"
 )
 
 // SIPS-0011 https://github.com/ramseyauron/SIPS/wiki/sips0011

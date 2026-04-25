@@ -34,8 +34,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/accounts/key"
-	"github.com/ramseyauron/quantix/src/core/wallet/crypter"
+	"github.com/quantix-org/quantix-org/src/accounts/key"
+	"github.com/quantix-org/quantix-org/src/core/wallet/crypter"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -331,7 +331,7 @@ func (ks *DiskKeyStore) GetWalletInfo() *key.WalletInfo { // Changed receiver ty
 	return &key.WalletInfo{
 		ID:           ks.generateKeyID(),
 		Name:         "Quantix Disk Wallet", // Changed from "Quantix Hot Wallet"
-		WalletType:   key.WalletTypeDisk,   // You might want to create this constant
+		WalletType:   key.WalletTypeDisk,    // You might want to create this constant
 		Storage:      key.StorageLocal,
 		CreatedAt:    time.Now(),
 		LastAccessed: time.Now(),

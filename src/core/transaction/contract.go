@@ -28,7 +28,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ramseyauron/quantix/src/common"
+	"github.com/quantix-org/quantix-org/src/common"
 )
 
 // CreateContract creates a contract between Alice and Bob based on the validated note.

@@ -29,7 +29,7 @@ import (
 	"sync"
 	"time"
 
-	logger "github.com/ramseyauron/quantix/src/log"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // TimeService provides centralized time management for the blockchain

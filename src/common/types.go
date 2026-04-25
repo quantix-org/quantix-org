@@ -23,7 +23,7 @@
 // go/src/common/types.go
 package common
 
-import spxhash "github.com/ramseyauron/quantix/src/spxhash/hash"
+import spxhash "github.com/quantix-org/quantix-org/src/spxhash/hash"
 
 // Params represents the configuration for QuantixHash.
 type Params struct {

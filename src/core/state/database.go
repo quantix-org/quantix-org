@@ -30,7 +30,7 @@ import (
 	"sync"
 	"time"
 
-	logger "github.com/ramseyauron/quantix/src/log"
+	logger "github.com/quantix-org/quantix-org/src/log"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/opt"

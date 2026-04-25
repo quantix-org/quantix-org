@@ -28,8 +28,8 @@ import (
 	"sync"
 	"time"
 
-	logger "github.com/ramseyauron/quantix/src/log"
-	"github.com/ramseyauron/quantix/src/p2p"
+	logger "github.com/quantix-org/quantix-org/src/log"
+	"github.com/quantix-org/quantix-org/src/p2p"
 )
 
 // startP2PServer starts a P2P server for the given node.

@@ -3,7 +3,7 @@ package tweakable
 import (
 	"crypto/subtle"
 
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/address"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/address"
 	"golang.org/x/crypto/sha3"
 )
 

@@ -30,9 +30,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/common"
-	sphincsKey "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	database "github.com/ramseyauron/quantix/src/core/state"
+	"github.com/quantix-org/quantix-org/src/common"
+	sphincsKey "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	database "github.com/quantix-org/quantix-org/src/core/state"
 )
 
 // Add this method to NodeManager for chain recognition
@@ -41,7 +41,7 @@ func (nm *NodeManager) GetChainInfo() map[string]interface{} {
 	// Return map with chain identification parameters
 	return map[string]interface{}{
 		"chain_id":         7331,         // Unique chain identifier
-		"chain_name":       "Quantix",     // Human-readable chain name
+		"chain_name":       "Quantix",    // Human-readable chain name
 		"symbol":           "QTX",        // Currency symbol
 		"protocol_version": "1.0.0",      // Protocol version
 		"network_magic":    "0x53504858", // Network magic bytes ("SPHX" in hex)

@@ -33,8 +33,8 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
-	"github.com/ramseyauron/quantix/src/accounts/key"
-	util "github.com/ramseyauron/quantix/src/accounts/key/utils"
+	"github.com/quantix-org/quantix-org/src/accounts/key"
+	util "github.com/quantix-org/quantix-org/src/accounts/key/utils"
 )
 
 // RunGUI starts the wallet GUI application

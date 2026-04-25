@@ -3,16 +3,16 @@
 
 // P.E.P.P.E.R. regression tests for JARVIS executor changes (252b5ff / adccf97 / 5982b38):
 // Devnet (IsDevnet() / ChainID=73310) now:
-//   1. Accepts out-of-order nonces (advances nonce instead of erroring)
-//   2. Skips balance checks (credits receiver even if sender has 0 balance)
-//   3. SEC-E03 sig verification skipped (devnet allows test txs without pubkeys)
+//  1. Accepts out-of-order nonces (advances nonce instead of erroring)
+//  2. Skips balance checks (credits receiver even if sender has 0 balance)
+//  3. SEC-E03 sig verification skipped (devnet allows test txs without pubkeys)
 package core
 
 import (
 	"math/big"
 	"testing"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
 )
 
 // ── Devnet nonce acceptance (252b5ff) ───────────────────────────────────────

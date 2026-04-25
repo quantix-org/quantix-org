@@ -28,8 +28,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/core"
-	security "github.com/ramseyauron/quantix/src/handshake"
+	"github.com/quantix-org/quantix-org/src/core"
+	security "github.com/quantix-org/quantix-org/src/handshake"
 )
 
 // NewServer creates a new RPC server instance.

@@ -25,8 +25,8 @@ import (
 	"os"
 	"testing"
 
-	corehttp "github.com/ramseyauron/quantix/src/http"
-	"github.com/ramseyauron/quantix/src/core"
+	"github.com/quantix-org/quantix-org/src/core"
+	corehttp "github.com/quantix-org/quantix-org/src/http"
 )
 
 // ---------------------------------------------------------------------------

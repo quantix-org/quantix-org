@@ -28,10 +28,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/common"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	logger "github.com/ramseyauron/quantix/src/log"
-	denom "github.com/ramseyauron/quantix/src/params/denom"
+	"github.com/quantix-org/quantix-org/src/common"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	logger "github.com/quantix-org/quantix-org/src/log"
+	denom "github.com/quantix-org/quantix-org/src/params/denom"
 )
 
 // Constants for blockchain status, sync modes, etc.

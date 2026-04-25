@@ -27,8 +27,8 @@ import (
 	"fmt"
 	"log"
 
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	encode "github.com/ramseyauron/quantix/src/core/wallet/address/encoding"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	encode "github.com/quantix-org/quantix-org/src/core/wallet/address/encoding"
 )
 
 func main() {

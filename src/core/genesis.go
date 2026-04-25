@@ -32,9 +32,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/common"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	logger "github.com/ramseyauron/quantix/src/log"
+	"github.com/quantix-org/quantix-org/src/common"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // NewGenesisValidatorStake converts a whole-QTX amount to the nQTX big.Int

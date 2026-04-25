@@ -31,9 +31,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ramseyauron/quantix/src/common"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	storage "github.com/ramseyauron/quantix/src/state"
+	"github.com/quantix-org/quantix-org/src/common"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	storage "github.com/quantix-org/quantix-org/src/state"
 )
 
 // ============================================================================
@@ -102,7 +102,6 @@ func cachedMinimalBlock() *types.Block {
 func applyMinimalGenesis(bc *Blockchain, gs *GenesisState) error {
 	return ApplyGenesisWithCachedBlock(bc, gs, cachedMinimalBlock())
 }
-
 
 // newMinimalBlockchain builds a *Blockchain containing only the storage layer
 // and mutex — the minimum ApplyGenesis requires.

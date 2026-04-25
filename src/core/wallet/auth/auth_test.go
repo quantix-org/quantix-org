@@ -7,7 +7,7 @@ import (
 	"encoding/base32"
 	"testing"
 
-	auth "github.com/ramseyauron/quantix/src/core/wallet/auth"
+	auth "github.com/quantix-org/quantix-org/src/core/wallet/auth"
 )
 
 func TestEncodeBase32_Roundtrip(t *testing.T) {

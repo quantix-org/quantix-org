@@ -33,10 +33,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/common"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	logger "github.com/ramseyauron/quantix/src/log"
-	denom "github.com/ramseyauron/quantix/src/params/denom"
+	"github.com/quantix-org/quantix-org/src/common"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	logger "github.com/quantix-org/quantix-org/src/log"
+	denom "github.com/quantix-org/quantix-org/src/params/denom"
 )
 
 // Workflow:  ProposeBlock → processProposal → processPrepareVote → processVote → commitBlock → CommitBlock → StoreBlock → storeBlockToDisk.
@@ -130,41 +130,41 @@ func NewConsensus(
 
 	// Create consensus instance
 	cons := &Consensus{
-		nodeID:               nodeID,                            // Unique identifier for this node
-		nodeManager:          nodeManager,                       // Manages peer connections
-		blockChain:           blockchain,                        // Reference to blockchain storage
-		signingService:       signingService,                    // Handles cryptographic signatures
-		currentView:          0,                                 // Current consensus view (round)
-		currentHeight:        0,                                 // Current blockchain height
-		phase:                PhaseIdle,                         // Current consensus phase
-		quorumFraction:       0.67,                              // 2/3 majority requirement
-		timeout:              300 * time.Second,                 // View change timeout
-		receivedVotes:        make(map[string]map[string]*Vote), // Commit votes by block hash
-		prepareVotes:         make(map[string]map[string]*Vote), // Prepare votes by block hash
-		sentVotes:            make(map[string]bool),             // Track sent commit votes
-		sentPrepareVotes:     make(map[string]bool),             // Track sent prepare votes
-		proposalCh:           make(chan *Proposal, 100),         // Proposal channel buffer
-		voteCh:               make(chan *Vote, 1000),            // Vote channel buffer
-		timeoutCh:            make(chan *TimeoutMsg, 100),       // Timeout channel buffer
-		prepareCh:            make(chan *Vote, 1000),            // Prepare vote channel buffer
-		onCommit:             onCommit,                          // Callback for block commit
-		ctx:                  ctx,                               // Context for cancellation
-		cancel:               cancel,                            // Cancel function
-		lastViewChange:       common.GetTimeService().Now(),     // Last view change timestamp
-		viewChangeMutex:      sync.Mutex{},                      // Mutex for view change
-		lastBlockTime:        common.GetTimeService().Now(),     // Last block commit timestamp
-		validatorSet:         validatorSet,                      // Set of active validators
-		randao:               randao,                            // VDF-based RANDAO instance
-		selector:             selector,                          // Leader selector
-		timeConverter:        timeConverter,                     // Slot time converter
-		useStakeWeighted:     true,                              // Use stake-weighted leader election
-		weightedPrepareVotes: make(map[string]*big.Int),         // Weighted prepare votes by stake
-		weightedCommitVotes:  make(map[string]*big.Int),         // Weighted commit votes by stake
-		attestations:         make(map[uint64][]*Attestation),   // Attestations by epoch
-		electedLeaderID:      "",                                // Set by UpdateLeaderStatus
+		nodeID:               nodeID,                                  // Unique identifier for this node
+		nodeManager:          nodeManager,                             // Manages peer connections
+		blockChain:           blockchain,                              // Reference to blockchain storage
+		signingService:       signingService,                          // Handles cryptographic signatures
+		currentView:          0,                                       // Current consensus view (round)
+		currentHeight:        0,                                       // Current blockchain height
+		phase:                PhaseIdle,                               // Current consensus phase
+		quorumFraction:       0.67,                                    // 2/3 majority requirement
+		timeout:              300 * time.Second,                       // View change timeout
+		receivedVotes:        make(map[string]map[string]*Vote),       // Commit votes by block hash
+		prepareVotes:         make(map[string]map[string]*Vote),       // Prepare votes by block hash
+		sentVotes:            make(map[string]bool),                   // Track sent commit votes
+		sentPrepareVotes:     make(map[string]bool),                   // Track sent prepare votes
+		proposalCh:           make(chan *Proposal, 100),               // Proposal channel buffer
+		voteCh:               make(chan *Vote, 1000),                  // Vote channel buffer
+		timeoutCh:            make(chan *TimeoutMsg, 100),             // Timeout channel buffer
+		prepareCh:            make(chan *Vote, 1000),                  // Prepare vote channel buffer
+		onCommit:             onCommit,                                // Callback for block commit
+		ctx:                  ctx,                                     // Context for cancellation
+		cancel:               cancel,                                  // Cancel function
+		lastViewChange:       common.GetTimeService().Now(),           // Last view change timestamp
+		viewChangeMutex:      sync.Mutex{},                            // Mutex for view change
+		lastBlockTime:        common.GetTimeService().Now(),           // Last block commit timestamp
+		validatorSet:         validatorSet,                            // Set of active validators
+		randao:               randao,                                  // VDF-based RANDAO instance
+		selector:             selector,                                // Leader selector
+		timeConverter:        timeConverter,                           // Slot time converter
+		useStakeWeighted:     true,                                    // Use stake-weighted leader election
+		weightedPrepareVotes: make(map[string]*big.Int),               // Weighted prepare votes by stake
+		weightedCommitVotes:  make(map[string]*big.Int),               // Weighted commit votes by stake
+		attestations:         make(map[uint64][]*Attestation),         // Attestations by epoch
+		electedLeaderID:      "",                                      // Set by UpdateLeaderStatus
 		timeoutVotes:         make(map[uint64]map[string]*TimeoutMsg), // For view change quorum
-		viewChangeBackoff:    2 * time.Second,                          // P2-4: initial backoff
-		lastProposalTime:     common.GetTimeService().Now(),            // P2-5: partition detection
+		viewChangeBackoff:    2 * time.Second,                         // P2-4: initial backoff
+		lastProposalTime:     common.GetTimeService().Now(),           // P2-5: partition detection
 	}
 
 	// Initialize and validate VDF parameters (run once at startup)

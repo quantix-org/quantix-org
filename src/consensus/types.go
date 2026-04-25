@@ -29,10 +29,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/core/hashtree"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	sign "github.com/ramseyauron/quantix/src/core/sphincs/sign/backend"
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/sphincs"
+	"github.com/quantix-org/quantix-org/src/core/hashtree"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	sign "github.com/quantix-org/quantix-org/src/core/sphincs/sign/backend"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/sphincs"
 )
 
 // Block interface that your existing types.Block will satisfy

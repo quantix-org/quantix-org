@@ -5,7 +5,7 @@ package state_test
 import (
 	"testing"
 
-	"github.com/ramseyauron/quantix/src/state"
+	"github.com/quantix-org/quantix-org/src/state"
 )
 
 // newTestSM creates a StateMachine with a temp-dir storage for unit tests.
@@ -88,7 +88,7 @@ func TestPopulatedFinalStates_ValidEntry(t *testing.T) {
 		BlockHash:   "0000000000000000000000000000000000000000000000000000000000000001",
 		BlockHeight: 1,
 		MessageType: "commit",
-		Valid:        true,
+		Valid:       true,
 	}
 	result := sm.PopulatedFinalStates([]*state.FinalStateInfo{entry})
 	if len(result) == 0 {

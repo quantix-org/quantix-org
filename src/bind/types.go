@@ -24,14 +24,14 @@
 package bind
 
 import (
-	"github.com/ramseyauron/quantix/src/consensus"
-	"github.com/ramseyauron/quantix/src/core"
-	security "github.com/ramseyauron/quantix/src/handshake"
-	"github.com/ramseyauron/quantix/src/http"
-	"github.com/ramseyauron/quantix/src/network"
-	"github.com/ramseyauron/quantix/src/p2p"
-	"github.com/ramseyauron/quantix/src/rpc"
-	"github.com/ramseyauron/quantix/src/transport"
+	"github.com/quantix-org/quantix-org/src/consensus"
+	"github.com/quantix-org/quantix-org/src/core"
+	security "github.com/quantix-org/quantix-org/src/handshake"
+	"github.com/quantix-org/quantix-org/src/http"
+	"github.com/quantix-org/quantix-org/src/network"
+	"github.com/quantix-org/quantix-org/src/p2p"
+	"github.com/quantix-org/quantix-org/src/rpc"
+	"github.com/quantix-org/quantix-org/src/transport"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
@@ -47,17 +47,17 @@ type NodeConfig struct {
 
 // NodeSetupConfig defines the configuration for setting up a node’s servers.
 type NodeSetupConfig struct {
-	Address    string
-	Name       string
-	Role       network.NodeRole
-	HTTPPort   string
-	WSPort     string
-	UDPPort    string
-	SeedNodes    []string
-	SeedHTTPPort string // optional: HTTP port of seed node (e.g. "8590"); if empty defaults to "8560"
-	DB           *leveldb.DB // optional: pre-opened LevelDB instance; SetupNodes will open its own if nil
-	DevMode      bool        // FIX-P2P-03: skip DHT, use direct TCP peering
-	ExplicitSeeds bool       // true when peer seeds were explicitly provided (not auto-generated)
+	Address       string
+	Name          string
+	Role          network.NodeRole
+	HTTPPort      string
+	WSPort        string
+	UDPPort       string
+	SeedNodes     []string
+	SeedHTTPPort  string      // optional: HTTP port of seed node (e.g. "8590"); if empty defaults to "8560"
+	DB            *leveldb.DB // optional: pre-opened LevelDB instance; SetupNodes will open its own if nil
+	DevMode       bool        // FIX-P2P-03: skip DHT, use direct TCP peering
+	ExplicitSeeds bool        // true when peer seeds were explicitly provided (not auto-generated)
 }
 
 // NodeResources holds the initialized resources for a node.

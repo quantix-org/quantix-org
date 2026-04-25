@@ -28,10 +28,10 @@ import (
 	"log"
 	"sync"
 
-	"github.com/ramseyauron/quantix/src/common"
+	"github.com/quantix-org/quantix-org/src/common"
 
-	multisig "github.com/ramseyauron/quantix/src/core/multisig/mps"
-	"github.com/ramseyauron/quantix/src/core/wallet/auth"
+	multisig "github.com/quantix-org/quantix-org/src/core/multisig/mps"
+	"github.com/quantix-org/quantix-org/src/core/wallet/auth"
 )
 
 // Mutex to protect access to memoryStore - ensures thread-safe access

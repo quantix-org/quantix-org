@@ -6,7 +6,7 @@ import (
 	"bytes"
 	"testing"
 
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
 )
 
 // ── NewKeyManager ───────────────────────────────────────────────────────────

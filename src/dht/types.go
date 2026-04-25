@@ -39,8 +39,8 @@ import (
 
 	"github.com/elliotchance/orderedmap/v2"
 	"github.com/lni/goutils/syncutil"
-	"github.com/ramseyauron/quantix/src/network"
-	"github.com/ramseyauron/quantix/src/rpc"
+	"github.com/quantix-org/quantix-org/src/network"
+	"github.com/quantix-org/quantix-org/src/rpc"
 	"go.uber.org/zap"
 )
 

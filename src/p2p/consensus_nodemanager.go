@@ -17,12 +17,12 @@ import (
 	"log"
 	"sync"
 
-	"github.com/ramseyauron/quantix/src/consensus"
-	security "github.com/ramseyauron/quantix/src/handshake"
-	"github.com/ramseyauron/quantix/src/network"
-	"github.com/ramseyauron/quantix/src/transport"
-	"github.com/ramseyauron/quantix/src/core"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
+	"github.com/quantix-org/quantix-org/src/consensus"
+	"github.com/quantix-org/quantix-org/src/core"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	security "github.com/quantix-org/quantix-org/src/handshake"
+	"github.com/quantix-org/quantix-org/src/network"
+	"github.com/quantix-org/quantix-org/src/transport"
 )
 
 // P2PNodeManager implements consensus.NodeManager via P2P TCP broadcast.

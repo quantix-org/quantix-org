@@ -6,7 +6,7 @@ package utils_test
 import (
 	"testing"
 
-	utils "github.com/ramseyauron/quantix/src/cli/utils"
+	utils "github.com/quantix-org/quantix-org/src/cli/utils"
 )
 
 // TestTestConfig_DefaultNumNodes verifies the zero value of TestConfig.

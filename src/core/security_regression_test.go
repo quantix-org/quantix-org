@@ -2,10 +2,11 @@
 // Copyright (c) 2024 quantix
 
 // Q21 — Security regression tests (core package):
-//   SEC-C01: bad-nonce tx causes error in prod-mode, gracefully dropped in dev-mode
-//   SEC-P02: validateNodeAddress rejects injection patterns
-//   SEC-P04: VerifyMessage returns false (fail-closed)
-//   IsDevMode() getter
+//
+//	SEC-C01: bad-nonce tx causes error in prod-mode, gracefully dropped in dev-mode
+//	SEC-P02: validateNodeAddress rejects injection patterns
+//	SEC-P04: VerifyMessage returns false (fail-closed)
+//	IsDevMode() getter
 package core
 
 import (
@@ -13,7 +14,7 @@ import (
 	"strings"
 	"testing"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
 )
 
 // ---------------------------------------------------------------------------

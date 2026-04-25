@@ -12,8 +12,8 @@ import (
 	"math/big"
 	"testing"
 
-	database "github.com/ramseyauron/quantix/src/core/state"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
+	database "github.com/quantix-org/quantix-org/src/core/state"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
 )
 
 // ---------------------------------------------------------------------------

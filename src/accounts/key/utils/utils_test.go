@@ -5,7 +5,7 @@ package utils_test
 import (
 	"testing"
 
-	utils "github.com/ramseyauron/quantix/src/accounts/key/utils"
+	utils "github.com/quantix-org/quantix-org/src/accounts/key/utils"
 )
 
 func TestNewStorageManager_NotNil(t *testing.T) {

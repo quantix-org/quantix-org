@@ -28,9 +28,9 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/accounts/key"
-	"github.com/ramseyauron/quantix/src/policy"
-	"github.com/ramseyauron/quantix/src/pool"
+	"github.com/quantix-org/quantix-org/src/accounts/key"
+	"github.com/quantix-org/quantix-org/src/policy"
+	"github.com/quantix-org/quantix-org/src/pool"
 )
 
 // GetChainParams returns the chain parameters from the mock provider
@@ -72,15 +72,15 @@ func GetQuantixChainParams() *QuantixChainParameters {
 	// Return complete mainnet configuration
 	return &QuantixChainParameters{
 		// Network Identification - unique identifiers for the blockchain
-		ChainID:       7331,             // Unique chain identifier
+		ChainID:       7331,              // Unique chain identifier
 		ChainName:     "Quantix Mainnet", // Human-readable network name
-		Symbol:        "QTX",            // Token symbol
+		Symbol:        "QTX",             // Token symbol
 		GenesisTime:   time.Now().Unix(), // Current time — set once at startup
-		GenesisHash:   genesisHash,      // Genesis block hash
-		Version:       "1.0.0",          // Protocol version
-		MagicNumber:   0x53504858,       // "SPHX" - Magic number for message validation
-		DefaultPort:   32307,            // Default P2P port
-		BIP44CoinType: 7331,             // BIP44 coin type for wallet derivation
+		GenesisHash:   genesisHash,       // Genesis block hash
+		Version:       "1.0.0",           // Protocol version
+		MagicNumber:   0x53504858,        // "SPHX" - Magic number for message validation
+		DefaultPort:   32307,             // Default P2P port
+		BIP44CoinType: 7331,              // BIP44 coin type for wallet derivation
 		LedgerName:    "Quantix",         // Ledger hardware wallet app name
 
 		// Denominations - unit conversions for the native token
@@ -100,9 +100,9 @@ func GetQuantixChainParams() *QuantixChainParameters {
 
 		// Genesis-specific configuration - MUST MATCH genesisBlockDefinition
 		GenesisConfig: &GenesisConfig{
-			InitialDifficulty: big.NewInt(17179869184),                                       // Initial mining difficulty
-			InitialGasLimit:   big.NewInt(5000),                                              // Initial gas limit per block
-			GenesisNonce:      66,                                                            // Genesis block nonce
+			InitialDifficulty: big.NewInt(17179869184),                                        // Initial mining difficulty
+			InitialGasLimit:   big.NewInt(5000),                                               // Initial gas limit per block
+			GenesisNonce:      66,                                                             // Genesis block nonce
 			GenesisExtraData:  []byte("Quantix Network Genesis Block - Decentralized Future"), // Genesis message
 		},
 

@@ -28,7 +28,7 @@ import (
 	"errors"
 
 	"github.com/btcsuite/btcutil/base58"
-	"github.com/ramseyauron/quantix/src/common"
+	"github.com/quantix-org/quantix-org/src/common"
 )
 
 // Prefix byte for internal processing (used only for checksum validation)

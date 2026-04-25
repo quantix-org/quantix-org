@@ -6,7 +6,7 @@ import (
 	"bytes"
 	"testing"
 
-	backend "github.com/ramseyauron/quantix/src/core/sphincs/sign/backend"
+	backend "github.com/quantix-org/quantix-org/src/core/sphincs/sign/backend"
 )
 
 // ── SigCommitment ───────────────────────────────────────────────────────────

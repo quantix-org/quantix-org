@@ -28,10 +28,10 @@ import (
 	"fmt"
 	"log"
 
-	seed "github.com/ramseyauron/quantix/src/accounts/phrase"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	"github.com/ramseyauron/quantix/src/core/wallet/crypter"
-	config "github.com/ramseyauron/quantix/src/core/wallet/utils"
+	seed "github.com/quantix-org/quantix-org/src/accounts/phrase"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	"github.com/quantix-org/quantix-org/src/core/wallet/crypter"
+	config "github.com/quantix-org/quantix-org/src/core/wallet/utils"
 )
 
 func main() {

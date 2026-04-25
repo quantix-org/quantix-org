@@ -6,7 +6,7 @@ import (
 	"encoding/base32"
 	"testing"
 
-	seed "github.com/ramseyauron/quantix/src/accounts/phrase"
+	seed "github.com/quantix-org/quantix-org/src/accounts/phrase"
 )
 
 func TestGenerateSalt_Length(t *testing.T) {

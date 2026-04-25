@@ -27,8 +27,8 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/ramseyauron/quantix/src/bind"
-	"github.com/ramseyauron/quantix/src/network"
+	"github.com/quantix-org/quantix-org/src/bind"
+	"github.com/quantix-org/quantix-org/src/network"
 )
 
 // ---------------------------------------------------------------------

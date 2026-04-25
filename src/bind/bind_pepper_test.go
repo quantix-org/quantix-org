@@ -7,7 +7,7 @@ package bind
 import (
 	"testing"
 
-	"github.com/ramseyauron/quantix/src/network"
+	"github.com/quantix-org/quantix-org/src/network"
 )
 
 // ---------------------------------------------------------------------------

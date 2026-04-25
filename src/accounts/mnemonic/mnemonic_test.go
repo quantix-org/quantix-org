@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	mnemonic "github.com/ramseyauron/quantix/src/accounts/mnemonic"
+	mnemonic "github.com/quantix-org/quantix-org/src/accounts/mnemonic"
 )
 
 // ── NewMnemonic — invalid entropy fast-path (no network call needed) ─────────

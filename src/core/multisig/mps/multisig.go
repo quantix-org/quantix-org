@@ -32,10 +32,10 @@ import (
 	"time"
 
 	"github.com/holiman/uint256"
-	"github.com/ramseyauron/quantix/src/core/hashtree"
-	sigproof "github.com/ramseyauron/quantix/src/core/proof"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	sign "github.com/ramseyauron/quantix/src/core/sphincs/sign/backend"
+	"github.com/quantix-org/quantix-org/src/core/hashtree"
+	sigproof "github.com/quantix-org/quantix-org/src/core/proof"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	sign "github.com/quantix-org/quantix-org/src/core/sphincs/sign/backend"
 
 	"github.com/syndtr/goleveldb/leveldb"
 )

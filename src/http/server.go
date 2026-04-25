@@ -40,11 +40,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/holiman/uint256"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/ramseyauron/quantix/src/core"
-	"github.com/ramseyauron/quantix/src/core/hashtree"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	security "github.com/ramseyauron/quantix/src/handshake"
+	"github.com/quantix-org/quantix-org/src/core"
+	"github.com/quantix-org/quantix-org/src/core/hashtree"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	security "github.com/quantix-org/quantix-org/src/handshake"
 )
 
 func NewServer(address string, messageCh chan *security.Message, blockchain *core.Blockchain, readyCh chan struct{}) *Server {
@@ -544,16 +544,16 @@ func (s *Server) handleGetAddressTxs(c *gin.Context) {
 	blocks := s.blockchain.GetBlocks()
 
 	type TxEntry struct {
-		Hash        string `json:"hash"`
-		Block       uint64 `json:"block"`
-		Timestamp   int64  `json:"timestamp"`
-		From        string `json:"from"`
-		To          string `json:"to"`
-		Amount      string `json:"amount"`
-		GasLimit    string `json:"gas_limit"`
-		GasPrice    string `json:"gas_price"`
-		Nonce       uint64 `json:"nonce"`
-		Direction   string `json:"direction"` // "in" or "out"
+		Hash      string `json:"hash"`
+		Block     uint64 `json:"block"`
+		Timestamp int64  `json:"timestamp"`
+		From      string `json:"from"`
+		To        string `json:"to"`
+		Amount    string `json:"amount"`
+		GasLimit  string `json:"gas_limit"`
+		GasPrice  string `json:"gas_price"`
+		Nonce     uint64 `json:"nonce"`
+		Direction string `json:"direction"` // "in" or "out"
 	}
 
 	var txs []TxEntry
@@ -683,7 +683,9 @@ func (s *Server) handleValidatorRegister(c *gin.Context) {
 }
 
 // Router returns the underlying gin.Engine for use in tests or middleware wiring.
-func (s *Server) Router() interface{ ServeHTTP(http.ResponseWriter, *http.Request) } {
+func (s *Server) Router() interface {
+	ServeHTTP(http.ResponseWriter, *http.Request)
+} {
 	return s.router
 }
 

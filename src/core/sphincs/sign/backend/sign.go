@@ -30,11 +30,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ramseyauron/quantix/src/common"
-	"github.com/ramseyauron/quantix/src/core/hashtree"
-	params "github.com/ramseyauron/quantix/src/core/sphincs/config"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/sphincs"
+	"github.com/quantix-org/quantix-org/src/common"
+	"github.com/quantix-org/quantix-org/src/core/hashtree"
+	params "github.com/quantix-org/quantix-org/src/core/sphincs/config"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/sphincs"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 

@@ -31,11 +31,11 @@ import (
 	"fmt"
 	"unicode/utf8"
 
-	sips3 "github.com/ramseyauron/quantix/src/accounts/mnemonic"
-	"github.com/ramseyauron/quantix/src/common"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	auth "github.com/ramseyauron/quantix/src/core/wallet/auth"
-	utils "github.com/ramseyauron/quantix/src/core/wallet/utils"
+	sips3 "github.com/quantix-org/quantix-org/src/accounts/mnemonic"
+	"github.com/quantix-org/quantix-org/src/common"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	auth "github.com/quantix-org/quantix-org/src/core/wallet/auth"
+	utils "github.com/quantix-org/quantix-org/src/core/wallet/utils"
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/sha3"
 )

@@ -27,13 +27,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/accounts/key"
+	"github.com/quantix-org/quantix-org/src/accounts/key"
 )
 
 // QuantixChainParams returns the mainnet parameters for Quantix blockchain
 func QuantixChainParams() *ChainParameters {
 	return &ChainParameters{
-		ChainID:       7331,             // "QTX" in leet speak
+		ChainID:       7331,              // "QTX" in leet speak
 		ChainName:     "Quantix Mainnet", // Changed from "Quantix" to "Quantix Mainnet"
 		Symbol:        "QTX",
 		GenesisTime:   1731375284,
@@ -41,7 +41,7 @@ func QuantixChainParams() *ChainParameters {
 		Version:       "1.0.0",
 		MagicNumber:   0x53504858, // "SPHX" in ASCII
 		DefaultPort:   32307,
-		BIP44CoinType: 7331,             // Should be 7331 for mainnet, not 1
+		BIP44CoinType: 7331,              // Should be 7331 for mainnet, not 1
 		LedgerName:    "Quantix Mainnet", // Should match chain_name
 	}
 }

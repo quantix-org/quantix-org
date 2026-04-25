@@ -5,7 +5,7 @@ package rpc_test
 import (
 	"testing"
 
-	"github.com/ramseyauron/quantix/src/rpc"
+	"github.com/quantix-org/quantix-org/src/rpc"
 )
 
 func TestGetRPCID_NonZero(t *testing.T) {

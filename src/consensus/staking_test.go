@@ -3,8 +3,9 @@
 
 // Q12 — ValidatorSet comprehensive tests (consensus/staking.go)
 // Covers: AddValidator, RegisterValidator, UnregisterValidator, SlashValidator,
-//         GetActiveValidators, ActiveValidatorIDs, GetTotalStake, IsValidStakeAmount,
-//         GetMinimumStakeInQTX, SaveToDB/LoadFromDB persistence
+//
+//	GetActiveValidators, ActiveValidatorIDs, GetTotalStake, IsValidStakeAmount,
+//	GetMinimumStakeInQTX, SaveToDB/LoadFromDB persistence
 package consensus
 
 import (
@@ -12,7 +13,7 @@ import (
 	"math/big"
 	"testing"
 
-	denom "github.com/ramseyauron/quantix/src/params/denom"
+	denom "github.com/quantix-org/quantix-org/src/params/denom"
 )
 
 // ---------------------------------------------------------------------------

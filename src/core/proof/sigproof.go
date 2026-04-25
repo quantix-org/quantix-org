@@ -28,7 +28,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/ramseyauron/quantix/src/common"
+	"github.com/quantix-org/quantix-org/src/common"
 )
 
 // SIPS-0011 https://github.com/ramseyauron/SIPS/wiki/sips0011

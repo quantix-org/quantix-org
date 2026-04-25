@@ -37,9 +37,9 @@ import (
 	"net"
 	"time"
 
-	security "github.com/ramseyauron/quantix/src/handshake"
-	"github.com/ramseyauron/quantix/src/network"
-	"github.com/ramseyauron/quantix/src/transport"
+	security "github.com/quantix-org/quantix-org/src/handshake"
+	"github.com/quantix-org/quantix-org/src/network"
+	"github.com/quantix-org/quantix-org/src/transport"
 	"lukechampine.com/blake3"
 )
 
@@ -201,7 +201,7 @@ func (pm *PeerManager) performHandshake(node *network.Node) error {
 		Data: map[string]interface{}{
 			"version":      "0.1.0",                              // Protocol version
 			"node_id":      pm.server.localNode.ID,               // Our node ID
-			"chain_id":     "quantix-mainnet",                     // Blockchain identifier
+			"chain_id":     "quantix-mainnet",                    // Blockchain identifier
 			"block_height": pm.server.blockchain.GetBlockCount(), // Current block height
 			"nonce":        hex.EncodeToString(nonce),            // Unique nonce
 			"address":      pm.server.localNode.Address,          // Our address
@@ -218,7 +218,7 @@ func (pm *PeerManager) performHandshake(node *network.Node) error {
 	// Flush the connection if it's TCP
 	if tcpConn, ok := conn.(*net.TCPConn); ok {
 		tcpConn.SetWriteDeadline(time.Now().Add(10 * time.Second))
-		tcpConn.Write([]byte{}) // Flush to ensure clean state
+		tcpConn.Write([]byte{})               // Flush to ensure clean state
 		tcpConn.SetWriteDeadline(time.Time{}) // FIX-P2P-GOSSIP2: reset deadline so future writes work
 	}
 

@@ -26,9 +26,9 @@ import (
 	"fmt"
 	"log"
 
-	seed "github.com/ramseyauron/quantix/src/accounts/phrase"
-	auth "github.com/ramseyauron/quantix/src/core/wallet/auth"
-	utils "github.com/ramseyauron/quantix/src/core/wallet/utils"
+	seed "github.com/quantix-org/quantix-org/src/accounts/phrase"
+	auth "github.com/quantix-org/quantix-org/src/core/wallet/auth"
+	utils "github.com/quantix-org/quantix-org/src/core/wallet/utils"
 )
 
 func main() {

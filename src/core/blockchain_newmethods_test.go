@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ramseyauron/quantix/src/pool"
+	"github.com/quantix-org/quantix-org/src/pool"
 )
 
 // ── GetPendingTransactionCount ───────────────────────────────────────────────

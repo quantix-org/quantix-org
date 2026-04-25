@@ -2,9 +2,10 @@
 // Copyright (c) 2024 quantix
 
 // Q9 — Tests for Phase 2 features:
-//   P2-1: ConsensusMode enum + GetConsensusMode
-//   P2-2: NodeSyncState machine + SetSeedPeers + SyncFromSeeds + GetBlocksRange
-//   P2-3: ValidatorRegistration CRUD (RegisterValidator / GetValidators)
+//
+//	P2-1: ConsensusMode enum + GetConsensusMode
+//	P2-2: NodeSyncState machine + SetSeedPeers + SyncFromSeeds + GetBlocksRange
+//	P2-3: ValidatorRegistration CRUD (RegisterValidator / GetValidators)
 package core
 
 import (
@@ -17,10 +18,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/consensus"
-	database "github.com/ramseyauron/quantix/src/core/state"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	storage "github.com/ramseyauron/quantix/src/state"
+	"github.com/quantix-org/quantix-org/src/consensus"
+	database "github.com/quantix-org/quantix-org/src/core/state"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	storage "github.com/quantix-org/quantix-org/src/state"
 )
 
 // ---------------------------------------------------------------------------

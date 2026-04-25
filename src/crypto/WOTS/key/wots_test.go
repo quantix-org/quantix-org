@@ -6,7 +6,7 @@ import (
 	"bytes"
 	"testing"
 
-	wots "github.com/ramseyauron/quantix/src/crypto/WOTS/key"
+	wots "github.com/quantix-org/quantix-org/src/crypto/WOTS/key"
 )
 
 // ── WOTSParams ──────────────────────────────────────────────────────────────

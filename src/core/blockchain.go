@@ -37,15 +37,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/common"
-	"github.com/ramseyauron/quantix/src/consensus"
+	"github.com/quantix-org/quantix-org/src/common"
+	"github.com/quantix-org/quantix-org/src/consensus"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	database "github.com/ramseyauron/quantix/src/core/state"
-	validatorkey "github.com/ramseyauron/quantix/src/core/validatorkey"
-	logger "github.com/ramseyauron/quantix/src/log"
-	"github.com/ramseyauron/quantix/src/pool"
-	storage "github.com/ramseyauron/quantix/src/state"
+	database "github.com/quantix-org/quantix-org/src/core/state"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	validatorkey "github.com/quantix-org/quantix-org/src/core/validatorkey"
+	logger "github.com/quantix-org/quantix-org/src/log"
+	"github.com/quantix-org/quantix-org/src/pool"
+	storage "github.com/quantix-org/quantix-org/src/state"
 )
 
 // NewBlockchain creates a blockchain with state machine replication
@@ -1451,7 +1451,7 @@ func (bc *Blockchain) CreateBlock() (*types.Block, error) {
 			}
 		}
 	}
-	emptyUncles := []*types.BlockHeader{}       // No uncle blocks
+	emptyUncles := []*types.BlockHeader{} // No uncle blocks
 
 	// Create block with initial nonce
 	newHeader := types.NewBlockHeader(

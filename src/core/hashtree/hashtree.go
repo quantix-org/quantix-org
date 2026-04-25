@@ -30,7 +30,7 @@ import (
 	"syscall"
 
 	"github.com/holiman/uint256"
-	"github.com/ramseyauron/quantix/src/common"
+	"github.com/quantix-org/quantix-org/src/common"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 

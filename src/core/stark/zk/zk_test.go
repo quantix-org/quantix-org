@@ -6,9 +6,9 @@ import (
 	"encoding/hex"
 	"testing"
 
-	params "github.com/ramseyauron/quantix/src/core/sphincs/config"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	"github.com/ramseyauron/quantix/src/core/stark/zk"
+	params "github.com/quantix-org/quantix-org/src/core/sphincs/config"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	"github.com/quantix-org/quantix-org/src/core/stark/zk"
 )
 
 // ── Signer (NewSigner, SignMessage, VerifySignature) ─────────────────────────

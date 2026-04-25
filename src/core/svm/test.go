@@ -25,7 +25,7 @@ package main
 import (
 	"fmt"
 
-	svm "github.com/ramseyauron/quantix/src/core/svm/opcodes"
+	svm "github.com/quantix-org/quantix-org/src/core/svm/opcodes"
 )
 
 func main() {

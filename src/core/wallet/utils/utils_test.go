@@ -7,7 +7,7 @@ import (
 	"encoding/base32"
 	"testing"
 
-	utils "github.com/ramseyauron/quantix/src/core/wallet/utils"
+	utils "github.com/quantix-org/quantix-org/src/core/wallet/utils"
 )
 
 func TestEncodeBase32_NonEmpty(t *testing.T) {

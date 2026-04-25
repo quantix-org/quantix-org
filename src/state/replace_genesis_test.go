@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	"github.com/ramseyauron/quantix/src/state"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	"github.com/quantix-org/quantix-org/src/state"
 )
 
 func makeTestBlock(height uint64, ts int64) *types.Block {

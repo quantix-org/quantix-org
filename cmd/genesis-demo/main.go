@@ -10,9 +10,9 @@ import (
 	"os"
 	"time"
 
-	sphincsconfig "github.com/ramseyauron/quantix/src/core/sphincs/config"
-	keybackend "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	signbackend "github.com/ramseyauron/quantix/src/core/sphincs/sign/backend"
+	sphincsconfig "github.com/quantix-org/quantix-org/src/core/sphincs/config"
+	keybackend "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	signbackend "github.com/quantix-org/quantix-org/src/core/sphincs/sign/backend"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
@@ -41,7 +41,9 @@ func main() {
 	fmt.Println()
 
 	params, err := sphincsconfig.NewSPHINCSParameters()
-	if err != nil { log.Fatalf("SPHINCS+ params: %v", err) }
+	if err != nil {
+		log.Fatalf("SPHINCS+ params: %v", err)
+	}
 
 	dbPath := "/tmp/qtx-demo-db"
 	os.RemoveAll(dbPath)
@@ -50,7 +52,9 @@ func main() {
 	defer os.RemoveAll(dbPath)
 
 	km, err := keybackend.NewKeyManager()
-	if err != nil { log.Fatalf("KeyManager: %v", err) }
+	if err != nil {
+		log.Fatalf("KeyManager: %v", err)
+	}
 	sm := signbackend.NewSphincsManager(db, km, params)
 
 	// ── Generate 4 wallets ──────────────────────────────────────────────────
@@ -59,7 +63,9 @@ func main() {
 	var wallets []Wallet
 	for _, name := range []string{"Alice", "Bob", "Carol", "Dave"} {
 		sk, pk, err := km.GenerateKey()
-		if err != nil { log.Fatalf("GenerateKey %s: %v", name, err) }
+		if err != nil {
+			log.Fatalf("GenerateKey %s: %v", name, err)
+		}
 		skB, _ := sk.SerializeSK()
 		pkB, _ := pk.SerializePK()
 		w := Wallet{Name: name, Address: walletAddr(pkB), SKBytes: skB, PKBytes: pkB}
@@ -72,7 +78,9 @@ func main() {
 	unit := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
 	genesis := new(big.Int).Mul(big.NewInt(5000), unit)
 	bals := make(map[string]*big.Int)
-	for _, w := range wallets { bals[w.Address] = new(big.Int).Set(genesis) }
+	for _, w := range wallets {
+		bals[w.Address] = new(big.Int).Set(genesis)
+	}
 
 	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 	fmt.Println("🌱 GENESIS BLOCK — 5000 QTX per wallet")
@@ -83,14 +91,18 @@ func main() {
 	fmt.Println()
 
 	// ── Transactions ────────────────────────────────────────────────────────
-	type TxDef struct{ F, T int; Amt float64; Note string }
+	type TxDef struct {
+		F, T int
+		Amt  float64
+		Note string
+	}
 	txDefs := []TxDef{
-		{0, 1, 100,  "Alice → Bob"},
-		{1, 2, 250,  "Bob → Carol"},
-		{2, 3, 500,  "Carol → Dave"},
-		{3, 0, 75,   "Dave → Alice"},
-		{0, 2, 200,  "Alice → Carol"},
-		{1, 3, 150,  "Bob → Dave"},
+		{0, 1, 100, "Alice → Bob"},
+		{1, 2, 250, "Bob → Carol"},
+		{2, 3, 500, "Carol → Dave"},
+		{3, 0, 75, "Dave → Alice"},
+		{0, 2, 200, "Alice → Carol"},
+		{1, 3, 150, "Bob → Dave"},
 	}
 
 	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -126,11 +138,15 @@ func main() {
 			from.Address, to.Address, amtWei.String(), nonce, ts))
 
 		sk, pk, err := km.DeserializeKeyPair(from.SKBytes, from.PKBytes)
-		if err != nil { log.Fatalf("Deserialize %s: %v", from.Name, err) }
+		if err != nil {
+			log.Fatalf("Deserialize %s: %v", from.Name, err)
+		}
 
 		// Sign — returns: sig, merkleRoot, timestamp, nonce, commitment, error
 		sig, merkleRoot, tsBytes, nonceBytes, commitment, err := sm.SignMessage(msg, sk, pk)
-		if err != nil { log.Fatalf("SignMessage tx%d: %v", i+1, err) }
+		if err != nil {
+			log.Fatalf("SignMessage tx%d: %v", i+1, err)
+		}
 
 		// Verify
 		verified := sm.VerifySignature(msg, tsBytes, nonceBytes, sig, pk, merkleRoot, commitment)
@@ -141,7 +157,9 @@ func main() {
 		bals[to.Address].Add(bals[to.Address], amtWei)
 
 		vStr := "✅ SPHINCS+ VERIFIED"
-		if !verified { vStr = "❌ VERIFICATION FAILED" }
+		if !verified {
+			vStr = "❌ VERIFICATION FAILED"
+		}
 
 		fmt.Printf("  TX #%d — %s | %.2f QTX\n", i+1, d.Note, d.Amt)
 		fmt.Printf("  From: %s (%s)\n", from.Name, from.Address[:26]+"...")
@@ -150,11 +168,11 @@ func main() {
 		fmt.Printf("  %s\n\n", vStr)
 
 		txOuts = append(txOuts, TxOut{
-			ID: fmt.Sprintf("tx-%04d-%d", i+1, time.Now().Unix()),
+			ID:   fmt.Sprintf("tx-%04d-%d", i+1, time.Now().Unix()),
 			From: from.Address, FromName: from.Name,
 			To: to.Address, ToName: to.Name,
 			Amount: fmt.Sprintf("%.2f QTX", d.Amt), Nonce: nonce,
-			Commitment: hex.EncodeToString(commitHash[:]) ,
+			Commitment: hex.EncodeToString(commitHash[:]),
 			Verified:   verified,
 		})
 	}
@@ -180,9 +198,9 @@ func main() {
 			var r []map[string]string
 			for _, w := range wallets {
 				r = append(r, map[string]string{
-					"name":    w.Name,
-					"address": w.Address,
-					"pk_hex":  hex.EncodeToString(w.PKBytes[:16]) + "...",
+					"name":          w.Name,
+					"address":       w.Address,
+					"pk_hex":        hex.EncodeToString(w.PKBytes[:16]) + "...",
 					"final_balance": fmtQTX(bals[w.Address]),
 				})
 			}

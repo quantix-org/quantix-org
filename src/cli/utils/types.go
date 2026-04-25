@@ -24,23 +24,23 @@
 package utils
 
 import (
-	"github.com/ramseyauron/quantix/src/params/commit"
-	params "github.com/ramseyauron/quantix/src/params/denom"
+	"github.com/quantix-org/quantix-org/src/params/commit"
+	params "github.com/quantix-org/quantix-org/src/params/denom"
 )
 
 // Config holds CLI configuration parameters.
 // This struct is used to store all command-line flag values for node configuration
 type Config struct {
-	configFile string // Path to JSON configuration file
-	numNodes   int    // Number of nodes to initialize in the network
-	roles      string // Comma-separated list of node roles (validator, sender, receiver, none)
-	tcpAddr    string // TCP address for P2P communication (e.g., "127.0.0.1:30303")
-	udpPort    string // UDP port for node discovery (e.g., "30304")
-	httpPort   string // HTTP port for JSON-RPC API (e.g., "127.0.0.1:8545")
-	wsPort     string // WebSocket port for real-time subscriptions (e.g., "127.0.0.1:8600")
-	seedNodes  string // Comma-separated list of seed node UDP addresses for network bootstrap
-	dataDir    string // Directory path for LevelDB storage (default: "data")
-	nodeIndex  int    // Index of the node to run when managing multiple nodes (0 to numNodes-1)
+	configFile   string // Path to JSON configuration file
+	numNodes     int    // Number of nodes to initialize in the network
+	roles        string // Comma-separated list of node roles (validator, sender, receiver, none)
+	tcpAddr      string // TCP address for P2P communication (e.g., "127.0.0.1:30303")
+	udpPort      string // UDP port for node discovery (e.g., "30304")
+	httpPort     string // HTTP port for JSON-RPC API (e.g., "127.0.0.1:8545")
+	wsPort       string // WebSocket port for real-time subscriptions (e.g., "127.0.0.1:8600")
+	seedNodes    string // Comma-separated list of seed node UDP addresses for network bootstrap
+	dataDir      string // Directory path for LevelDB storage (default: "data")
+	nodeIndex    int    // Index of the node to run when managing multiple nodes (0 to numNodes-1)
 	devMode      bool   // FIX-P2P-03: skip DHT, use direct TCP seed connections for local testnet
 	seedHTTPPort string // HTTP port of seed node for validator registration in dev-mode
 }

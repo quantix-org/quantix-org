@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	key "github.com/ramseyauron/quantix/src/accounts/key"
+	key "github.com/quantix-org/quantix-org/src/accounts/key"
 )
 
 const (

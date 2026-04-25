@@ -30,9 +30,9 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/ramseyauron/quantix/src/common"
-	database "github.com/ramseyauron/quantix/src/core/state"
-	logger "github.com/ramseyauron/quantix/src/log"
+	"github.com/quantix-org/quantix-org/src/common"
+	database "github.com/quantix-org/quantix-org/src/core/state"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 const (

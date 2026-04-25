@@ -26,8 +26,8 @@ package sign
 import (
 	"sync"
 
-	params "github.com/ramseyauron/quantix/src/core/sphincs/config"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
+	params "github.com/quantix-org/quantix-org/src/core/sphincs/config"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 

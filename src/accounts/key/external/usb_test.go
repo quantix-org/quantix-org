@@ -5,7 +5,7 @@ package usb_test
 import (
 	"testing"
 
-	usb "github.com/ramseyauron/quantix/src/accounts/key/external"
+	usb "github.com/quantix-org/quantix-org/src/accounts/key/external"
 )
 
 func TestNewUSBKeyStore_NotNil(t *testing.T) {

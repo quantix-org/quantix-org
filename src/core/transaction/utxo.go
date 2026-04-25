@@ -28,7 +28,7 @@ import (
 	"fmt"
 	"math/big"
 
-	params "github.com/ramseyauron/quantix/src/params/denom"
+	params "github.com/quantix-org/quantix-org/src/params/denom"
 )
 
 const (

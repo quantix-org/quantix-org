@@ -4,7 +4,7 @@
 // go/src/consensus/mode.go
 package consensus
 
-import logger "github.com/ramseyauron/quantix/src/log"
+import logger "github.com/quantix-org/quantix-org/src/log"
 
 // ConsensusMode represents the active consensus strategy.
 type ConsensusMode int

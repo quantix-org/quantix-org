@@ -40,8 +40,8 @@ import (
 	"time"
 
 	"github.com/elliotchance/orderedmap/v2"
-	"github.com/ramseyauron/quantix/src/network"
-	"github.com/ramseyauron/quantix/src/rpc"
+	"github.com/quantix-org/quantix-org/src/network"
+	"github.com/quantix-org/quantix-org/src/rpc"
 )
 
 // Constants for Kademlia routing table configuration

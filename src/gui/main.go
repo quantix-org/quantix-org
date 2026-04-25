@@ -24,7 +24,7 @@
 package main
 
 import (
-	"github.com/ramseyauron/quantix/src/gui/utils"
+	"github.com/quantix-org/quantix-org/src/gui/utils"
 )
 
 func main() {

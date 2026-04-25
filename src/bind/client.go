@@ -27,7 +27,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ramseyauron/quantix/src/rpc"
+	"github.com/quantix-org/quantix-org/src/rpc"
 	"golang.org/x/crypto/sha3"
 )
 

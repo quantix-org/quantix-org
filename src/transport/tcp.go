@@ -35,9 +35,9 @@ import (
 	"sync"
 	"time"
 
-	security "github.com/ramseyauron/quantix/src/handshake"
-	"github.com/ramseyauron/quantix/src/network"
-	"github.com/ramseyauron/quantix/src/rpc"
+	security "github.com/quantix-org/quantix-org/src/handshake"
+	"github.com/quantix-org/quantix-org/src/network"
+	"github.com/quantix-org/quantix-org/src/rpc"
 )
 
 // maxMessageSize is the maximum allowed TCP message size in bytes.

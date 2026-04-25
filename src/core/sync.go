@@ -16,8 +16,8 @@ import (
 	"net/http"
 	"time"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	logger "github.com/ramseyauron/quantix/src/log"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // SetSeedPeers configures seed peer HTTP addresses for initial block sync.
@@ -126,27 +126,27 @@ func (bc *Blockchain) syncFromPeer(peerBase string) error {
 						seedGenesis.GetHash(), computedGenesisHash)
 					// Skip genesis replacement but continue syncing height 1+ blocks.
 				} else {
-				localGenesis := bc.GetBlockByNumber(0)
-				if localGenesis == nil || localGenesis.GetHash() != seedGenesis.GetHash() {
-					log.Printf("[SYNC] Genesis mismatch — replacing local genesis (hash=%s) with seed genesis (hash=%s ts=%d)",
-						func() string {
-							if localGenesis != nil {
-								return localGenesis.GetHash()
-							}
-							return "nil"
-						}(), seedGenesis.GetHash(), seedGenesis.GetTimestamp())
-					// Replace genesis in storage and in-memory chain
-					if err := bc.storage.ReplaceGenesisBlock(seedGenesis); err != nil {
-						logger.Warn("[SYNC] Failed to replace genesis block: %v — continuing", err)
-					} else {
-						bc.lock.Lock()
-						bc.chain = []*types.Block{seedGenesis}
-						bc.lock.Unlock()
-						// Reset the cached genesis so future code uses the seed's genesis.
-						resetCachedGenesis(seedGenesis)
-						log.Printf("[SYNC] Genesis replaced: hash=%s ts=%d", seedGenesis.GetHash(), seedGenesis.GetTimestamp())
+					localGenesis := bc.GetBlockByNumber(0)
+					if localGenesis == nil || localGenesis.GetHash() != seedGenesis.GetHash() {
+						log.Printf("[SYNC] Genesis mismatch — replacing local genesis (hash=%s) with seed genesis (hash=%s ts=%d)",
+							func() string {
+								if localGenesis != nil {
+									return localGenesis.GetHash()
+								}
+								return "nil"
+							}(), seedGenesis.GetHash(), seedGenesis.GetTimestamp())
+						// Replace genesis in storage and in-memory chain
+						if err := bc.storage.ReplaceGenesisBlock(seedGenesis); err != nil {
+							logger.Warn("[SYNC] Failed to replace genesis block: %v — continuing", err)
+						} else {
+							bc.lock.Lock()
+							bc.chain = []*types.Block{seedGenesis}
+							bc.lock.Unlock()
+							// Reset the cached genesis so future code uses the seed's genesis.
+							resetCachedGenesis(seedGenesis)
+							log.Printf("[SYNC] Genesis replaced: hash=%s ts=%d", seedGenesis.GetHash(), seedGenesis.GetTimestamp())
+						}
 					}
-				}
 				} // end SEC-SYNC01 hash-verified else
 			}
 		}

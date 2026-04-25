@@ -28,10 +28,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/consensus"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	"github.com/ramseyauron/quantix/src/pool"
-	storage "github.com/ramseyauron/quantix/src/state"
+	"github.com/quantix-org/quantix-org/src/consensus"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	"github.com/quantix-org/quantix-org/src/pool"
+	storage "github.com/quantix-org/quantix-org/src/state"
 )
 
 // BlockchainStatus represents the current status of the blockchain
@@ -132,9 +132,9 @@ type PerformanceConfig struct {
 type NodeSyncState int
 
 const (
-	SyncStateNewNode  NodeSyncState = iota // Node has just started, chain is empty
-	SyncStateSyncing                       // Actively fetching blocks from a seed peer
-	SyncStateSynced                        // Chain is fully synced
+	SyncStateNewNode NodeSyncState = iota // Node has just started, chain is empty
+	SyncStateSyncing                      // Actively fetching blocks from a seed peer
+	SyncStateSynced                       // Chain is fully synced
 )
 
 type Blockchain struct {

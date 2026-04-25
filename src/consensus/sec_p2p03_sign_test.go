@@ -7,8 +7,8 @@ import (
 	"crypto"
 	"testing"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/sphincs"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/sphincs"
 )
 
 // makeSigningServiceNoKeys creates a SigningService without generating SPHINCS+ keys,
@@ -53,7 +53,7 @@ func TestHasPublicKey_DifferentNode_False(t *testing.T) {
 func TestHasPublicKey_MultipleNodes(t *testing.T) {
 	svc := makeSigningServiceNoKeys("node-0")
 	for i := 1; i <= 5; i++ {
-		id := string(rune('0'+i)) // "1".."5"
+		id := string(rune('0' + i)) // "1".."5"
 		svc.RegisterPublicKey("node-"+id, &sphincs.SPHINCS_PK{})
 	}
 	for i := 1; i <= 5; i++ {

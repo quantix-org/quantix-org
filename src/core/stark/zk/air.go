@@ -34,7 +34,7 @@ import (
 	"github.com/actuallyachraf/algebra/nt"
 	"github.com/actuallyachraf/algebra/poly"
 	"github.com/actuallyachraf/go-merkle"
-	sphincs "github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/sphincs"
+	sphincs "github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/sphincs"
 )
 
 // PrimeField is the finite field used for STARK computations (q = 3221225473).

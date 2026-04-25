@@ -52,9 +52,9 @@ import (
 	"time"
 
 	"github.com/holiman/uint256"
-	"github.com/ramseyauron/quantix/src/core/hashtree"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	sign "github.com/ramseyauron/quantix/src/core/sphincs/sign/backend"
+	"github.com/quantix-org/quantix-org/src/core/hashtree"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	sign "github.com/quantix-org/quantix-org/src/core/sphincs/sign/backend"
 )
 
 const USIMetaVersion = "1.0"

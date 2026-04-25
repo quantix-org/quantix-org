@@ -29,8 +29,8 @@ import (
 	"net"
 	"time"
 
-	security "github.com/ramseyauron/quantix/src/handshake"
-	"github.com/ramseyauron/quantix/src/network"
+	security "github.com/quantix-org/quantix-org/src/handshake"
+	"github.com/quantix-org/quantix-org/src/network"
 )
 
 // ValidateIP checks whether the provided IP and port are valid.

@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/pool"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	"github.com/quantix-org/quantix-org/src/pool"
 )
 
 // ── helpers ──────────────────────────────────────────────────────────────────

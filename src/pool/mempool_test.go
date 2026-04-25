@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
 )
 
 func makeTx(id, sender, receiver string, amount int64, nonce uint64) *types.Transaction {

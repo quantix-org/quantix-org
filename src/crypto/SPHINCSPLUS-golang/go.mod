@@ -1,4 +1,4 @@
-module github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang
+module github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang
 
 go 1.24.0
 

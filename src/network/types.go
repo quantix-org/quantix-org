@@ -30,7 +30,7 @@ import (
 	"time"
 
 	"github.com/holiman/uint256"
-	database "github.com/ramseyauron/quantix/src/core/state"
+	database "github.com/quantix-org/quantix-org/src/core/state"
 )
 
 // NodeStatus represents the operational state of a node in the network.
@@ -149,10 +149,10 @@ type NodePortConfig struct {
 	// DHTSecret is deprecated; all nodes now generate a fresh 256-bit secret
 	// at startup via crypto/rand (F-03). This field is retained for JSON
 	// config backward-compatibility but is no longer used.
-	DHTSecret uint16 `json:"dht_secret,omitempty"` // deprecated — ignored at runtime
-	DevMode      bool   `json:"dev_mode,omitempty"`        // FIX-P2P-03: skip DHT, use direct TCP peering
-	SeedHTTPPort string `json:"seed_http_port,omitempty"`  // HTTP port of seed node (e.g. "8590")
-	ExplicitSeeds bool  `json:"explicit_seeds,omitempty"`  // true when -seeds flag was explicitly provided
+	DHTSecret     uint16 `json:"dht_secret,omitempty"`     // deprecated — ignored at runtime
+	DevMode       bool   `json:"dev_mode,omitempty"`       // FIX-P2P-03: skip DHT, use direct TCP peering
+	SeedHTTPPort  string `json:"seed_http_port,omitempty"` // HTTP port of seed node (e.g. "8590")
+	ExplicitSeeds bool   `json:"explicit_seeds,omitempty"` // true when -seeds flag was explicitly provided
 }
 
 // DiscoveryMessage represents a UDP discovery message.

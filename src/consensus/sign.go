@@ -30,11 +30,11 @@ import (
 	"fmt"
 
 	"github.com/holiman/uint256"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	sign "github.com/ramseyauron/quantix/src/core/sphincs/sign/backend"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/sphincs"
-	logger "github.com/ramseyauron/quantix/src/log"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	sign "github.com/quantix-org/quantix-org/src/core/sphincs/sign/backend"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/sphincs"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // RegisterPublicKey registers a public key for another node.

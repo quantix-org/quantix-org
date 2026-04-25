@@ -5,7 +5,7 @@ package server_test
 import (
 	"testing"
 
-	"github.com/ramseyauron/quantix/src/server"
+	"github.com/quantix-org/quantix-org/src/server"
 )
 
 // ── StoreServer / GetServer registry ────────────────────────────────────────

@@ -30,7 +30,8 @@ import (
 	"fmt"
 
 	"crypto/sha256"
-	"github.com/ramseyauron/quantix/src/common"
+
+	"github.com/quantix-org/quantix-org/src/common"
 )
 
 // NewMerkleNode creates a new Merkle node

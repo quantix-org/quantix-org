@@ -30,7 +30,7 @@ import (
 	"testing"
 	"time"
 
-	logger "github.com/ramseyauron/quantix/src/log"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // NewTPSMonitor creates a new TPS monitor

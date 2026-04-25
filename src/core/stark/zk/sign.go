@@ -5,9 +5,9 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	params "github.com/ramseyauron/quantix/src/core/sphincs/config"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	sphincs "github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/sphincs"
+	params "github.com/quantix-org/quantix-org/src/core/sphincs/config"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	sphincs "github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/sphincs"
 )
 
 // NewSignWrapper initializes a new SignWrapper.

@@ -6,9 +6,9 @@ import (
 	"sync"
 	"testing"
 
-	database "github.com/ramseyauron/quantix/src/core/state"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	storage "github.com/ramseyauron/quantix/src/state"
+	database "github.com/quantix-org/quantix-org/src/core/state"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	storage "github.com/quantix-org/quantix-org/src/state"
 )
 
 // newBCWithDB creates a Blockchain backed by a real LevelDB for genesis distribution tests.

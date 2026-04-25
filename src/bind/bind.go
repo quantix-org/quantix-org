@@ -27,8 +27,8 @@ import (
 	"fmt"
 	"sync"
 
-	logger "github.com/ramseyauron/quantix/src/log"
-	"github.com/ramseyauron/quantix/src/transport"
+	logger "github.com/quantix-org/quantix-org/src/log"
+	"github.com/quantix-org/quantix-org/src/transport"
 )
 
 // BindTCPServers binds TCP servers for the given node configurations.

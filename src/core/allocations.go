@@ -29,8 +29,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ramseyauron/quantix/src/common"
-	logger "github.com/ramseyauron/quantix/src/log"
+	"github.com/quantix-org/quantix-org/src/common"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // ----------------------------------------------------------------------------

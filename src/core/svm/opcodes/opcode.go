@@ -27,7 +27,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	spxhash "github.com/ramseyauron/quantix/src/spxhash/hash"
+	spxhash "github.com/quantix-org/quantix-org/src/spxhash/hash"
 )
 
 // OpCode represents an instruction in the SVM
@@ -49,7 +49,7 @@ func ExecuteOp(op OpCode, a, b uint64, n uint) uint64 {
 		// Convert inputs to byte slices and call spxhash logic
 		data := make([]byte, 8)
 		binary.LittleEndian.PutUint64(data, a)
-		
+
 		hash := spxhash.NewSphinxHash(256, data).GetHash(data)
 		// Return first 64 bits of the hash
 		return binary.LittleEndian.Uint64(hash[:8])
@@ -106,7 +106,7 @@ const (
 
 // stringToOp maps string representations of opcodes to their OpCode values.
 var stringToOp = map[string]OpCode{
-	"QuantixHash":              QuantixHash,
+	"QuantixHash":             QuantixHash,
 	"SHA3_256":                SHA3_256,
 	"SHA512_224":              SHA512_224,
 	"SHA512_256":              SHA512_256,

@@ -9,7 +9,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ramseyauron/quantix/src/core"
+	"github.com/quantix-org/quantix-org/src/core"
 )
 
 // ---------------------------------------------------------------------------

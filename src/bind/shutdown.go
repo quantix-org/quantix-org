@@ -26,7 +26,7 @@ package bind
 import (
 	"fmt"
 
-	logger "github.com/ramseyauron/quantix/src/log"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // Shutdown gracefully shuts down all server components in the given NodeResources.

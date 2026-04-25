@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	multisig "github.com/ramseyauron/quantix/src/core/multisig/mps"
+	multisig "github.com/quantix-org/quantix-org/src/core/multisig/mps"
 )
 
 // newMultiSig wraps NewMultiSig and skips the test if LevelDB is unavailable
@@ -87,4 +87,3 @@ func TestGetIndex_KnownPK(t *testing.T) {
 		t.Errorf("expected non-negative index for known pk, got %d", idx)
 	}
 }
-

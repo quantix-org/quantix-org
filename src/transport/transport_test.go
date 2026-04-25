@@ -5,8 +5,8 @@ package transport_test
 import (
 	"testing"
 
-	"github.com/ramseyauron/quantix/src/network"
-	"github.com/ramseyauron/quantix/src/transport"
+	"github.com/quantix-org/quantix-org/src/network"
+	"github.com/quantix-org/quantix-org/src/transport"
 )
 
 // ── ValidateIP ──────────────────────────────────────────────────────────────

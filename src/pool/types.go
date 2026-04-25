@@ -28,7 +28,7 @@ import (
 	"sync"
 	"time"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
 )
 
 // TransactionStatus represents the state of a transaction in the pool

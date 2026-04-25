@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/address"
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/util"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/address"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/util"
 )
 
 // Test of MGF1-SHA256

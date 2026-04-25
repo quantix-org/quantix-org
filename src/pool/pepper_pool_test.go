@@ -1,6 +1,7 @@
 // PEPPER Sprint 2 — pool package coverage push
 // Targets: GetPendingTransactions, RemoveTransactions, GetTransaction,
-//          GetStats, generateTransactionID, RetryFailedTransactions
+//
+//	GetStats, generateTransactionID, RetryFailedTransactions
 package pool
 
 import (
@@ -8,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
 )
 
 func TestMempool_GetPendingTransactions_Empty(t *testing.T) {

@@ -5,7 +5,7 @@ package svm_test
 import (
 	"testing"
 
-	svm "github.com/ramseyauron/quantix/src/core/svm/opcodes"
+	svm "github.com/quantix-org/quantix-org/src/core/svm/opcodes"
 )
 
 // ── Arithmetic ops ─────────────────────────────────────────────────────────

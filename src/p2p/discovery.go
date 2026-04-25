@@ -35,10 +35,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/core/hashtree"
-	sigproof "github.com/ramseyauron/quantix/src/core/proof"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	"github.com/ramseyauron/quantix/src/network"
+	"github.com/quantix-org/quantix-org/src/core/hashtree"
+	sigproof "github.com/quantix-org/quantix-org/src/core/proof"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	"github.com/quantix-org/quantix-org/src/network"
 )
 
 // DiscoverPeers initiates Kademlia-based peer discovery.

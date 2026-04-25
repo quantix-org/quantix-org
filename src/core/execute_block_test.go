@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2024 quantix
+// # Copyright (c) 2024 quantix
 //
 // go/src/core/execute_block_test.go
 package core
@@ -13,9 +13,9 @@ import (
 	"testing"
 	"time"
 
-	database "github.com/ramseyauron/quantix/src/core/state"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	storage "github.com/ramseyauron/quantix/src/state"
+	database "github.com/quantix-org/quantix-org/src/core/state"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	storage "github.com/quantix-org/quantix-org/src/state"
 )
 
 // ---------------------------------------------------------------------------

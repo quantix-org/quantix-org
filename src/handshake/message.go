@@ -28,8 +28,8 @@ import (
 	"errors"
 	"math/big"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	"github.com/ramseyauron/quantix/src/network"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	"github.com/quantix-org/quantix-org/src/network"
 )
 
 // ValidateMessage ensures the message conforms to expected structure and type rules.

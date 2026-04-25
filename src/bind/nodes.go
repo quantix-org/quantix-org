@@ -42,20 +42,20 @@ import (
 
 	"math/big"
 
-	"github.com/ramseyauron/quantix/src/common"
-	"github.com/ramseyauron/quantix/src/consensus"
-	"github.com/ramseyauron/quantix/src/core"
-	database "github.com/ramseyauron/quantix/src/core/state"
-	sphincsConfig "github.com/ramseyauron/quantix/src/core/sphincs/config"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	sign "github.com/ramseyauron/quantix/src/core/sphincs/sign/backend"
-	security "github.com/ramseyauron/quantix/src/handshake"
-	"github.com/ramseyauron/quantix/src/http"
-	logger "github.com/ramseyauron/quantix/src/log"
-	"github.com/ramseyauron/quantix/src/network"
-	"github.com/ramseyauron/quantix/src/p2p"
-	"github.com/ramseyauron/quantix/src/rpc"
-	"github.com/ramseyauron/quantix/src/transport"
+	"github.com/quantix-org/quantix-org/src/common"
+	"github.com/quantix-org/quantix-org/src/consensus"
+	"github.com/quantix-org/quantix-org/src/core"
+	sphincsConfig "github.com/quantix-org/quantix-org/src/core/sphincs/config"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	sign "github.com/quantix-org/quantix-org/src/core/sphincs/sign/backend"
+	database "github.com/quantix-org/quantix-org/src/core/state"
+	security "github.com/quantix-org/quantix-org/src/handshake"
+	"github.com/quantix-org/quantix-org/src/http"
+	logger "github.com/quantix-org/quantix-org/src/log"
+	"github.com/quantix-org/quantix-org/src/network"
+	"github.com/quantix-org/quantix-org/src/p2p"
+	"github.com/quantix-org/quantix-org/src/rpc"
+	"github.com/quantix-org/quantix-org/src/transport"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
@@ -138,16 +138,16 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 	}
 
 	setupConfig := NodeSetupConfig{
-		Name:      nodeName,
-		Address:   nodeConfig.TCPAddr,
-		DB:        db,
-		UDPPort:   nodeConfig.UDPPort,
-		HTTPPort:  nodeConfig.HTTPPort,
-		WSPort:    nodeConfig.WSPort,
-		Role:      nodeConfig.Role,
-		SeedNodes:    nodeConfig.SeedNodes,
-		SeedHTTPPort: nodeConfig.SeedHTTPPort,
-		DevMode:      nodeConfig.DevMode, // FIX-P2P-03
+		Name:          nodeName,
+		Address:       nodeConfig.TCPAddr,
+		DB:            db,
+		UDPPort:       nodeConfig.UDPPort,
+		HTTPPort:      nodeConfig.HTTPPort,
+		WSPort:        nodeConfig.WSPort,
+		Role:          nodeConfig.Role,
+		SeedNodes:     nodeConfig.SeedNodes,
+		SeedHTTPPort:  nodeConfig.SeedHTTPPort,
+		DevMode:       nodeConfig.DevMode, // FIX-P2P-03
 		ExplicitSeeds: nodeConfig.ExplicitSeeds,
 	}
 
@@ -589,7 +589,7 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 					for range ticker2.C {
 						// Validator-count-aware pause: slow down if peers haven't synced yet
 						if vv, err2 := bc2.GetValidators(); err2 == nil && len(vv) < 4 && bc2.GetBlockCount() > 5 {
-							log.Printf("⏳ Devnet miner pausing — only %d/4 validators registered", len(vv))
+							log.Printf("⏳ Devnet miner pausing — only %d/4 validators registered, the blockchain works.", len(vv))
 							time.Sleep(8 * time.Second)
 							continue
 						}
@@ -622,7 +622,7 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 					}()
 					// Validator-count-aware pause: slow down if peers haven't synced yet
 					if vv, err2 := bc.GetValidators(); err2 == nil && len(vv) < 4 && bc.GetBlockCount() > 5 {
-						log.Printf("⏳ Devnet miner pausing — only %d/4 validators registered", len(vv))
+						log.Printf("⏳ Devnet miner pausing — only %d/4 validators registered, the blockchain works.", len(vv))
 						time.Sleep(8 * time.Second)
 						return
 					}
@@ -765,15 +765,15 @@ func RunMultipleNodesInternal() error {
 	setupConfigs := make([]NodeSetupConfig, len(configs))
 	for i, config := range configs {
 		setupConfigs[i] = NodeSetupConfig{
-			Name:         config.Name,
-			Address:      config.TCPAddr,
-			UDPPort:      config.UDPPort,
-			HTTPPort:     config.HTTPPort,
-			WSPort:       config.WSPort,
-			Role:         config.Role,
-			SeedNodes:    config.SeedNodes,
-			SeedHTTPPort: config.SeedHTTPPort,
-			DevMode:      config.DevMode, // FIX-P2P-03
+			Name:          config.Name,
+			Address:       config.TCPAddr,
+			UDPPort:       config.UDPPort,
+			HTTPPort:      config.HTTPPort,
+			WSPort:        config.WSPort,
+			Role:          config.Role,
+			SeedNodes:     config.SeedNodes,
+			SeedHTTPPort:  config.SeedHTTPPort,
+			DevMode:       config.DevMode, // FIX-P2P-03
 			ExplicitSeeds: config.ExplicitSeeds,
 		}
 	}

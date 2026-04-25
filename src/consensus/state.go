@@ -26,7 +26,7 @@ package consensus
 import (
 	"time"
 
-	logger "github.com/ramseyauron/quantix/src/log"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // NewConsensusState creates a new consensus state instance with initial values

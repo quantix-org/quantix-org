@@ -26,8 +26,8 @@ package usb
 import (
 	"sync"
 
-	"github.com/ramseyauron/quantix/src/accounts/key"
-	"github.com/ramseyauron/quantix/src/core/wallet/crypter"
+	"github.com/quantix-org/quantix-org/src/accounts/key"
+	"github.com/quantix-org/quantix-org/src/core/wallet/crypter"
 )
 
 // USBKeyStore represents USB storage for key pairs

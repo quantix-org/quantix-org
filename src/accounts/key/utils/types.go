@@ -24,8 +24,8 @@
 package utils
 
 import (
-	disk "github.com/ramseyauron/quantix/src/accounts/key/disk"
-	usb "github.com/ramseyauron/quantix/src/accounts/key/external"
+	disk "github.com/quantix-org/quantix-org/src/accounts/key/disk"
+	usb "github.com/quantix-org/quantix-org/src/accounts/key/external"
 )
 
 // StorageType represents the type of storage

@@ -27,8 +27,8 @@ import (
 	"bytes"
 	"net/http"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	security "github.com/ramseyauron/quantix/src/handshake"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	security "github.com/quantix-org/quantix-org/src/handshake"
 )
 
 // SubmitTransaction sends a transaction via HTTP.

@@ -32,8 +32,8 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/ramseyauron/quantix/src/core"
-	security "github.com/ramseyauron/quantix/src/handshake"
+	"github.com/quantix-org/quantix-org/src/core"
+	security "github.com/quantix-org/quantix-org/src/handshake"
 )
 
 // NodeID represents a unique 256-bit node identifier.

@@ -39,8 +39,8 @@ package state
 import (
 	"fmt"
 
-	database "github.com/ramseyauron/quantix/src/core/state"
-	logger "github.com/ramseyauron/quantix/src/log"
+	database "github.com/quantix-org/quantix-org/src/core/state"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // SetDB sets the main database handle (for blocks and transactions)

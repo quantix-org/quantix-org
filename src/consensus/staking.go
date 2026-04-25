@@ -10,8 +10,8 @@ import (
 	"math/big"
 	"sort"
 
-	logger "github.com/ramseyauron/quantix/src/log"
-	denom "github.com/ramseyauron/quantix/src/params/denom"
+	logger "github.com/quantix-org/quantix-org/src/log"
+	denom "github.com/quantix-org/quantix-org/src/params/denom"
 )
 
 // sips0013 https://github.com/ramseyauron/SIPS/blob/main/.github/workflows/sips0013/sips0013.md

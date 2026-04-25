@@ -32,8 +32,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	security "github.com/ramseyauron/quantix/src/handshake"
-	"github.com/ramseyauron/quantix/src/rpc"
+	security "github.com/quantix-org/quantix-org/src/handshake"
+	"github.com/quantix-org/quantix-org/src/rpc"
 )
 
 // NewWebSocketServer initializes and returns a new WebSocketServer struct.

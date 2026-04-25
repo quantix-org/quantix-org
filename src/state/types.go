@@ -27,9 +27,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/consensus"
-	database "github.com/ramseyauron/quantix/src/core/state"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
+	"github.com/quantix-org/quantix-org/src/consensus"
+	database "github.com/quantix-org/quantix-org/src/core/state"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
 )
 
 type OperationType int

@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	types "github.com/ramseyauron/quantix/src/core/transaction"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
 )
 
 // TestGetAddressTxs_WithTxInBlock mines a block containing a tx and verifies the endpoint finds it

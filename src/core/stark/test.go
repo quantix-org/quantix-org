@@ -29,9 +29,9 @@ import (
 	"sync"
 	"time"
 
-	params "github.com/ramseyauron/quantix/src/core/sphincs/config"
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	sign "github.com/ramseyauron/quantix/src/core/stark/zk"
+	params "github.com/quantix-org/quantix-org/src/core/sphincs/config"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	sign "github.com/quantix-org/quantix-org/src/core/stark/zk"
 )
 
 // min returns the minimum of two integers.

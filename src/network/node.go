@@ -31,15 +31,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/common"
-	"github.com/ramseyauron/quantix/src/consensus"
-	database "github.com/ramseyauron/quantix/src/core/state"
+	"github.com/quantix-org/quantix-org/src/common"
+	"github.com/quantix-org/quantix-org/src/consensus"
+	database "github.com/quantix-org/quantix-org/src/core/state"
 )
 
 // Add chain identification constants
 const (
 	QuantixChainID       = 7331       // Unique identifier for Quantix chain
-	QuantixChainName     = "Quantix"   // Human-readable chain name
+	QuantixChainName     = "Quantix"  // Human-readable chain name
 	QuantixSymbol        = "QTX"      // Currency symbol
 	QuantixBIP44CoinType = 7331       // BIP44 coin type for wallet derivation
 	QuantixMagicNumber   = 0x53504858 // Network magic bytes "SPHX" in hex
@@ -57,8 +57,8 @@ func (n *Node) GetChainInfo() map[string]interface{} {
 		"bip44_coin_type": QuantixBIP44CoinType, // BIP44 coin type for wallets
 		"magic_number":    QuantixMagicNumber,   // Network magic bytes
 		"default_port":    QuantixDefaultPort,   // Default P2P port
-		"node_id":         n.ID,                // Node identifier
-		"node_role":       n.Role,              // Node role (validator, full node, etc.)
+		"node_id":         n.ID,                 // Node identifier
+		"node_role":       n.Role,               // Node role (validator, full node, etc.)
 	}
 }
 

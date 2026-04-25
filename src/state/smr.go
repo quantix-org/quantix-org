@@ -31,9 +31,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ramseyauron/quantix/src/consensus"
-	types "github.com/ramseyauron/quantix/src/core/transaction"
-	logger "github.com/ramseyauron/quantix/src/log"
+	"github.com/quantix-org/quantix-org/src/consensus"
+	types "github.com/quantix-org/quantix-org/src/core/transaction"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 const (

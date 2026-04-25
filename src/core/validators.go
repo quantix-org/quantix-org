@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	logger "github.com/ramseyauron/quantix/src/log"
+	logger "github.com/quantix-org/quantix-org/src/log"
 )
 
 // nodeAddressRE matches valid node addresses: alphanumeric, dots, colons,
@@ -33,11 +33,11 @@ func validateNodeAddress(addr string) error {
 
 // ValidatorRegistration holds data submitted to POST /validator/register.
 type ValidatorRegistration struct {
-	PublicKey   string    `json:"public_key"`
-	StakeAmount string    `json:"stake_amount"` // decimal string, in QTX
-	NodeAddress string    `json:"node_address"`
+	PublicKey    string    `json:"public_key"`
+	StakeAmount  string    `json:"stake_amount"` // decimal string, in QTX
+	NodeAddress  string    `json:"node_address"`
 	RegisteredAt time.Time `json:"registered_at"`
-	Active      bool      `json:"active"`
+	Active       bool      `json:"active"`
 }
 
 const valKeyPrefix = "val:"

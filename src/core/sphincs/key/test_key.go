@@ -27,8 +27,8 @@ import (
 	"fmt"
 	"log"
 
-	key "github.com/ramseyauron/quantix/src/core/sphincs/key/backend"
-	"github.com/ramseyauron/quantix/src/crypto/SPHINCSPLUS-golang/sphincs"
+	key "github.com/quantix-org/quantix-org/src/core/sphincs/key/backend"
+	"github.com/quantix-org/quantix-org/src/crypto/SPHINCSPLUS-golang/sphincs"
 )
 
 func main() {

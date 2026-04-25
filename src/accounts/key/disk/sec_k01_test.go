@@ -18,7 +18,7 @@ import (
 	"testing"
 	"time"
 
-	key "github.com/ramseyauron/quantix/src/accounts/key"
+	key "github.com/quantix-org/quantix-org/src/accounts/key"
 )
 
 // keyPairForTest constructs a minimal KeyPair with the given KDFSalt and EncryptedSK.
