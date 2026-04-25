@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -77,16 +78,30 @@ func NewServer(config network.NodePortConfig, blockchain *core.Blockchain, db *l
 
 	// Create local node representation with provided configuration
 	// FIX: Add the database parameter
+	// Create local node representation with provided configuration
+	// FIX: Add the database parameter
+	// P2P-FIX: Use advertise address if set, otherwise use bind address
+	advertiseAddr := config.TCPAddr
+	if envAddr := os.Getenv("QUANTIX_ADVERTISE_ADDR"); envAddr != "" {
+		advertiseAddr = envAddr
+		log.Printf("📢 P2P: Using advertise address: %s (bind: %s)", advertiseAddr, config.TCPAddr)
+	}
+
+	// Parse advertise address for IP/port components
+	advParts := strings.Split(advertiseAddr, ":")
+	if len(advParts) != 2 {
+		advParts = parts // Fall back to bind address parts
+	}
+
 	localNode := network.NewNode(
-		config.TCPAddr, // Full TCP address
-		parts[0],       // IP address
-		parts[1],       // TCP port
+		advertiseAddr,  // Full advertise address (peer-facing identity)
+		advParts[0],    // IP from advertise address
+		advParts[1],    // Port from advertise address
 		config.UDPPort, // UDP port for discovery
 		true,           // This is the local node
 		config.Role,    // Node role (validator, sender, receiver)
 		nodeDB,         // Database instance
 	)
-
 	// Initialize logger for DHT using Uber's zap logging library
 	logger, err := zap.NewProduction()
 	if err != nil {

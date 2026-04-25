@@ -97,25 +97,25 @@ func NewConsensus(
 	timeConverter := NewTimeConverter(genesisTime)
 
 	// Add this node as a validator if it has sufficient stake
-	if blockchain != nil {
-		// Get this node's stake from the blockchain
-		stake := blockchain.GetValidatorStake(nodeID)
-		if stake != nil {
-			minStake := validatorSet.GetMinStakeAmount()
-			// Check if node meets minimum stake requirement
-			if stake.Cmp(minStake) >= 0 {
-				// Convert to QTX units (div by denomination)
-				stakeSPX := new(big.Int).Div(stake, big.NewInt(denom.QTX))
-				validatorSet.AddValidator(nodeID, uint64(stakeSPX.Int64()))
-			}
-		}
-		// If node not in validator set, add with minimum stake
-		if validatorSet.validators[nodeID] == nil {
-			minStakeSPX := validatorSet.GetMinStakeSPX()
-			logger.Info("Adding self %s with minimum stake %d QTX", nodeID, minStakeSPX)
-			validatorSet.AddValidator(nodeID, minStakeSPX)
-		}
-	}
+	// if blockchain != nil {
+	// 	// Get this node's stake from the blockchain
+	// 	stake := blockchain.GetValidatorStake(nodeID)
+	// 	if stake != nil {
+	// 		minStake := validatorSet.GetMinStakeAmount()
+	// 		// Check if node meets minimum stake requirement
+	// 		if stake.Cmp(minStake) >= 0 {
+	// 			// Convert to QTX units (div by denomination)
+	// 			stakeSPX := new(big.Int).Div(stake, big.NewInt(denom.QTX))
+	// 			validatorSet.AddValidator(nodeID, uint64(stakeSPX.Int64()))
+	// 		}
+	// 	}
+	// 	// If node not in validator set, add with minimum stake
+	// 	if validatorSet.validators[nodeID] == nil {
+	// 		minStakeSPX := validatorSet.GetMinStakeSPX()
+	// 		logger.Info("Adding self %s with minimum stake %d QTX", nodeID, minStakeSPX)
+	// 		validatorSet.AddValidator(nodeID, minStakeSPX)
+	// 	}
+	// }
 
 	// NEW: Register self public key with signing service
 	if signingService != nil {

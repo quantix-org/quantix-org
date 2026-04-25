@@ -54,3 +54,11 @@ TWITTER_JOURNEY.md
 
 #Data
 data/
+
+# Logs
+*.sh
+
+TODO.md
+TEAM_HUB.md
+
+*.bak
