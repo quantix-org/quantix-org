@@ -252,9 +252,9 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 			cons.SetDevMode(true)
 
 			// Add self as validator with minimum stake.
-			if vs := cons.GetValidatorSet(); vs != nil {
-				_ = vs.AddValidator(nodeID, vs.GetMinStakeSPX())
-			}
+			// if vs := cons.GetValidatorSet(); vs != nil {
+			// 	_ = vs.AddValidator(nodeID, vs.GetMinStakeSPX())
+			// }
 
 			// Wire consensus engine to blockchain and P2P server.
 			bc.SetConsensusEngine(cons)
@@ -424,7 +424,7 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 				Total      int `json:"total"`
 				Validators []struct {
 					PublicKey   string `json:"public_key"`
-					StakeAmount string `json:"stake_amount"`
+					Stake       int64  `json:"stake"`
 					NodeAddress string `json:"node_address"`
 					NodeID      string `json:"node_id"`
 					Active      bool   `json:"active"`
@@ -436,7 +436,7 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 			pbftReady := false
 			var lastValidators []struct {
 				PublicKey   string `json:"public_key"`
-				StakeAmount string `json:"stake_amount"`
+				Stake       int64  `json:"stake"`
 				NodeAddress string `json:"node_address"`
 				NodeID      string `json:"node_id"`
 				Active      bool   `json:"active"`
@@ -478,13 +478,41 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 						vs := cons.GetValidatorSet()
 						if vs != nil {
 							for _, vr := range lastValidators {
+								// ── FIX: Skip "unknown" validators from unregistered block proposers ──────
+								// The /validators API includes proposers found in historical blocks that
+								// aren't in the registration database. These appear with NodeID="unknown"
+								// and must be filtered out to maintain consensus validator set consistency.
+								if vr.NodeID == "unknown" || vr.NodeID == "" {
+									log.Printf("⏭️  Peer: skipping unregistered proposer (NodeID=%s)", vr.NodeID)
+									continue
+								}
+								// ───────────────────────────────────────────────────────────────────────────
+
+								isSeedNode := false
+								for _, seedURL := range seedHTTPs {
+									if strings.Contains(seedURL, "8560") { // Seed HTTP port
+										// Extract seed host and check if validator address matches
+										if strings.Contains(vr.NodeAddress, "validator-0") ||
+											strings.Contains(vr.NodeAddress, "quantix-validator-0") {
+											isSeedNode = true
+											break
+										}
+									}
+								}
+								if isSeedNode {
+									log.Printf("⏭️  Peer: skipping seed node %s from consensus validator set", vr.NodeAddress)
+									continue
+								}
+								// ───────────────────────────────────────────────────────────────────────────
+
 								nodeAddr := vr.NodeID
 								if nodeAddr == "" {
 									nodeAddr = vr.NodeAddress
 								}
 								// Use node address as validator ID (matches how nodes identify)
-								stake, ok := new(big.Int).SetString(vr.StakeAmount, 10)
-								if !ok || stake.Sign() <= 0 {
+								// Convert int64 stake to big.Int
+								stake := big.NewInt(vr.Stake)
+								if stake.Sign() <= 0 {
 									// Skip validators with invalid or zero stake
 									log.Printf("⏭️  Peer: skipping validator %s with invalid/zero stake", nodeAddr)
 									continue
@@ -515,6 +543,52 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 						log.Printf("🚀 P2-PBFT: consensus engine started — PBFT quorum reached (%d validators)", n)
 						// Wait for PBFT to establish connections with all validators
 						time.Sleep(3 * time.Second)
+
+						// ── PEER MESH: connect directly to every other peer validator ──
+						// BroadcastToAll uses globalServer.connections, which only has the
+						// seed's TCP connection at this point. Without direct peer connections
+						// each node's proposals only reach the passive seed — not the other
+						// validators — so votes never accumulate and quorum is never reached.
+						pm := resources[0].P2PServer.PeerManager()
+						for _, vr := range lastValidators {
+							if vr.NodeAddress == "" || vr.NodeAddress == myAddr {
+								continue // skip self
+							}
+							// Skip seed nodes — already connected and passive
+							isSeed := false
+							for _, seedURL := range seedHTTPs {
+								seedHost, _, _ := net.SplitHostPort(strings.TrimPrefix(strings.TrimPrefix(seedURL, "http://"), "https://"))
+								vrHost, _, _ := net.SplitHostPort(vr.NodeAddress)
+								if vrHost == seedHost {
+									isSeed = true
+									break
+								}
+							}
+							if isSeed {
+								continue
+							}
+							go func(addr string) {
+								host, port, err := net.SplitHostPort(addr)
+								if err != nil {
+									return
+								}
+								peerNode := &network.Node{
+									ID:      "Node-" + addr,
+									Address: addr,
+									IP:      host,
+									Port:    port,
+									Status:  network.NodeStatusActive,
+									Role:    network.RoleValidator,
+								}
+								if err := pm.ConnectPeer(peerNode); err != nil {
+									log.Printf("⚠️  Peer mesh: failed to connect %s → %s: %v", myAddr, addr, err)
+								} else {
+									log.Printf("✅ Peer mesh: %s → %s connected", myAddr, addr)
+								}
+							}(vr.NodeAddress)
+						}
+						// ───────────────────────────────────────────────────────────────
+
 						resources[0].Blockchain.StartLeaderLoop(context.Background())
 						log.Printf("🏁 P2-PBFT: leader loop started for peer node")
 					}
@@ -528,7 +602,7 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 	// and sync them to the consensus validatorSet when quorum is reached.
 	if !nodeConfig.ExplicitSeeds && pbftConsensus != nil {
 		go func() {
-			// Seed node: register self in the blockchain DB so peers' poll can see it.
+			// Seed node: register self in the blockchain DB so peers can discover it
 			time.Sleep(6 * time.Second)
 			// Use advertise address for seed node self-registration
 			seedAdvertiseAddr := os.Getenv("QUANTIX_ADVERTISE_ADDR")
@@ -548,81 +622,55 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 				log.Printf("✅ P2-PBFT: seed node self-registered in validator DB")
 			}
 
+			// Wait for peers to register and reach 4 validators
 			ticker := time.NewTicker(5 * time.Second)
 			defer ticker.Stop()
-			pbftReady := false
-			cons := pbftConsensus
 			for range ticker.C {
 				validators, err := resources[0].Blockchain.GetValidators()
-				if err != nil || len(validators) < 4 || pbftReady {
+				if err != nil {
 					continue
 				}
-				pbftReady = true
-				log.Printf("🎉 Seed node: 4 validators — syncing consensus validatorSet")
-				if vs := cons.GetValidatorSet(); vs != nil {
-					for _, vr := range validators {
-						stake, ok := new(big.Int).SetString(vr.StakeAmount, 10)
-						if !ok || stake.Sign() <= 0 {
-							// Skip validators with invalid or zero stake
-							log.Printf("⏭️  Seed: skipping validator %s with invalid/zero stake", vr.NodeAddress)
-							continue
-						}
-						stakeQTX := new(big.Int).Div(stake, big.NewInt(1e9))
-						if stakeQTX.Sign() <= 0 {
-							stakeQTX = big.NewInt(1000)
-						}
-						consNodeID := vr.NodeAddress
-						if !strings.HasPrefix(consNodeID, "Node-") {
-							consNodeID = "Node-" + consNodeID
-						}
-						_ = vs.AddValidator(consNodeID, stakeQTX.Uint64())
-					}
-					log.Printf("✅ P2-PBFT: seed node consensus validatorSet synced with %d validators", len(validators))
-					// P2-PBFT-FIX: Establish P2P TCP connections to registered validators
-					log.Printf("🔌 P2-PBFT: Establishing P2P connections to validators...")
+				log.Printf("🔍 Seed bootstrap: %d validators registered", len(validators))
+				if len(validators) >= 4 {
+					log.Printf("🌱 Seed node: 4 validators registered — bootstrap complete")
+					log.Printf("🌱 Seed node: acting as HTTP sync endpoint ONLY, not participating in PBFT")
+					log.Printf("🌱 Seed node: 3 peer validators will form consensus quorum")
+
+					// Establish P2P connections so peers can discover each other
 					pm := resources[0].P2PServer.PeerManager()
-					for _, vr := range validators {
-						// Skip self to avoid connecting to own address
+					for i, vr := range validators {
 						if vr.NodeAddress == "" || vr.NodeAddress == seedAdvertiseAddr {
 							continue
 						}
-						// Parse address to extract host and port
-						host, port, err := net.SplitHostPort(vr.NodeAddress)
-						if err != nil {
-							log.Printf("⚠️  Invalid validator address %s: %v", vr.NodeAddress, err)
-							continue
-						}
-						// Create network.Node for the validator
-						valNode := &network.Node{
-							ID:      "Node-" + vr.NodeAddress,
-							Address: vr.NodeAddress,
-							IP:      host,
-							Port:    port,
-							Status:  network.NodeStatusActive,
-							Role:    network.RoleValidator,
-						}
-						// Attempt P2P TCP connection
-						if err := pm.ConnectPeer(valNode); err != nil {
-							log.Printf("⚠️  P2-PBFT: Failed to connect to validator %s: %v", vr.NodeAddress, err)
-						} else {
-							log.Printf("✅ P2-PBFT: Connected to validator %s via P2P", vr.NodeAddress)
-						}
+						go func(idx int, validator *core.ValidatorRegistration) {
+							host, port, err := net.SplitHostPort(validator.NodeAddress)
+							if err != nil {
+								return
+							}
+							valNode := &network.Node{
+								ID:      "Node-" + validator.NodeAddress,
+								Address: validator.NodeAddress,
+								IP:      host,
+								Port:    port,
+								Status:  network.NodeStatusActive,
+								Role:    network.RoleValidator,
+							}
+							if err := pm.ConnectPeer(valNode); err != nil {
+								log.Printf("⚠️  Seed: Failed to connect to validator %s: %v", validator.NodeAddress, err)
+							} else {
+								log.Printf("✅ Seed: Connected to validator %s for peer discovery", validator.NodeAddress)
+							}
+						}(i, vr)
 					}
+
+					// Signal devnet miner to stop (seed will NOT mine)
+					close(minerStopCh)
+					log.Printf("⛏️  Seed: devnet mining disabled — acting as bootstrap/sync node only")
+
+					// DO NOT START CONSENSUS OR LEADER LOOP
+					// Seed remains passive, only serves HTTP API for sync and validator registry
+					return
 				}
-				// Stop devnet miner FIRST so PBFT is the sole block producer
-				close(minerStopCh)
-				log.Printf("🔨 Seed: devnet miner stopped, starting PBFT...")
-				// Start the consensus engine now that quorum is reachable.
-				if err := cons.Start(); err != nil {
-					log.Printf("⚠️  P2-PBFT: seed node consensus.Start failed at quorum: %v", err)
-				} else {
-					log.Printf("🚀 P2-PBFT: seed node consensus engine started — PBFT quorum reached")
-					// Wait for PBFT to establish connections with all validators
-					time.Sleep(3 * time.Second)
-					resources[0].Blockchain.StartLeaderLoop(context.Background())
-					log.Printf("🏁 P2-PBFT: leader loop started for seed node")
-				}
-				return
 			}
 		}()
 	}
@@ -630,67 +678,24 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 	// Devnet solo block producer — mines a new block every 10s from mempool.
 	// Only run on the seed node (no explicitly-provided peer seeds). Peer nodes sync
 	// from the seed and participate in PBFT without solo-mining, preventing chain divergence.
+	// Devnet solo block producer — mines a new block every 10s from mempool.
+	// Only run on the seed node (no explicitly-provided peer seeds). Peer nodes sync
+	// from the seed and participate in PBFT without solo-mining, preventing chain divergence.
+	// Devnet miner: DISABLED for testnet mode
+	// Seed acts as bootstrap/sync endpoint only
+	// 3 peer validators form the PBFT consensus (sufficient for 2f+1 quorum)
 	if nodeConfig.ExplicitSeeds {
 		log.Printf("⏭️  Devnet miner skipped for peer node %s — will sync from seed and use PBFT", nodeConfig.Name)
-		// Still need to drain minerStopCh to prevent goroutine leak if it's closed later
 		go func() { <-minerStopCh }()
 		goto skipDevnetMiner
 	}
+
+	// Seed node: wait for minerStopCh signal from bootstrap goroutine, then remain passive
 	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Printf("⚠️  Devnet miner recovered from panic: %v — restarting", r)
-				// Restart after panic
-				go func() {
-					time.Sleep(5 * time.Second)
-					log.Printf("🔄 Devnet miner restarting after panic")
-					ticker2 := time.NewTicker(8 * time.Second)
-					defer ticker2.Stop()
-					bc2 := resources[0].Blockchain
-					for range ticker2.C {
-						// Continue mining to keep network alive during validator registration
-						if height, err := bc2.DevnetMineBlock(nodeConfig.Name); err != nil {
-							if !strings.Contains(err.Error(), "no pending transactions") {
-								log.Printf("⚠️  Devnet miner: %v", err)
-							}
-						} else {
-							log.Printf("⛏️  Devnet mined block #%d", height)
-						}
-					}
-				}()
-			}
-		}()
-		ticker := time.NewTicker(8 * time.Second)
-		defer ticker.Stop()
-		bc := resources[0].Blockchain
-		log.Printf("🔨 Devnet miner started for %s — producing blocks every 8s", nodeConfig.Name)
-		for {
-			select {
-			case <-minerStopCh:
-				log.Printf("⛏️  Devnet miner stopped for %s — PBFT took over", nodeConfig.Name)
-				return
-			case <-ticker.C:
-				func() {
-					defer func() {
-						if r := recover(); r != nil {
-							log.Printf("⚠️  Devnet miner tick panic: %v", r)
-						}
-					}()
-					// Continue mining to keep network alive during validator registration
-					pendingCount := bc.GetPendingTransactionCount()
-					log.Printf("DevnetMineBlock attempt: pending=%d", pendingCount)
-					height, err := bc.DevnetMineBlock(nodeConfig.Name)
-					if err != nil {
-						if !strings.Contains(err.Error(), "no pending transactions") {
-							log.Printf("⚠️  Devnet miner: %v", err)
-						}
-					} else {
-						log.Printf("⛏️  Devnet mined block #%d", height)
-					}
-				}()
-			}
-		}
+		<-minerStopCh
+		log.Printf("🌱 Seed node: operating as HTTP sync endpoint — NO block production")
 	}()
+
 skipDevnetMiner:
 
 	// Start peer discovery after setup

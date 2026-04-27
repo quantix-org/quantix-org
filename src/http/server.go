@@ -693,6 +693,7 @@ func (s *Server) Router() interface {
 type ValidatorInfoResponse struct {
 	Address        string `json:"address"`
 	NodeID         string `json:"node_id"`
+	NodeAddress    string `json:"node_address"`
 	Stake          int64  `json:"stake"`
 	Status         string `json:"status"`
 	BlocksProduced int64  `json:"blocks_produced"`
@@ -766,6 +767,7 @@ func (s *Server) handleGetValidators(c *gin.Context) {
 		result = append(result, ValidatorInfoResponse{
 			Address:        addr,
 			NodeID:         "Node-" + v.NodeAddress,
+			NodeAddress:    v.NodeAddress,
 			Stake:          stakeVal,
 			Status:         status,
 			BlocksProduced: proposerCount[addr],
