@@ -297,6 +297,19 @@ type Consensus struct {
 	lastPreparedBlock  Block  // block that reached prepare quorum
 	lastPreparedHeight uint64 // height of lastPreparedBlock
 
+	// FIX-VIEWCHANGE-STORM: cache every accepted proposal by hash so that
+	// processPrepareVote / processVote / voteForBlock can still find the block
+	// after a view change calls resetConsensusState (which clears preparedBlock
+	// and lockedBlock).  Cleared on each height advance in commitBlock.
+	proposedBlocks map[string]Block // blockHash -> accepted Block
+
+	// FIX-QUORUM-RACE: snapshot the total stake when a proposal is first accepted
+	// so that hasPrepareQuorum and hasQuorum use a consistent denominator for the
+	// entire round.  Without this, a validator re-registering between prepare and
+	// commit raises the quorum bar mid-round and prevents commit quorum from firing.
+	// Cleared on each height advance in commitBlock.
+	roundTotalStake *big.Int // total stake at proposal-accept time for this round
+
 	// P2-4: devMode skips SPHINCS+ sig verification on votes/proposals for testnet
 	devMode bool
 }

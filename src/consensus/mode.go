@@ -20,7 +20,9 @@ const (
 )
 
 // MinPBFTValidators is the minimum number of validators required for real PBFT.
-const MinPBFTValidators = 4
+// The testnet uses 4 containers but validator-0 is a seed-only node;
+// the 3 peer validators form the consensus quorum (f=0 BFT).
+const MinPBFTValidators = 3
 
 // GetConsensusMode returns the appropriate ConsensusMode for the given validator count.
 func GetConsensusMode(validatorCount int) ConsensusMode {

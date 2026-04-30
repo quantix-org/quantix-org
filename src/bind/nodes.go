@@ -235,6 +235,10 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 
 		// Build P2P-backed node manager so consensus messages go over TCP.
 		p2pNM := p2p.NewP2PNodeManager(p2pSrv.NodeManager())
+		// RELAY-LOOPBACK FIX: register mark-seen callback so BroadcastMessage
+		// pre-marks outgoing messages in this node's P2P dedup map, preventing
+		// the star-topology relay bounce from re-entering the consensus engine.
+		p2pNM.SetMarkSeenFunc(p2pSrv.MarkConsensusMsgSeen)
 
 		// Minimum stake from chain parameters.
 		coreParams := core.GetQuantixChainParams()
@@ -278,9 +282,9 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 					log.Printf("✅ P2-PBFT: consensus engine started for %s (dev-mode=%v)", nodeID, nodeConfig.DevMode)
 				}
 			} else {
-				pbftConsensus = cons // keep reference for later activation at 4+ validators
+				pbftConsensus = cons // keep reference for later activation when quorum validators register
 				log.Printf("⏸️  P2-PBFT: consensus engine created but NOT started for %s — only %d validator(s), need %d for PBFT quorum (devnet miner active)",
-					nodeID, initialValidatorCount, 4)
+					nodeID, initialValidatorCount, consensus.MinPBFTValidators+1)
 			}
 		}
 	}
@@ -468,10 +472,10 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 					resp.Body.Close()
 					break
 				}
-				log.Printf("🔍 Validator count: %d / 4", n)
-				if n >= 4 && !pbftReady {
+				log.Printf("🔍 Validator count: %d / %d", n, consensus.MinPBFTValidators+1)
+				if n >= consensus.MinPBFTValidators+1 && !pbftReady {
 					pbftReady = true
-					log.Printf("🎉 %s: 4 validators registered — syncing to consensus validatorSet", nodeConfig.Name)
+					log.Printf("🎉 %s: %d validators registered — syncing to consensus validatorSet", nodeConfig.Name, n)
 					// P2-PBFT: sync all registered validators into the consensus validatorSet.
 					cons := pbftConsensus
 					if cons != nil {
@@ -631,10 +635,10 @@ func StartSingleNodeInternal(nodeConfig network.NodePortConfig, dataDir string) 
 					continue
 				}
 				log.Printf("🔍 Seed bootstrap: %d validators registered", len(validators))
-				if len(validators) >= 4 {
-					log.Printf("🌱 Seed node: 4 validators registered — bootstrap complete")
+				if len(validators) >= consensus.MinPBFTValidators+1 {
+					log.Printf("🌱 Seed node: %d validators registered — bootstrap complete", len(validators))
 					log.Printf("🌱 Seed node: acting as HTTP sync endpoint ONLY, not participating in PBFT")
-					log.Printf("🌱 Seed node: 3 peer validators will form consensus quorum")
+					log.Printf("🌱 Seed node: %d peer validators will form consensus quorum", consensus.MinPBFTValidators)
 
 					// Establish P2P connections so peers can discover each other
 					pm := resources[0].P2PServer.PeerManager()
@@ -1077,6 +1081,10 @@ func SetupNodes(configs []NodeSetupConfig, wg *sync.WaitGroup) ([]NodeResources,
 		publicKeys[pubHex] = config.Name
 
 		tcpServers[i] = transport.NewTCPServer(config.Address, messageChans[i], rpcServers[i], tcpReadyCh)
+		// FIX-TRANSPORT: wire global message channel so SendMessage's fallback-connect
+		// path starts a read goroutine (without this, inbound replies on outbound TCP
+		// connections created by SendMessage are silently dropped).
+		transport.SetGlobalMessageCh(messageChans[i])
 		wsServers[i] = transport.NewWebSocketServer(config.WSPort, messageChans[i], rpcServers[i])
 		httpServers[i] = http.NewServer(config.HTTPPort, messageChans[i], blockchains[i], readyCh)
 

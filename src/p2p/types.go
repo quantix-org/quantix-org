@@ -24,6 +24,8 @@
 package p2p
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"net"
 	"sync"
 	"time"
@@ -79,6 +81,20 @@ func (s *Server) LocalNode() *network.Node {
 
 func (s *Server) NodeManager() *network.NodeManager {
 	return s.nodeManager
+}
+
+// MarkConsensusMsgSeen marks the sha256 of rawBytes in seenConsensusMsgs so that
+// outgoing consensus messages (proposal, vote, prepare) are not reprocessed when
+// the star-topology relay node bounces them back to the original sender.
+func (s *Server) MarkConsensusMsgSeen(rawBytes []byte) {
+	hash := sha256.Sum256(rawBytes)
+	msgKey := hex.EncodeToString(hash[:])
+	s.mu.Lock()
+	if s.seenConsensusMsgs == nil {
+		s.seenConsensusMsgs = make(map[string]time.Time)
+	}
+	s.seenConsensusMsgs[msgKey] = time.Now()
+	s.mu.Unlock()
 }
 
 func (s *Server) PeerManager() *PeerManager {

@@ -83,6 +83,16 @@ var globalServer = &TCPServer{
 	mu:          sync.Mutex{},
 }
 
+// SetGlobalMessageCh registers the channel used by SendMessage's fallback-connect
+// path to start per-connection read goroutines. Call once at startup with the same
+// channel passed to NewTCPServer so that on-demand outbound connections (e.g. verack
+// replies to newly-seen peers) can receive incoming messages from those peers.
+func SetGlobalMessageCh(ch chan *security.Message) {
+	globalServer.mu.Lock()
+	globalServer.messageCh = ch
+	globalServer.mu.Unlock()
+}
+
 // NewTCPServer creates a new TCP server.
 func NewTCPServer(address string, messageCh chan *security.Message, rpcServer *rpc.Server, tcpReadyCh chan struct{}) *TCPServer {
 	return &TCPServer{
@@ -413,7 +423,60 @@ func SendMessage(address string, msg *security.Message) error {
 		globalServer.mu.Lock()
 		globalServer.connections[address] = conn
 		globalServer.encKeys[address] = enc
+		msgCh := globalServer.messageCh
 		globalServer.mu.Unlock()
+
+		// FIX-P2P-SENDMSG-READ: start a read goroutine so the remote end can send
+		// messages back on this connection (e.g. V3 gossip_block → V0 on the V0→V3
+		// outbound socket).  Without this, connections created by SendMessage are
+		// send-only, so any reply from the peer is silently discarded.
+		if msgCh != nil {
+			readEnc := enc
+			go func(c net.Conn, addr string, ch chan *security.Message, e *security.EncryptionKey) {
+				defer func() {
+					globalServer.mu.Lock()
+					delete(globalServer.connections, addr)
+					delete(globalServer.encKeys, addr)
+					globalServer.mu.Unlock()
+					if err := c.Close(); err != nil && !strings.Contains(err.Error(), "use of closed network connection") {
+						log.Printf("Error closing SendMessage connection to %s: %v", addr, err)
+					}
+				}()
+				reader := bufio.NewReader(c)
+				for {
+					lengthBuf := make([]byte, 4)
+					if _, err := io.ReadFull(reader, lengthBuf); err != nil {
+						if err != io.EOF && !strings.Contains(err.Error(), "closed") {
+							log.Printf("TCP read length error on SendMessage conn %s: %v", addr, err)
+						}
+						return
+					}
+					length := binary.BigEndian.Uint32(lengthBuf)
+					if length > maxMessageSize {
+						log.Printf("TCP response too large on SendMessage conn %s: %d bytes", addr, length)
+						return
+					}
+					respData := make([]byte, length)
+					if _, err := io.ReadFull(reader, respData); err != nil {
+						if err != io.EOF && !strings.Contains(err.Error(), "closed") {
+							log.Printf("TCP read data error on SendMessage conn %s: %v", addr, err)
+						}
+						return
+					}
+					respMsg, err := security.DecodeSecureMessage(respData, e)
+					if err != nil {
+						log.Printf("TCP decode error on SendMessage conn %s: %v", addr, err)
+						continue
+					}
+					select {
+					case ch <- respMsg:
+						log.Printf("Sent response to messageCh for %s, message type: %s", addr, respMsg.Type)
+					default:
+						log.Printf("Failed to send response to messageCh for %s, channel full", addr)
+					}
+				}
+			}(conn, address, msgCh, readEnc)
+		}
 
 		data, err := security.SecureMessage(msg, enc)
 		if err != nil {

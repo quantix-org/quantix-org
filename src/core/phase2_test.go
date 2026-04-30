@@ -113,8 +113,10 @@ func TestConsensusMode_UnknownValue_StringNotEmpty(t *testing.T) {
 }
 
 func TestMinPBFTValidators_Is4(t *testing.T) {
-	if consensus.MinPBFTValidators != 4 {
-		t.Errorf("MinPBFTValidators = %d, want 4", consensus.MinPBFTValidators)
+	// MinPBFTValidators was changed from 4 to 3: the testnet runs 4 containers
+	// but validator-0 is a seed-only node; the 3 peer validators form the quorum.
+	if consensus.MinPBFTValidators != 3 {
+		t.Errorf("MinPBFTValidators = %d, want 3", consensus.MinPBFTValidators)
 	}
 }
 

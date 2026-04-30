@@ -336,12 +336,16 @@ func (b *Block) GenerateBlockHash() []byte {
 
 	// Include ALL important header fields in the hash calculation
 	// Concatenate all header fields for hashing
-	headerData := versionBytes                                      // Version (8 bytes)
-	headerData = append(headerData, blockNumBytes...)               // Block number/height (8 bytes)
-	headerData = append(headerData, timestampBytes...)              // Timestamp (8 bytes)
-	headerData = append(headerData, b.Header.ParentHash...)         // Parent hash (32 bytes)
-	headerData = append(headerData, b.Header.TxsRoot...)            // Transactions Merkle root (32 bytes)
-	headerData = append(headerData, b.Header.StateRoot...)          // State Merkle root (32 bytes)
+	headerData := versionBytes                              // Version (8 bytes)
+	headerData = append(headerData, blockNumBytes...)       // Block number/height (8 bytes)
+	headerData = append(headerData, timestampBytes...)      // Timestamp (8 bytes)
+	headerData = append(headerData, b.Header.ParentHash...) // Parent hash (32 bytes)
+	headerData = append(headerData, b.Header.TxsRoot...)    // Transactions Merkle root (32 bytes)
+	// NOTE: StateRoot is intentionally excluded from the block hash.
+	// The block hash is fixed at proposal time (before execution), and all
+	// validators vote on that pre-execution hash. StateRoot is computed during
+	// CommitBlock and stored in the header for state-verification purposes, but
+	// must NOT influence the canonical block hash used for consensus voting.
 	headerData = append(headerData, nonceBytes...)                  // Nonce (as bytes, 8 bytes)
 	headerData = append(headerData, b.Header.Difficulty.Bytes()...) // Difficulty (variable)
 	headerData = append(headerData, b.Header.GasLimit.Bytes()...)   // Gas limit (variable)

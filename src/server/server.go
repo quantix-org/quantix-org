@@ -98,6 +98,10 @@ func NewServer(tcpAddr, wsAddr, httpAddr, p2pAddr string, seeds []string, db *le
 		Role:      role,
 	}
 
+	// FIX-P2P-SENDMSG-READ: register the message channel so SendMessage's
+	// fallback-connect path can start read goroutines on new outbound connections.
+	transport.SetGlobalMessageCh(messageCh)
+
 	return &Server{
 		tcpServer:  transport.NewTCPServer(tcpAddr, messageCh, rpcServer, readyCh),
 		wsServer:   transport.NewWebSocketServer(wsAddr, messageCh, rpcServer),

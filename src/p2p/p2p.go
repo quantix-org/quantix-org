@@ -706,7 +706,17 @@ func (s *Server) handleMessages() {
 				} else {
 					s.markBlockSeen(block.GetHash())
 					log.Printf("gossip_block: accepted block height=%d hash=%s", block.GetHeight(), block.GetHash())
+					// Notify consensus engine so it resets stale per-height state and can
+					// participate in PBFT for the next height without stale view numbers.
+					if s.consensus != nil {
+						s.consensus.OnExternalBlockCommit(block.GetHeight())
+					}
 				}
+				// STAR-TOPOLOGY FIX: relay gossip_block to all peers so validators that
+				// did not receive the original broadcast can apply the committed block and
+				// remain in sync with the rest of the network.
+				// Dedup at each receiver via isBlockSeen prevents relay loops.
+				go transport.BroadcastToAll(&security.Message{Type: "gossip_block", Data: block})
 			} else {
 				log.Printf("gossip_block: unexpected data type %T", msg.Data)
 			}
@@ -727,17 +737,15 @@ func (s *Server) handleMessages() {
 				}
 			}
 			if rawBytes != nil && s.consensus != nil {
-				if err := RouteConsensusMessage(rawBytes, s.consensus); err != nil {
-					log.Printf("consensus_msg: route error: %v", err)
-				}
-				// FIX-PBFT-DEADLOCK: relay consensus_msg to all peers for star-topology support.
-				// Without this, nodes connected only to node-0 don't see messages from other nodes.
-				// Use a simple hash key to avoid re-broadcasting messages we've already seen.
-				// FIX-PBFT-GOSSIP: use SHA256 hash of the full message as dedup key.
-				// The old 32-byte prefix caused all prepare/commit/vote messages to share
-				// the same key (they all start with {"type":"prepare",...}) so only the
-				// first message per type was relayed — follower nodes never saw each other's
-				// votes and could never reach prepare quorum.
+				// FIX-CHAN-FLOOD: check dedup BEFORE routing to the consensus engine.
+				// Each TCP connection runs handleMessages in its own goroutine, so the
+				// same consensus_msg can arrive on two connections simultaneously (e.g.,
+				// from the original sender AND from the star-topology relay).  The old
+				// code called RouteConsensusMessage first and only checked seenConsensusMsgs
+				// afterwards, so BOTH goroutines pushed a copy into prepareCh/voteCh before
+				// either one marked the message as seen — flooding the channel even though
+				// the relay dedup was correct.  Moving the atomic seen-check first ensures
+				// each unique message is routed to the consensus engine exactly once.
 				msgHashBytes := sha256.Sum256(rawBytes)
 				msgKey := hex.EncodeToString(msgHashBytes[:])
 				s.mu.Lock()
@@ -753,17 +761,44 @@ func (s *Server) handleMessages() {
 						delete(s.seenConsensusMsgs, k)
 					}
 				}
-				if _, seen := s.seenConsensusMsgs[msgKey]; !seen {
+				_, alreadySeen := s.seenConsensusMsgs[msgKey]
+				if !alreadySeen {
 					s.seenConsensusMsgs[msgKey] = now
-					s.mu.Unlock()
-					// Relay to all connections using rawBytes as data
+				}
+				s.mu.Unlock()
+				if !alreadySeen {
+					// First time seeing this message: route to local consensus engine
+					// AND relay to peers so star-topology nodes stay in sync.
+					if err := RouteConsensusMessage(rawBytes, s.consensus); err != nil {
+						log.Printf("consensus_msg: route error: %v", err)
+					}
 					secureMsg := &security.Message{Type: "consensus_msg", Data: string(rawBytes)}
 					go transport.BroadcastToAll(secureMsg) //nolint
-				} else {
-					s.mu.Unlock()
 				}
 			} else if s.consensus == nil {
-				log.Printf("consensus_msg: consensus not initialized, dropping")
+				// Seed: no local consensus engine — act as relay bus
+				if rawBytes != nil {
+					msgHashBytes := sha256.Sum256(rawBytes)
+					msgKey := hex.EncodeToString(msgHashBytes[:])
+					s.mu.Lock()
+					if s.seenConsensusMsgs == nil {
+						s.seenConsensusMsgs = make(map[string]time.Time)
+					}
+					now := time.Now()
+					for k, t := range s.seenConsensusMsgs {
+						if now.Sub(t) > seenConsensusMsgsTTL {
+							delete(s.seenConsensusMsgs, k)
+						}
+					}
+					if _, seen := s.seenConsensusMsgs[msgKey]; !seen {
+						s.seenConsensusMsgs[msgKey] = now
+						s.mu.Unlock()
+						go transport.BroadcastToAll(&security.Message{Type: "consensus_msg", Data: string(rawBytes)})
+						log.Printf("consensus_msg: seed relay to peers")
+					} else {
+						s.mu.Unlock()
+					}
+				}
 			}
 
 		case "gossip_tx":

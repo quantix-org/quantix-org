@@ -828,8 +828,13 @@ func (bc *Blockchain) StartLeaderLoop(ctx context.Context) {
 					continue
 				}
 
-				// Update leader status (RANDAO election) before checking
-				bc.consensusEngine.UpdateLeaderStatus()
+				// Only run RANDAO election at view 0 (initial proposal for a new height).
+				// After view changes, startViewChange() already set the round-robin leader;
+				// calling UpdateLeaderStatus() here would overwrite it with RANDAO,
+				// causing multiple validators to simultaneously think they are the leader.
+				if bc.consensusEngine.GetCurrentView() == 0 {
+					bc.consensusEngine.UpdateLeaderStatus()
+				}
 
 				// Only leader proposes blocks — compare elected leader to this node directly
 				// to avoid race with view changes resetting isLeader between UpdateLeaderStatus and here.
@@ -1868,8 +1873,11 @@ func (bc *Blockchain) CommitBlock(block consensus.Block) error {
 	}
 
 	// Stamp the real state root into the block header before storage.
+	// StateRoot is NOT part of the canonical block hash (see GenerateBlockHash), so this
+	// does not change the block's identity — the hash voted on during PBFT is preserved.
 	typeBlock.Header.StateRoot = stateRoot
-	// Re-finalize hash because StateRoot is an input to the block hash.
+	// Re-finalize to keep TxsRoot/UnclesHash consistent. StateRoot is excluded from the
+	// hash formula, so the canonical hash stays identical to the one validators voted on.
 	typeBlock.FinalizeHash()
 
 	// Store block in storage (now with the real StateRoot).
@@ -1896,9 +1904,11 @@ func (bc *Blockchain) CommitBlock(block consensus.Block) error {
 	logger.Info("✅ Block committed: height=%d, hash=%s, transactions=%d, block_time=%v",
 		typeBlock.GetHeight(), typeBlock.GetHash(), len(txIDs), blockTime)
 
-	// Broadcast to peers (fire-and-forget, outside any lock)
+	// Broadcast to peers (fire-and-forget, outside any lock).
+	// Run in a goroutine so TCP writes cannot block the consensus mutex
+	// (CommitBlock may be called from processVote while c.mu is held).
 	if gb != nil {
-		gb.BroadcastBlock(typeBlock)
+		go gb.BroadcastBlock(typeBlock)
 	}
 
 	return nil

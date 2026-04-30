@@ -29,11 +29,23 @@ import (
 type P2PNodeManager struct {
 	mu          sync.RWMutex
 	nodeManager *network.NodeManager // underlying network node manager
+	// markSeen, when set, is called with the raw envelope bytes of every outgoing
+	// consensus message so the sender's P2P dedup map ignores the relay bounce.
+	markSeen func([]byte)
 }
 
 // NewP2PNodeManager creates a new P2P-backed consensus node manager.
 func NewP2PNodeManager(nm *network.NodeManager) *P2PNodeManager {
 	return &P2PNodeManager{nodeManager: nm}
+}
+
+// SetMarkSeenFunc registers a callback that is called with the raw envelope bytes
+// of every outgoing consensus message, marking them in the sender's own P2P dedup
+// map so the star-topology relay bounce is discarded rather than re-processed.
+func (m *P2PNodeManager) SetMarkSeenFunc(fn func([]byte)) {
+	m.mu.Lock()
+	m.markSeen = fn
+	m.mu.Unlock()
 }
 
 // GetPeers returns a map of peer IDs to consensus.Peer.
@@ -119,6 +131,17 @@ func (m *P2PNodeManager) BroadcastMessage(messageType string, data interface{}) 
 	msg := &security.Message{
 		Type: "consensus_msg",
 		Data: string(envBytes),
+	}
+
+	// RELAY-LOOPBACK FIX: mark this message in our own P2P dedup map BEFORE
+	// broadcasting so that when the star-topology relay node reflects it back to
+	// us, the seenConsensusMsgs check drops it and we never reprocess our own
+	// outgoing consensus messages.
+	m.mu.RLock()
+	ms := m.markSeen
+	m.mu.RUnlock()
+	if ms != nil {
+		ms(envBytes)
 	}
 
 	errs := transport.BroadcastToAll(msg)
